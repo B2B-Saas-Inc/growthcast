@@ -18,7 +18,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts and at most one decimal place for other displayed values
-- Forecast CSV export
+- Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, and the monthly forecast
 
 ### Methodology
 
@@ -35,7 +35,7 @@ A separate page keeps channel configuration out of the main forecast. Channel na
 
 Every channel supports:
 
-- Go-live month; `0` disables the channel completely
+- Go-live month; `0` disables the channel completely and proportionally redistributes its paid allocation across the remaining enabled paid channels
 - Hide, show, and restore controls
 - Expandable visitor-to-signup, signup-to-purchase, and ARPU assumptions
 

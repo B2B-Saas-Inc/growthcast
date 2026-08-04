@@ -97,7 +97,7 @@ Required invariants:
 - Baseline signup-to-purchase conversion is 0.8%.
 - Customer churn and revenue churn remain distinct.
 - Channel traffic is introduced once at go-live, then compounds only with global Traffic growth.
-- Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue.
+- Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue; when a paid channel is changed to 0, redistribute its allocation proportionally across the other enabled paid channels so enabled allocation remains 100%.
 - Direct response: `visitors = allocatedSpend / CPC`.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
@@ -171,7 +171,7 @@ Current deployment is a local multi-stage Docker image. A hosted pipeline is `[T
 
 ## Data and exports
 
-Forecast CSV plus assumption JSON/CSV are generated entirely in the browser. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
+Forecast CSV, shareable forecast PDF, and assumption JSON/CSV are generated entirely in the browser. PDF generation uses dynamically imported jsPDF and must include model identity, generation context, summary metrics, core assumptions, monthly forecast, and a planning disclaimer. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
 
 ## Accessibility
 
