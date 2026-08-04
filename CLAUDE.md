@@ -82,11 +82,11 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns transient UI state and renders three logical pages: Forecast, Channels, and Methodology. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns transient UI state and renders four logical pages: Baseline, Forecast, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Forecast engine
 
-`src/engine/forecast.ts` is a pure deterministic monthly simulation. Inputs are the last complete historical month, global assumptions, and channel assumptions. Outputs must be traceable to inputs and safe to recalculate on every state change.
+`src/engine/forecast.ts` is a pure deterministic monthly simulation. Inputs are the user-configured baseline opening state, global assumptions, and channel assumptions. Outputs must be traceable to inputs and safe to recalculate on every state change.
 
 Required invariants:
 
@@ -120,6 +120,7 @@ JSON exports include:
 - `schemaVersion`
 - `exportedAt`
 - `modelName`
+- `baseline`
 - `forecastStartMonth`
 - `scenario`
 - `budget`
@@ -192,6 +193,7 @@ None are currently required. Do not create `.env` files unless a runtime integra
 ## Terminology
 
 - **Model name**: User-supplied white-label name stored in assumption JSON.
+- **Baseline**: User-supplied opening month, visitors, signups, new customers, total customers, and MRR. ARPU and ARR are derived. Live forecast calculations use baseline visitors, customers, and MRR.
 - **Scenario**: Named set of global forecast assumptions.
 - **Baseline traffic**: Historical visitor base compounded by global Traffic growth.
 - **Channel defaults**: General-tab signup conversion, purchase conversion, and ARPU values applied immediately to every subchannel; individual values may then diverge.

@@ -6,6 +6,12 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 ## Features
 
+### Baseline setup
+
+The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
+
+The repository includes [`baseline.csv`](baseline.csv) with the original project baseline: July 2026, 5,594 visitors, 719 signups, 27 new customers, 599 total customers, and $22,858 MRR.
+
 ### Forecast
 
 - Editable model name used in the document title and exported filenames
@@ -54,13 +60,14 @@ Channel traffic enters the model once in its go-live month. From then on, active
 Choose JSON or CSV and export a versioned assumption file containing:
 
 - Model name
+- Baseline metrics
 - Scenario
 - Global assumptions
 - Paid-media budget
 - Every channel and subchannel setting
 - Visibility and activation configuration
 
-Loading either JSON or the exported CSV restores the model name, starting month, and all assumptions. Files are parsed and validated locally before application state changes.
+Loading either JSON or the exported CSV restores the model name, baseline metrics, starting month, and all assumptions. Files are parsed and validated locally before application state changes.
 
 ## Historical data
 
