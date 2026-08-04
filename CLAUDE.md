@@ -120,12 +120,13 @@ JSON exports include:
 - `schemaVersion`
 - `exportedAt`
 - `modelName`
+- `forecastStartMonth`
 - `scenario`
 - `budget`
 - `assumptions`
 - `channels`
 
-Imports must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
+Exports support JSON and a two-column CSV representation whose values are JSON encoded. Imports detect `.json` or `.csv` and must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
 
 ### Authentication, onboarding, and tenancy
 
@@ -169,7 +170,7 @@ Current deployment is a local multi-stage Docker image. A hosted pipeline is `[T
 
 ## Data and exports
 
-Forecast CSV and assumption JSON are generated entirely in the browser. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
+Forecast CSV plus assumption JSON/CSV are generated entirely in the browser. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
 
 ## Accessibility
 

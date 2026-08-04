@@ -10,6 +10,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 - Editable model name used in the document title and exported filenames
 - Conservative, Baseline, and Ambitious scenario presets
+- Starting-month selector covering August 2026 through August 2028
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, and signup-to-purchase conversion
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, and LTV:CAC assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
@@ -49,7 +50,7 @@ Channel traffic enters the model once in its go-live month. From then on, active
 
 ### Portable assumption sets
 
-Export a versioned JSON file containing:
+Choose JSON or CSV and export a versioned assumption file containing:
 
 - Model name
 - Scenario
@@ -58,7 +59,7 @@ Export a versioned JSON file containing:
 - Every channel and subchannel setting
 - Visibility and activation configuration
 
-Loading the JSON restores the model name and all assumptions. Files are parsed and validated locally before application state changes.
+Loading either JSON or the exported CSV restores the model name, starting month, and all assumptions. Files are parsed and validated locally before application state changes.
 
 ## Historical data
 
@@ -136,7 +137,7 @@ See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CL
 
 ## Assumption JSON compatibility
 
-Exports currently use `schemaVersion: 1`. Import rejects unsupported versions, incomplete files, invalid channel types, negative values, and non-finite numbers. If the contract changes, increment the schema version and provide a migration or explicit compatibility error.
+Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatible and defaults its starting month to August 2026. Import rejects unsupported versions, incomplete files, invalid channel types, negative values, and non-finite numbers. If the contract changes, increment the schema version and provide a migration or explicit compatibility error.
 
 ## Privacy and security
 
