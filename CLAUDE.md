@@ -124,6 +124,7 @@ JSON exports include:
 - `scenario`
 - `budget`
 - `assumptions`
+- `channelDefaults`
 - `channels`
 
 Exports support JSON and a two-column CSV representation whose values are JSON encoded. Imports detect `.json` or `.csv` and must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
@@ -193,6 +194,7 @@ None are currently required. Do not create `.env` files unless a runtime integra
 - **Model name**: User-supplied white-label name stored in assumption JSON.
 - **Scenario**: Named set of global forecast assumptions.
 - **Baseline traffic**: Historical visitor base compounded by global Traffic growth.
+- **Channel defaults**: General-tab signup conversion, purchase conversion, and ARPU values applied immediately to every subchannel; individual values may then diverge.
 - **Channel**: Acquisition source with a go-live month and funnel assumptions.
 - **Subchannel**: Individually configurable paid or owned channel within a tab.
 - **Live month**: Forecast month when one-time channel traffic enters; `0` means disabled.

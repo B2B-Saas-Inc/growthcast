@@ -26,8 +26,9 @@ A dedicated Methodology page documents the monthly calculation sequence, channel
 
 ### Channel settings
 
-A separate page keeps channel configuration out of the main forecast. It includes tabs for:
+A separate page keeps channel configuration out of the main forecast. Channel names, labels, values, and tabs use a high-legibility treatment. It includes tabs for:
 
+- **General:** Set visitor-to-signup conversion, signup-to-purchase conversion, and new-customer ARPU across every subchannel at once; individual channels can still override them afterward
 - **Direct Response:** Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat
 - **Demand Gen:** YouTube, Display, and CTV through Vibe.co/Quantcast
 - **Owned / Partner / Custom:** SEO/organic, Partners, Enterprise/B2B, and Custom
