@@ -162,7 +162,7 @@ Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatib
 
 ## Deployment
 
-[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply baseline security headers. The production project is `b2b-saas/growth-model` at <https://growth-model-peach.vercel.app>.
+[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply baseline security headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
 
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes
