@@ -101,7 +101,8 @@ Required invariants:
 - Direct response: `visitors = allocatedSpend / CPC`.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
-- Actual blended CAC is total enabled paid launch spend divided by new customers predicted from paid launch traffic.
+- Partner assumptions include recurring affiliate commission percentage and commissioned months; defaults are 30% for 12 months. Estimate commission cost using channel ARPU and geometric monthly revenue retention over the commission window.
+- Actual blended CAC is enabled paid launch spend plus expected partner commissions, divided by new customers predicted from paid and partner launch traffic.
 - Predicted LTV is ending revenue LTV multiplied by gross margin.
 - Payback months is blended CAC divided by ending monthly ARPU multiplied by gross margin.
 - Expected LTV:CAC is predicted contribution LTV divided by blended CAC.

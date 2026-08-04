@@ -27,6 +27,7 @@ Instructions for coding agents working in this repository.
 - Live month `0` disables a channel completely, including traffic, spend, and budget allocation.
 - Direct-response traffic = allocated spend / CPC.
 - Demand-generation traffic = allocated spend / CPM * 1,000 * CTR.
+- Partner acquisition cost uses ARPU × commission rate across the commissioned months, geometrically adjusted by monthly revenue retention, and contributes to blended CAC.
 - Keep revenue and customer churn separate.
 - Never use floating-point values as stored currency in any future persistence layer. The current in-memory display model may calculate with numbers.
 - People counts display as whole numbers; other displayed values use at most one decimal place.

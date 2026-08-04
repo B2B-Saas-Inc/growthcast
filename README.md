@@ -37,7 +37,7 @@ A separate page keeps channel configuration out of the main forecast. Channel na
 - **General:** Set visitor-to-signup conversion, signup-to-purchase conversion, and new-customer ARPU across every subchannel at once; individual channels can still override them afterward
 - **Direct Response:** Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat
 - **Demand Gen:** YouTube, Display, and CTV through Vibe.co/Quantcast
-- **Owned / Partner / Custom:** SEO/organic, Partners, Enterprise/B2B, and Custom
+- **Owned / Partner / Custom:** SEO/organic, Partners, Enterprise/B2B, and Custom. Partners additionally support affiliate commission percentage and commission duration; defaults reflect the current 30% recurring, 12-month affiliate offer.
 
 Every channel supports:
 
@@ -51,6 +51,7 @@ Paid media begins with a $50,000 monthly budget and editable subchannel allocati
 Direct-response visitors = allocated spend / CPC
 Demand-generation visitors = allocated spend / CPM * 1,000 * CTR
 Expected CPC = allocated spend / calculated visitors
+Affiliate CAC/customer = ARPU × commission % × churn-adjusted commissioned months
 ```
 
 Channel traffic enters the model once in its go-live month. From then on, active traffic compounds only through the global Traffic growth assumption; the launch contribution is not added repeatedly.
@@ -152,6 +153,7 @@ Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatib
 - No authentication or external API credentials
 - No server-side persistence; model progress is stored only in the current browser's local storage
 - No automatic upload of assumptions or forecast data
+- Reload-safe progress stored locally under the versioned browser key `growth-model-state-v1`
 - Imported JSON is treated as data, not HTML or executable code
 - Local container examples bind only to localhost
 - `.env` files, build output, dependencies, screenshots, and `CONTINUITY.md` are excluded from Git
