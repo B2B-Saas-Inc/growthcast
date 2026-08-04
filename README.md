@@ -1,4 +1,4 @@
-# Growth Model
+# GrowthCast
 
 A white-labelled, local-first SaaS growth and recurring-revenue forecasting application. Configure acquisition channels, funnel conversion, customer and revenue churn, expansion, ARPU, margin, and LTV:CAC targets; then inspect the monthly effect on customers, MRR, ARR, and allowable acquisition cost.
 
@@ -8,13 +8,16 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 ### Homepage
 
-The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline.
+The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline. Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
 
 ### Baseline setup
 
+The editable model name lives with the baseline inputs. GrowthCast is the default identity, while changing the model name updates the document title and export filenames.
+
+
 The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The application starts with zeroed metrics and contains no bundled private historical performance. Master Reset returns to the Baseline tab and clears the model. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images. Baseline files include the paid-media budget; the authorized local file sets it to $0.
+The application starts with zeroed metrics and contains no bundled private historical performance. Forecast, Deep Dive, and Channels redirect to Baseline until all five required baseline metrics are greater than zero, and the Baseline page explains what is missing. Master Reset returns to the Baseline tab and clears the model. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images. Baseline files include the paid-media budget; the authorized local file sets it to $0.
 
 ### Forecast
 

@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides persistent context for AI agents working on Growth Model. Read it fully before writing any code.
+This file provides persistent context for AI agents working on GrowthCast. Read it fully before writing any code.
 
 ## Project overview
 
-Growth Model is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs, and exchange versioned assumption sets as JSON. The current stage is a functioning static MVP deployed on Vercel with no monetization, accounts, or backend.
+GrowthCast is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs, and exchange versioned assumption sets as JSON. The current stage is a functioning static MVP deployed on Vercel with no monetization, accounts, or backend.
 
 The primary activation action is changing an assumption or loading an assumption set and seeing the forecast update deterministically.
 
@@ -81,7 +81,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Homepage
 
