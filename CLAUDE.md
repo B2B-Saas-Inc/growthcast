@@ -20,7 +20,7 @@ The primary activation action is changing an assumption or loading an assumption
 | Authentication/tenancy | None; local single-user app |
 | Email/payments/storage/jobs/cache/search | Not applicable |
 | Monitoring/analytics/flags/CMS | Not configured |
-| Persistence | Browser session state; JSON import/export |
+| Persistence | Browser `localStorage` for reload-safe progress; JSON/CSV import/export |
 | Unit tests | Vitest |
 | E2E validation | Pi `playwright_validate` |
 | Production runtime | Static nginx container |
@@ -82,7 +82,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns transient UI state and renders four logical pages: Baseline, Forecast, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence and renders four logical pages: Baseline, Forecast, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Forecast engine
 
@@ -144,7 +144,7 @@ Not configured. Browser console errors must remain zero in validation. A future 
 
 ### Security
 
-The app is static and local-first. Maintain these controls:
+The app is static and local-first. Baseline and assumption progress is persisted under versioned local-storage key `growth-model-state-v1`; malformed or unavailable storage must fall back safely. Maintain these controls:
 
 - No credentials, secrets, or live API tokens in the bundle.
 - Validate imported files before state mutation.

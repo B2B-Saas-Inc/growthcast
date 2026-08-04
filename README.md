@@ -2,7 +2,7 @@
 
 A white-labelled, local-first SaaS growth and recurring-revenue forecasting application. Configure acquisition channels, funnel conversion, customer and revenue churn, expansion, ARPU, margin, and LTV:CAC targets; then inspect the monthly effect on customers, MRR, ARR, and allowable acquisition cost.
 
-The application has no backend, accounts, credentials, or live API dependency. It runs as a static site and keeps assumptions in browser memory unless you export them as JSON.
+The application has no backend, accounts, credentials, or live API dependency. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup.
 
 ## Features
 
@@ -150,7 +150,7 @@ Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatib
 ## Privacy and security
 
 - No authentication or external API credentials
-- No server-side persistence
+- No server-side persistence; model progress is stored only in the current browser's local storage
 - No automatic upload of assumptions or forecast data
 - Imported JSON is treated as data, not HTML or executable code
 - Local container examples bind only to localhost

@@ -26,6 +26,9 @@ const initialChannels=()=>[
  makeChannel('YouTube','cpm',.15),makeChannel('Display','cpm',.10),makeChannel('CTV (Vibe.co / Quantcast)','cpm',.05),
  makeChannel('Enterprise / B2B','manual'),makeChannel('Custom','manual')
 ];
+type SavedModel={modelName:string;baseline:{month:string;visitors:number;signups:number;newCustomers:number;customers:number;mrr:number;arpu:number;arr:number};forecastStartMonth:string;assumptions:Assumptions;channelDefaults:{signupRate:number;purchaseRate:number;arpu:number};scenario:string;budget:number;channels:EditableChannel[]};
+const storageKey='growth-model-state-v1';
+const loadSavedModel=():Partial<SavedModel>=>{try{const value=JSON.parse(localStorage.getItem(storageKey)||'{}') as Partial<SavedModel>;return value&&typeof value==='object'?value:{}}catch{return {}}};
 
 type NumericKey = keyof Assumptions;
 const fields: {key:NumericKey; label:string; step:number; kind:'pct'|'number'|'money'; hint:string}[] = [
@@ -44,10 +47,11 @@ function ChannelRow({channel:c,modeled,index,budget,setChannels,channels}:{chann
 }
 
 export default function App(){
- const fileInput=useRef<HTMLInputElement>(null); const [importMessage,setImportMessage]=useState(''); const [modelName,setModelName]=useState('Growth Model'); const [downloadFormat,setDownloadFormat]=useState<'json'|'csv'>('json'); const [forecastFormat,setForecastFormat]=useState<'csv'|'pdf'>('pdf'); const [forecastStartMonth,setForecastStartMonth]=useState('2026-08'); const [pageView,setPageView]=useState<'baseline'|'forecast'|'channels'|'methodology'>('baseline'); const [channelTab,setChannelTab]=useState<ChannelModel|'general'>('general'); const [showHidden,setShowHidden]=useState(false);
- const [baseline,setBaseline]=useState({month:'2026-07',visitors:5594,signups:719,newCustomers:27,customers:599,mrr:22858,arpu:38.16,arr:274296}); const baselineInput=useRef<HTMLInputElement>(null);
- const [a,setA]=useState(defaults); const [channelDefaults,setChannelDefaults]=useState({signupRate:.137,purchaseRate:.008,arpu:38}); const [scenario,setScenario]=useState('Baseline'); const [budget,setBudget]=useState(50000); const [channels,setChannels]=useState(initialChannels); const complete=historical.months.filter(m=>!m.partial);
+ const [saved]=useState(loadSavedModel); const fileInput=useRef<HTMLInputElement>(null); const [importMessage,setImportMessage]=useState(''); const [modelName,setModelName]=useState(saved.modelName||'Growth Model'); const [downloadFormat,setDownloadFormat]=useState<'json'|'csv'>('json'); const [forecastFormat,setForecastFormat]=useState<'csv'|'pdf'>('pdf'); const [forecastStartMonth,setForecastStartMonth]=useState(saved.forecastStartMonth&&monthOptions.includes(saved.forecastStartMonth)?saved.forecastStartMonth:'2026-08'); const [pageView,setPageView]=useState<'baseline'|'forecast'|'channels'|'methodology'>('baseline'); const [channelTab,setChannelTab]=useState<ChannelModel|'general'>('general'); const [showHidden,setShowHidden]=useState(false);
+ const [baseline,setBaseline]=useState(saved.baseline||{month:'2026-07',visitors:5594,signups:719,newCustomers:27,customers:599,mrr:22858,arpu:38.16,arr:274296}); const baselineInput=useRef<HTMLInputElement>(null);
+ const [a,setA]=useState(saved.assumptions||defaults); const [channelDefaults,setChannelDefaults]=useState(saved.channelDefaults||{signupRate:.137,purchaseRate:.008,arpu:38}); const [scenario,setScenario]=useState(saved.scenario||'Baseline'); const [budget,setBudget]=useState(saved.budget??50000); const [channels,setChannels]=useState(saved.channels?.length?saved.channels:initialChannels); const complete=historical.months.filter(m=>!m.partial);
  useEffect(()=>{document.title=`${modelName || 'Growth Model'} Forecast`},[modelName]);
+ useEffect(()=>{try{const value:SavedModel={modelName,baseline,forecastStartMonth,assumptions:a,channelDefaults,scenario,budget,channels};localStorage.setItem(storageKey,JSON.stringify(value))}catch{/* Persistence may be unavailable in private browsing. */}},[modelName,baseline,forecastStartMonth,a,channelDefaults,scenario,budget,channels]);
  const modeledChannels=channels.map(c=>{const spend=c.goLiveMonth===0?0:budget*c.allocation;const visitors=c.goLiveMonth===0?0:c.model==='cpc'?(c.cpc?spend/c.cpc:0):c.model==='cpm'?(c.cpm?spend/c.cpm*1000*c.ctr:0):c.visitors;return {...c,visitors}});
  const channelVisitors=modeledChannels.reduce((sum,c)=>sum+c.visitors,0); const allocation=channels.reduce((sum,c)=>sum+(c.goLiveMonth===0?0:c.allocation),0);
  const projection=forecast({month:previousMonth(forecastStartMonth),visitors:baseline.visitors,customers:baseline.customers,mrr:baseline.mrr},a,modeledChannels); const end=projection.at(-1)!;

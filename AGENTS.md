@@ -15,7 +15,7 @@ Instructions for coding agents working in this repository.
 - No backend, authentication, database, cookies, or live analytics connection.
 - Historical data is frozen in `src/data/historical.json`; the editable runtime opening state is the Baseline page and `baseline.csv` is the portable default fixture.
 - Forecast calculations belong in `src/engine/forecast.ts`, not React components.
-- Assumption-set JSON is local-only and versioned with `schemaVersion`.
+- Reload-safe progress is local-only under versioned key `growth-model-state-v1`; assumption-set JSON/CSV is independently versioned with `schemaVersion`.
 - Production hosting is static nginx from the multi-stage `Dockerfile`.
 
 ## Model invariants
