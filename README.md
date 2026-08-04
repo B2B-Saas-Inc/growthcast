@@ -10,7 +10,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The application and [`baseline.csv`](baseline.csv) start with zeroed metrics to avoid exposing private company performance data. Enter or import an authorized baseline before using the forecast.
+The application starts with zeroed metrics to avoid exposing private company performance data. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images.
 
 ### Forecast
 

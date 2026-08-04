@@ -8,6 +8,9 @@ artifacts/
 playwright-report/
 test-results/
 
+# Private local baseline data
+baseline.csv
+
 # Environment and secrets
 .env
 .env.*
