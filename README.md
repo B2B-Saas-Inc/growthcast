@@ -10,7 +10,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The repository includes [`baseline.csv`](baseline.csv) with the original project baseline: July 2026, 5,594 visitors, 719 signups, 27 new customers, 599 total customers, and $22,858 MRR.
+The application and [`baseline.csv`](baseline.csv) start with zeroed metrics to avoid exposing private company performance data. Enter or import an authorized baseline before using the forecast.
 
 ### Forecast
 
@@ -40,7 +40,7 @@ A dedicated tab immediately after Forecast provides five forecast-driven analyti
 - Growth rate with net-new MRR and month-over-month growth
 - Customers overview with new customers, voluntary/delinquent churn, and ending customers
 
-Editable Budget and Churn charts each include a local reset. Dragging one subchannel’s budget point proportionally redistributes the remainder across other enabled paid channels, keeps the monthly total fixed, and immediately updates the table. Chart lines can be shown or hidden. Mixed movement/total or monetary/rate charts use independent left and right axes. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values.
+Editable Budget and Churn charts each include a local reset. Dragging one subchannel’s budget point moves spend in $100 increments, proportionally redistributes the remainder across other enabled paid channels, keeps the monthly total fixed, and immediately updates the table. Churn dragging snaps to 0.1 percentage-point increments. Chart lines can be shown or hidden. Mixed movement/total or monetary/rate charts use independent left and right axes. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values, while New and Expansion remain visible above it; all movement bars align on the same monthly position rather than staggering. Visitors, signups, new customers, churned customers, and ending customers are emitted and displayed as whole people. Customer charts use the right axis for new-customer movement.
 
 ### Channel settings
 

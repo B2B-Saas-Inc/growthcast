@@ -48,6 +48,6 @@ export function forecast(start: { month: string; visitors: number; customers: nu
     const arpu = customers ? mrr / customers : 0;
     const ltv = revenueChurn ? arpu / revenueChurn : 0;
     const maxCac = ltv * a.grossMargin / a.targetLtvCac;
-    return { month, visitors: round(visitors), signups: round(signups), newCustomers: round(newCustomers), churnedCustomers: round(churnedCustomers), customers: round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), ltv: round(ltv), maxCac: round(maxCac), maxCostPerSignup: round(maxCac * a.purchaseRate) };
+    return { month, visitors: Math.round(visitors), signups: Math.round(signups), newCustomers: Math.round(newCustomers), churnedCustomers: Math.round(churnedCustomers), customers: Math.round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), ltv: round(ltv), maxCac: round(maxCac), maxCostPerSignup: round(maxCac * a.purchaseRate) };
   });
 }
