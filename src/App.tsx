@@ -23,14 +23,14 @@ type EditableChannel=ChannelAssumption & {model:ChannelModel;allocation:number;c
 const makeChannel=(name:string,model:ChannelModel,allocation=0):EditableChannel=>({name,model,allocation,cpc:2,cpm:20,ctr:.008,visitors:0,goLiveMonth:1,signupRate:.137,purchaseRate:.008,arpu:38,hidden:false,affiliateCommissionRate:0,affiliateCommissionMonths:0});
 const initialChannels=()=>[
  makeChannel('SEO / organic','manual'),{...makeChannel('Partners','manual'),affiliateCommissionRate:.30,affiliateCommissionMonths:12},
- makeChannel('Meta','cpc',.25),makeChannel('Reddit','cpc',.10),makeChannel('Pinterest','cpc',.10),makeChannel('LinkedIn','cpc',.10),makeChannel('TikTok','cpc',.10),makeChannel('Snapchat','cpc',.05),
+ makeChannel('Branded Search','cpc'),makeChannel('Non-Brand Search','cpc'),makeChannel('Meta','cpc',.25),makeChannel('Reddit','cpc',.10),makeChannel('Pinterest','cpc',.10),makeChannel('LinkedIn','cpc',.10),makeChannel('TikTok','cpc',.10),makeChannel('Snapchat','cpc',.05),
  makeChannel('YouTube','cpm',.15),makeChannel('Display','cpm',.10),makeChannel('CTV (Vibe.co / Quantcast)','cpm',.05),
  makeChannel('Enterprise / B2B','manual'),makeChannel('Custom','manual')
 ];
 type SavedModel={modelName:string;baseline:{month:string;visitors:number;signups:number;newCustomers:number;customers:number;mrr:number;arpu:number;arr:number};forecastStartMonth:string;assumptions:Assumptions;channelDefaults:{signupRate:number;purchaseRate:number;arpu:number};scenario:string;budget:number;channels:EditableChannel[];monthlyBudgetOverrides:Record<string,Record<string,number>>;monthlyChurnOverrides:Record<string,number>};
 const storageKey='growth-model-state-v1';
 const loadSavedModel=():Partial<SavedModel>=>{try{const value=JSON.parse(localStorage.getItem(storageKey)||'{}') as Partial<SavedModel>;return value&&typeof value==='object'?value:{}}catch{return {}}};
-const normalizeChannels=(channels?:EditableChannel[])=>channels?.length?channels.map(c=>({...c,affiliateCommissionRate:c.affiliateCommissionRate??(c.name==='Partners'?.30:0),affiliateCommissionMonths:c.affiliateCommissionMonths??(c.name==='Partners'?12:0)})):initialChannels();
+const normalizeChannels=(channels?:EditableChannel[])=>{const defaults=initialChannels();if(!channels?.length)return defaults;const byName=new Map(channels.map(c=>[c.name,c]));const merged=defaults.map(base=>{const saved=byName.get(base.name);return saved?{...base,...saved,affiliateCommissionRate:saved.affiliateCommissionRate??base.affiliateCommissionRate,affiliateCommissionMonths:saved.affiliateCommissionMonths??base.affiliateCommissionMonths}:base});const known=new Set(defaults.map(c=>c.name));return [...merged,...channels.filter(c=>!known.has(c.name))]};
 
 type NumericKey = keyof Assumptions;
 const fields: {key:NumericKey; label:string; step:number; kind:'pct'|'number'|'money'; hint:string}[] = [

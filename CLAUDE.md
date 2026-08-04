@@ -104,7 +104,7 @@ Required invariants:
 - Customer churn and revenue churn remain distinct.
 - Channel traffic is introduced once at go-live, then compounds only with global Traffic growth.
 - Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue; when a paid channel is changed to 0, redistribute its allocation proportionally across the other enabled paid channels so enabled allocation remains 100%.
-- Direct response: `visitors = allocatedSpend / CPC`.
+- Direct response includes Branded Search, Non-Brand Search, Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat: `visitors = allocatedSpend / CPC`.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
 - Partner assumptions include recurring affiliate commission percentage and commissioned months; defaults are 30% for 12 months. Estimate commission cost using channel ARPU and geometric monthly revenue retention over the commission window.
