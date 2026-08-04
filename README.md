@@ -30,6 +30,16 @@ The repository includes [`baseline.csv`](baseline.csv) with the original project
 
 A dedicated Methodology page documents the monthly calculation sequence, channel activation rules, paid-traffic formulas, customer and revenue bridges, unit economics, metric definitions, and recommended workflow.
 
+### Deep Dive
+
+A dedicated tab immediately after Forecast provides five forecast-driven analytical views, each with a chart and monthly breakdown table:
+
+- Budget breakdown by paid subchannel, including go-live timing and monthly totals
+- Churn overview with voluntary/delinquent revenue and customer churn
+- MRR overview with new, expansion, downgrade, churn, ending MRR, and ARR
+- Growth rate with net-new MRR and month-over-month growth
+- Customers overview with new customers, voluntary/delinquent churn, and ending customers
+
 ### Channel settings
 
 A separate page keeps channel configuration out of the main forecast. Channel names, labels, values, and tabs use a high-legibility treatment. It includes tabs for:

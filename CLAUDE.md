@@ -82,7 +82,11 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence and renders four logical pages: Baseline, Forecast, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence and renders five logical pages: Baseline, Forecast, Deep Dive, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+
+### Deep Dive analytics
+
+Deep Dive is forecast-driven and must stay synchronized with editable baseline, global assumptions, budget, and channels. It contains Budget breakdown, Churn overview, MRR overview, Growth rate, and Customers overview tabs. Every view requires both a chart and monthly table; do not substitute static screenshots or historical-only values. Budget lines begin at each paid channel's go-live month. Churn views preserve voluntary/delinquent and revenue/customer distinctions.
 
 ### Forecast engine
 
