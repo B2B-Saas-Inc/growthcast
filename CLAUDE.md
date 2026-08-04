@@ -82,7 +82,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns transient UI state and renders two logical pages: Forecast and Channels. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns transient UI state and renders three logical pages: Forecast, Channels, and Methodology. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Forecast engine
 
@@ -101,6 +101,10 @@ Required invariants:
 - Direct response: `visitors = allocatedSpend / CPC`.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
+- Actual blended CAC is total enabled paid launch spend divided by new customers predicted from paid launch traffic.
+- Predicted LTV is ending revenue LTV multiplied by gross margin.
+- Payback months is blended CAC divided by ending monthly ARPU multiplied by gross margin.
+- Expected LTV:CAC is predicted contribution LTV divided by blended CAC.
 - MRR bridge separately exposes new, expansion, downgrade, and churn movements.
 - ARR is ending MRR multiplied by 12.
 - People display as whole numbers. Other UI values display at most one decimal place.

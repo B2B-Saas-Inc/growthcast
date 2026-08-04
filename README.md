@@ -13,10 +13,15 @@ The application has no backend, accounts, credentials, or live API dependency. I
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, and signup-to-purchase conversion
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, and LTV:CAC assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
+- Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts and at most one decimal place for other displayed values
 - Forecast CSV export
+
+### Methodology
+
+A dedicated Methodology page documents the monthly calculation sequence, channel activation rules, paid-traffic formulas, customer and revenue bridges, unit economics, metric definitions, and recommended workflow.
 
 ### Channel settings
 
