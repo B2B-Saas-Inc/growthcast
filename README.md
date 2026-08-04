@@ -23,8 +23,8 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
-- Whole-number people counts and at most one decimal place for other displayed values
-- Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, and dedicated pages for all five Deep Dive views
+- Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
+- Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all five Deep Dive charts, and dedicated Deep Dive tables
 
 ### Methodology
 
@@ -129,7 +129,7 @@ npm run build
 npm run preview
 ```
 
-For UI changes, validate the running production image with Playwright at desktop and mobile widths.
+For UI changes, validate the running production image with Playwright at desktop and mobile widths. The responsive layout stacks forecast cards, wraps navigation/actions, adapts Deep Dive controls, and keeps large tables horizontally scrollable on narrow screens.
 
 ## Architecture
 
