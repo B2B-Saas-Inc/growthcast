@@ -34,11 +34,13 @@ A dedicated Methodology page documents the monthly calculation sequence, channel
 
 A dedicated tab immediately after Forecast provides five forecast-driven analytical views, each with a chart and monthly breakdown table:
 
-- Budget breakdown by paid subchannel, including go-live timing and monthly totals
-- Churn overview with voluntary/delinquent revenue and customer churn
+- Budget breakdown by paid subchannel, including go-live timing and monthly totals. The headline monthly budget is editable, and any channel point can be dragged vertically to override spend for that month.
+- Churn overview with voluntary/delinquent revenue and customer churn. Revenue-churn points can be dragged vertically to override a specific month.
 - MRR overview with new, expansion, downgrade, churn, ending MRR, and ARR
 - Growth rate with net-new MRR and month-over-month growth
 - Customers overview with new customers, voluntary/delinquent churn, and ending customers
+
+Chart lines can be shown or hidden. Mixed movement/total or monetary/rate charts use independent left and right axes. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally and round-trip through assumption exports.
 
 ### Channel settings
 

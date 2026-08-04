@@ -86,7 +86,9 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Deep Dive analytics
 
-Deep Dive is forecast-driven and must stay synchronized with editable baseline, global assumptions, budget, and channels. It contains Budget breakdown, Churn overview, MRR overview, Growth rate, and Customers overview tabs. Every view requires both a chart and monthly table; do not substitute static screenshots or historical-only values. Budget lines begin at each paid channel's go-live month. Churn views preserve voluntary/delinquent and revenue/customer distinctions.
+Deep Dive is forecast-driven and must stay synchronized with editable baseline, global assumptions, budget, and channels. It contains Budget breakdown, Churn overview, MRR overview, Growth rate, and Customers overview tabs. Every view requires both a chart and monthly table; do not substitute static screenshots or historical-only values. Budget lines begin at each paid channel's go-live month. The Deep Dive budget headline edits the global budget and clears stale month-specific budget overrides. Dragging a budget line point creates a month/channel spend override, converts it to visitors with that channel's CPC or CPM/CTR model, and recomputes downstream months. Dragging the churn line creates a monthly total revenue-churn override and recomputes the MRR bridge. Preserve these overrides in local storage and assumption import/export. Churn views preserve voluntary/delinquent and revenue/customer distinctions.
+
+All Deep Dive line series require show/hide controls. Mixed movement/total or monetary/rate charts require left and right Y axes. Deep Dive currency tooltips require a currency prefix and exactly two decimal places.
 
 ### Forecast engine
 
