@@ -1,0 +1,27 @@
+# Dependencies and builds
+node_modules/
+dist/
+coverage/
+
+# Local validation artifacts
+artifacts/
+playwright-report/
+test-results/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Agent continuity (local-only)
+CONTINUITY.md
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
