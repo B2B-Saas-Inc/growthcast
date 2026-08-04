@@ -181,4 +181,4 @@ Public-deployment follow-ups are monitoring, formal privacy/legal pages, and a d
 
 ## License
 
-No license has been selected. Add one before distributing the project outside its intended private use.
+Licensed under the terms in [`LICENSE`](LICENSE).
