@@ -6,6 +6,10 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 ## Features
 
+### Homepage
+
+The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline.
+
 ### Baseline setup
 
 The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.

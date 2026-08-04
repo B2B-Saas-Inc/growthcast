@@ -6,12 +6,12 @@ Instructions for coding agents working in this repository.
 
 1. Read `README.md`, `CLAUDE.md`, and local `CONTINUITY.md` when present.
 2. Inspect the current implementation before proposing architectural changes.
-3. Keep the application white-labelled: never add a company-specific product name to UI, metadata, filenames, or defaults.
+3. Keep the application white-labelled: never add a company-specific product name to UI, metadata, filenames, or defaults. Preserve the homepage's practitioner-led voice and route its primary calls to Baseline.
 4. Use containers for dependency installation and verification. Do not install host packages.
 
 ## Architecture
 
-- React + TypeScript + Vite single-page application.
+- React + TypeScript + Vite single-page application with Home as the default page and Baseline as the model-entry workflow.
 - No backend, authentication, database, cookies, or live analytics connection.
 - Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
 - Forecast calculations belong in `src/engine/forecast.ts`, not React components.

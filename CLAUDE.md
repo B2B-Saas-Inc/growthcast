@@ -81,7 +81,11 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence and renders five logical pages: Baseline, Forecast, Deep Dive, Channels, and Methodology. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Baseline is the first screen and owns the editable opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+
+### Homepage
+
+The homepage tells the product story in three sections: Hero, Why it exists, and How to use. Preserve the first-person, practitioner-led voice, the coastline-paradox framing, the five baseline metrics, the marquee growth metrics, and the progression from Baseline to Forecast to Channels. Primary calls to action route to Baseline. Keep it white-labelled and responsive.
 
 ### Deep Dive analytics
 
