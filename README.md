@@ -24,7 +24,7 @@ The repository includes [`baseline.csv`](baseline.csv) with the original project
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts and at most one decimal place for other displayed values
-- Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, and the monthly forecast
+- Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, and dedicated pages for all five Deep Dive views
 
 ### Methodology
 
@@ -40,7 +40,7 @@ A dedicated tab immediately after Forecast provides five forecast-driven analyti
 - Growth rate with net-new MRR and month-over-month growth
 - Customers overview with new customers, voluntary/delinquent churn, and ending customers
 
-Chart lines can be shown or hidden. Mixed movement/total or monetary/rate charts use independent left and right axes. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally and round-trip through assumption exports.
+Editable Budget and Churn charts each include a local reset. Dragging one subchannel’s budget point proportionally redistributes the remainder across other enabled paid channels, keeps the monthly total fixed, and immediately updates the table. Chart lines can be shown or hidden. Mixed movement/total or monetary/rate charts use independent left and right axes. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values.
 
 ### Channel settings
 
@@ -57,7 +57,7 @@ Every channel supports:
 - Hide, show, and restore controls
 - Expandable visitor-to-signup, signup-to-purchase, and ARPU assumptions
 
-Paid media begins with a $50,000 monthly budget and editable subchannel allocations. Dollar allocations and expected traffic are calculated automatically:
+Paid media defaults to a $0 monthly budget and uses editable subchannel allocations. Dollar allocations and expected traffic are calculated automatically:
 
 ```text
 Direct-response visitors = allocated spend / CPC
@@ -96,7 +96,7 @@ Current Baseline assumptions include:
 
 - Visitor-to-signup: 13.7%, weighted over the trailing six complete months
 - Signup-to-purchase: 0.8%
-- Starting paid-media budget: $50,000/month
+- Starting paid-media budget: $0/month
 
 The app ships the frozen dataset in `src/data/historical.json`; it does not ship Mixpanel or billing-system credentials.
 
