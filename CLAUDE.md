@@ -4,7 +4,7 @@ This file provides persistent context for AI agents working on Growth Model. Rea
 
 ## Project overview
 
-Growth Model is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs, and exchange versioned assumption sets as JSON. The current stage is a functioning local MVP with no monetization, accounts, backend, or deployment service.
+Growth Model is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs, and exchange versioned assumption sets as JSON. The current stage is a functioning static MVP deployed on Vercel with no monetization, accounts, or backend.
 
 The primary activation action is changing an assumption or loading an assumption set and seeing the forecast update deterministically.
 
@@ -35,7 +35,6 @@ The primary activation action is changing an assumption or loading an assumption
 │   ├── styles.css              # Responsive visual system
 │   ├── main.tsx                # React entry point
 │   ├── data/
-│   │   └── historical.json     # Frozen normalized historical dataset
 │   └── engine/
 │       ├── forecast.ts         # Pure deterministic forecasting engine
 │       └── forecast.test.ts    # Engine invariants and regressions
@@ -88,7 +87,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 Deep Dive is forecast-driven and must stay synchronized with editable baseline, global assumptions, budget, and channels. It contains Budget breakdown, Churn overview, MRR overview, Growth rate, and Customers overview tabs. Every view requires both a chart and monthly table; do not substitute static screenshots or historical-only values. Budget lines begin at each paid channel's go-live month. The Deep Dive budget headline edits the global budget and clears stale month-specific budget overrides. Dragging a budget line point creates a month/channel spend override, proportionally redistributes the remainder among other enabled paid channels to preserve the monthly total, converts all affected spend to visitors with each channel's CPC or CPM/CTR model, updates the table, and recomputes downstream months. Dragging the churn line creates a monthly total revenue-churn override and recomputes the MRR bridge. Preserve these overrides in local storage and assumption import/export. Churn views preserve voluntary/delinquent and revenue/customer distinctions.
 
-Editable Budget and Churn charts require chart-local reset controls. The global reset restores paid budget to $0, clears all month-specific overrides and historical-performance visibility, and redirects to Baseline. All Deep Dive line series require tab-local show/hide controls; toggling one Deep Dive tab must not change line visibility in another. Mixed movement/total or monetary/rate charts require left and right Y axes. Deep Dive currency tooltips require a currency prefix and exactly two decimal places. Loss movements such as churn and downgrade must remain negative below the X-axis; New and Expansion remain visible above it. Use one signed stack per monthly movement chart so positive and negative bars align rather than appearing staggered. People outputs (visitors, signups, new customers, churned customers, and customers) are whole numbers. Default and master-reset baseline values are zero to avoid exposing private company performance data. Baseline CSV exports include budget; importing a baseline applies its budget (defaulting to $0 when absent) and clears monthly budget overrides. Customer charts put new-customer movement on the right axis. Budget dragging snaps every rebalanced channel to $100 increments while preserving the monthly total; churn dragging snaps to 0.1 percentage-point increments. Forecast PDFs require dedicated pages for Budget, Churn, MRR, Growth Rate, and Customers, using the current projection and saved monthly overrides.
+Editable Budget and Churn charts require chart-local reset controls. The global reset restores paid budget to $0, clears all month-specific overrides, and redirects to Baseline. Raw historical performance must not be bundled. All Deep Dive line series require tab-local show/hide controls; toggling one Deep Dive tab must not change line visibility in another. Mixed movement/total or monetary/rate charts require left and right Y axes. Deep Dive currency tooltips require a currency prefix and exactly two decimal places. Loss movements such as churn and downgrade must remain negative below the X-axis; New and Expansion remain visible above it. Use one signed stack per monthly movement chart so positive and negative bars align rather than appearing staggered. People outputs (visitors, signups, new customers, churned customers, and customers) are whole numbers. Default and master-reset baseline values are zero to avoid exposing private company performance data. Baseline CSV exports include budget; importing a baseline applies its budget (defaulting to $0 when absent) and clears monthly budget overrides. Customer charts put new-customer movement on the right axis. Budget dragging snaps every rebalanced channel to $100 increments while preserving the monthly total; churn dragging snaps to 0.1 percentage-point increments. Forecast PDFs require dedicated pages for Budget, Churn, MRR, Growth Rate, and Customers, using the current projection and saved monthly overrides.
 
 ### Forecast engine
 
@@ -118,7 +117,7 @@ Required invariants:
 
 ### Data
 
-`src/data/historical.json` is a frozen local fixture, not a live Mixpanel or billing integration. Preserve provenance fields and partial-month flags. Never embed credentials. If the source data is refreshed, validate the full date series and add a reproducible normalization script before replacing the fixture.
+Private historical exports informed calibration but must not be committed, bundled, or deployed. Never embed credentials or raw private performance data; runtime starts from user-entered/imported baseline values.
 
 ### Assumption-set contract
 
@@ -167,7 +166,7 @@ These systems do not exist in the local MVP. A public deployment must add approp
 
 ### CI/CD and deployment
 
-Current deployment is a local multi-stage Docker image. A hosted pipeline is `[TO CONFIGURE]`. Any future CI must block merges on lint, tests, type check, build, and risk-relevant Playwright checks. Use immutable artifacts, managed secrets, preview validation, and documented rollback. Do not run unsafe automatic migrations if persistence is later introduced.
+Production deployment is the Vercel project `b2b-saas/growth-model`, configured by `vercel.json`; the Docker/nginx image remains the local and portable validation path. Any future CI must block merges on lint, tests, type check, build, and risk-relevant Playwright checks. Use immutable artifacts, managed secrets, preview validation, and documented rollback. Do not run unsafe automatic migrations if persistence is later introduced.
 
 ## Testing
 
@@ -179,7 +178,7 @@ Current deployment is a local multi-stage Docker image. A hosted pipeline is `[T
 
 ## Data and exports
 
-Forecast CSV, shareable forecast PDF, and assumption JSON/CSV are generated entirely in the browser. PDF generation uses dynamically imported jsPDF and must include model identity, generation context, summary metrics, core assumptions, monthly forecast, and a planning disclaimer. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
+Forecast CSV, shareable forecast PDF, and assumption JSON/CSV are generated entirely in the browser. PDF generation uses synchronously loaded jsPDF so browser download activation is retained and must include model identity, generation context, summary metrics, core assumptions, monthly forecast, and a planning disclaimer. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
 
 ## Accessibility
 

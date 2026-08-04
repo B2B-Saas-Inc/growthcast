@@ -10,7 +10,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The application starts with zeroed metrics and hidden historical performance to avoid exposing private company data. Master Reset returns to the Baseline tab, clears the model, and removes historical performance from the forecast view. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images. Baseline files include the paid-media budget; the authorized local file sets it to $0.
+The application starts with zeroed metrics and contains no bundled private historical performance. Master Reset returns to the Baseline tab and clears the model. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images. Baseline files include the paid-media budget; the authorized local file sets it to $0.
 
 ### Forecast
 
@@ -82,23 +82,15 @@ Choose JSON or CSV and export a versioned assumption file containing:
 
 Loading either JSON or the exported CSV restores the model name, baseline metrics, starting month, and all assumptions. Files are parsed and validated locally before application state changes.
 
-## Historical data
+## Calibration and privacy
 
-The bundled fixture contains normalized monthly history from August 2024 onward:
-
-- Complete calibration period: August 2024–July 2026
-- Partial context: August 2026, excluded from calibration
-- Visitors: unique Mixpanel `Page view` users
-- Signups: unique Mixpanel `User Signup` users
-- Customer and recurring-revenue metrics: supplied ChartMogul-style exports
-
-Current Baseline assumptions include:
+Private historical exports from August 2024 through July 2026 were used during model calibration but are not bundled in the repository or production application. Current Baseline assumptions include:
 
 - Visitor-to-signup: 13.7%, weighted over the trailing six complete months
 - Signup-to-purchase: 0.8%
 - Starting paid-media budget: $0/month
 
-The app ships the frozen dataset in `src/data/historical.json`; it does not ship Mixpanel or billing-system credentials.
+The deployed app contains no raw Mixpanel or billing-system history and no credentials.
 
 ## Run locally
 
@@ -145,8 +137,6 @@ For UI changes, validate the running production image with Playwright at desktop
 src/
 ├── App.tsx                 UI, pages, state, JSON/CSV import and export
 ├── styles.css              Responsive visual system
-├── data/
-│   └── historical.json     Frozen normalized history
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     └── forecast.test.ts    Model invariants and regression tests
@@ -170,11 +160,20 @@ Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatib
 - Local container examples bind only to localhost
 - `.env` files, build output, dependencies, screenshots, and `CONTINUITY.md` are excluded from Git
 
-Before public internet deployment, add suitable security headers, hosting controls, privacy terms, monitoring, and a deployment runbook.
+## Deployment
+
+[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply baseline security headers. The production project is `b2b-saas/growth-model` at <https://growth-model-peach.vercel.app>.
+
+```bash
+vercel link --project growth-model --scope b2b-saas --yes
+vercel deploy --prod --yes
+```
+
+Public-deployment follow-ups are monitoring, formal privacy/legal pages, and a documented rollback owner.
 
 ## Limitations
 
-- Historical acquisition scope depends on the bundled Mixpanel extraction.
+- Calibration assumptions originated from private historical exports that are not bundled with the application.
 - Channel CPC, CPM, CTR, allocation, timing, and conversion values are planning assumptions rather than guaranteed performance.
 - The current application is single-user and in-memory.
 - There is no hosted collaboration, database, authentication, or automatic source-data refresh.

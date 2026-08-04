@@ -3,3 +3,5 @@ dist
 .git
 CONTINUITY.md
 baseline.csv
+.vercel
+.env.local

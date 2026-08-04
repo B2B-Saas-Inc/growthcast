@@ -13,14 +13,14 @@ Instructions for coding agents working in this repository.
 
 - React + TypeScript + Vite single-page application.
 - No backend, authentication, database, cookies, or live analytics connection.
-- Historical data is frozen in `src/data/historical.json`; the editable runtime opening state is the Baseline page and `baseline.csv` is the portable default fixture.
+- Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
 - Forecast calculations belong in `src/engine/forecast.ts`, not React components.
 - Reload-safe progress is local-only under versioned key `growth-model-state-v1`; assumption-set JSON/CSV is independently versioned with `schemaVersion`.
-- Production hosting is static nginx from the multi-stage `Dockerfile`.
+- Production hosting supports static nginx from the multi-stage `Dockerfile` and Vercel via `vercel.json`.
 
 ## Model invariants
 
-- Use complete bundled history from August 2024 through July 2026. August 2026 is partial and excluded from calibration. Do not hardcode it as the runtime opening state: users may replace baseline visitors, customers, and MRR.
+- Calibration used complete private history from August 2024 through July 2026; raw history must not be bundled. Runtime always begins from user-entered/imported baseline visitors, customers, and MRR.
 - `User Signup` is the signup event; `Page view` unique users are the visitor series.
 - Baseline visitor-to-signup is 13.7%; baseline signup-to-purchase is 0.8%.
 - A channel contributes its launch traffic once in its go-live month. Thereafter that cohort compounds only at the global Traffic growth rate.
