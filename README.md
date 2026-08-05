@@ -25,13 +25,13 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Conservative, Baseline, and Ambitious scenario presets
 - Starting-month selector covering August 2026 through August 2028
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, and signup-to-purchase conversion
-- Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, and LTV:CAC assumptions
+- Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, LTV:CAC, and monthly Sales & Marketing Overhead assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
-- Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[(Current Quarter ARR − Prior Quarter ARR) × 4] ÷ Prior Quarter Sales & Marketing Spend`)
+- Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[(Current Quarter ARR − Prior Quarter ARR) × 4] ÷ Prior Quarter Sales & Marketing Spend`). It uses the latest two complete calendar quarters and adds three months of salaries, commissions, and tools overhead to prior-quarter paid spend
 - Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
 - One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all ten marquee metrics
 
@@ -50,7 +50,7 @@ A dedicated tab immediately after Forecast provides six forecast-driven analytic
 - Customers overview with new customers, voluntary/delinquent churn, and ending customers
 - Cash flow with editable fee and refund percentages, a monthly/annual plan split, and optional one-time payments as a third split component. Monthly subscription cash uses ending MRR × monthly share; annual and one-time cash use new MRR × their share × 12; fees and refunds reduce gross cash.
 
-Editable Budget and Churn charts each include a local reset and an optional toggle that applies a point edit through every future month. Budget planning also supports an optional compounded monthly increase, an isolated total-budget change for one month, and a step change from a selected month onward. Dragging one subchannel’s budget point moves spend in $100 increments, proportionally redistributes the remainder across other enabled paid channels, keeps each affected monthly total fixed, and immediately updates the table. Churn dragging snaps to 0.1 percentage-point increments. Chart lines can be shown or hidden independently on each Deep Dive tab. Mixed movement/total or monetary/rate charts use independent left and right axes with zero aligned at the same vertical position. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values, while New and Expansion remain visible above it; all movement bars align on the same monthly position rather than staggering. Visitors, signups, new customers, churned customers, and ending customers are emitted and displayed as whole people. Customer charts use the right axis for new-customer movement.
+Editable Budget and Churn charts each include a local reset and an optional toggle that applies a point edit through every future month. Budget planning also supports an optional compounded monthly increase, an isolated total-budget change for one month, and a step change from a selected month onward. Dragging one subchannel’s budget point moves spend in $100 increments, proportionally redistributes the remainder across other enabled paid channels, keeps each affected monthly total fixed, and immediately updates the table. Churn dragging snaps to 0.1 percentage-point increments. Equivalent labeled month/channel/rate inputs support keyboard and assistive-technology editing without dragging. Chart lines can be shown or hidden independently on each Deep Dive tab. Mixed movement/total or monetary/rate charts use independent left and right axes with zero aligned at the same vertical position. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values, while New and Expansion remain visible above it; all movement bars align on the same monthly position rather than staggering. Visitors, signups, new customers, churned customers, and ending customers are emitted and displayed as whole people. Customer charts use the right axis for new-customer movement.
 
 ### Channel settings
 
@@ -76,7 +76,7 @@ Expected CPC = allocated spend / calculated visitors
 Affiliate CAC/customer = ARPU × commission % × churn-adjusted commissioned months
 ```
 
-Channel traffic enters the model once in its go-live month. From then on, active traffic compounds only through the global Traffic growth assumption; the launch contribution is not added repeatedly.
+Channel traffic enters the model once in its go-live month. From then on, active traffic compounds through global Traffic growth. Monthly spend schedules are translated into explicit adjustments to that compounded cohort, so growth and step edits do not silently replace prior traffic state. Disabled and pre-launch channels always contribute zero, even if stale overrides exist.
 
 ### Portable assumption sets
 
@@ -149,7 +149,9 @@ src/
 ├── styles.css              Responsive visual system
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
-    └── forecast.test.ts    Model invariants and regression tests
+    ├── forecast.test.ts    Forecast invariants and regression tests
+    ├── metrics.ts          Cash flow, NRR, and calendar-quarter Magic Number
+    └── metrics.test.ts     SaaS metric and cash-flow regression tests
 ```
 
 The React layer owns presentation and transient state. Forecast formulas belong in `src/engine/forecast.ts` so they remain deterministic and independently testable.
@@ -158,7 +160,7 @@ See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CL
 
 ## Assumption JSON compatibility
 
-Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatible and defaults its starting month to August 2026. Import rejects unsupported versions, incomplete files, invalid channel types, negative values, and non-finite numbers. If the contract changes, increment the schema version and provide a migration or explicit compatibility error.
+Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatible and defaults its starting month to August 2026. Import and local-state loading share a version-aware validator. It rejects unsupported versions, malformed baselines, incomplete or out-of-range assumptions, duplicate/invalid channels, invalid override maps, invalid cash splits, negative values, and non-finite numbers before applying state. If the contract changes, increment the schema version and provide a migration or explicit compatibility error.
 
 ## Privacy and security
 
@@ -172,7 +174,7 @@ Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatib
 
 ## Deployment
 
-[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply baseline security headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
+[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply CSP, HSTS, frame, MIME, referrer, and permissions-policy security headers. The nginx image mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
 
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes

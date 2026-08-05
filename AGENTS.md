@@ -34,7 +34,7 @@ Instructions for coding agents working in this repository.
 - Dual Deep Dive Y axes align zero at the same vertical position.
 - Budget and churn point edits may optionally propagate through future months. Monthly budget growth, isolated month totals, and step totals must flow through channel traffic, the forecast engine, persistence, and exports.
 - Cash-flow active plan shares must total 100%. Monthly cash = ending MRR × monthly share; annual and one-time cash = new MRR × share × 12; fees/refunds are negative percentages of gross cash.
-- NRR = 1 + expansion − downgrade − total revenue churn. SaaS Magic Number = [(current-quarter ARR − prior-quarter ARR) × 4] ÷ prior-quarter modeled paid spend; show unavailable when spend is zero.
+- Ending-month NRR = 1 + expansion − downgrade − effective ending-month revenue churn. SaaS Magic Number uses the latest two complete calendar quarters: [(current-quarter ARR − prior-quarter ARR) × 4] ÷ prior-quarter Sales & Marketing spend, where spend includes modeled paid budget plus three months of monthly salaries/commissions/tools overhead; show unavailable without two complete quarters or when spend is zero.
 - Every chart image export is an exact 1230 × 600 PNG of the current visible chart state, fitted to the canvas with unclipped axes, local site fonts, title, and description. The designed combined ten-metric export is an exact 1200 × 1200 PNG with title and description.
 
 ## Commands
@@ -52,7 +52,8 @@ The Docker build runs lint, unit tests, type checking, and the production build.
 ## Change discipline
 
 - Make the smallest reviewable change.
-- Add or update deterministic tests for forecast-engine behavior.
+- Add or update deterministic tests for forecast-engine and pure `src/engine/metrics.ts` behavior.
+- Keep dependencies pinned, use `npm ci` in Docker/Vercel, validate persisted/imported state atomically, and preserve CSP/HSTS plus the mirrored nginx security headers.
 - Validate imported JSON before mutating application state.
 - Preserve backwards compatibility or increment `schemaVersion` with a documented migration.
 - Do not commit generated screenshots, environment files, secrets, `CONTINUITY.md`, dependencies, or build output.

@@ -81,7 +81,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. `src/engine/metrics.ts` owns cash flow, NRR, and calendar-quarter SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Homepage
 
@@ -105,7 +105,7 @@ Required invariants:
 - Baseline visitor-to-signup conversion is 13.7%.
 - Baseline signup-to-purchase conversion is 0.8%.
 - Customer churn and revenue churn remain distinct.
-- Channel traffic is introduced once at go-live, then compounds only with global Traffic growth.
+- Channel traffic is introduced once at go-live, then compounds with global Traffic growth. Monthly paid-spend schedules become explicit adjustments to the compounded active cohort rather than replacing engine state.
 - Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue; when a paid channel is changed to 0, redistribute its allocation proportionally across the other enabled paid channels so enabled allocation remains 100%.
 - Direct response includes Branded Search, Non-Brand Search, Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat: `visitors = allocatedSpend / CPC`.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
@@ -114,7 +114,9 @@ Required invariants:
 - Actual blended CAC is enabled paid launch spend plus expected partner commissions, divided by new customers predicted from paid and partner launch traffic.
 - Predicted LTV is ending revenue LTV multiplied by gross margin.
 - Payback months is blended CAC divided by ending monthly ARPU multiplied by gross margin.
-- Expected LTV:CAC is predicted contribution LTV divided by blended CAC.
+- Expected LTV:CAC is predicted contribution LTV divided by blended CAC. Zero revenue churn makes churn-based LTV, Max CAC, and cost/signup unavailable rather than zero.
+- Ending-month NRR is `1 + expansion − downgrade − effective ending-month revenue churn`, including a saved month override.
+- SaaS Magic Number uses the latest two complete calendar quarters: `[(current-quarter ending ARR − prior-quarter ending ARR) × 4] ÷ prior-quarter Sales & Marketing spend`. Prior-quarter spend is three complete months of modeled paid budget plus three months of `monthlySalesMarketingOverhead` (salaries, commissions, and tools). Show unavailable without two complete quarters or when denominator spend is zero.
 - MRR bridge separately exposes new, expansion, downgrade, and churn movements.
 - ARR is ending MRR multiplied by 12.
 - People display as whole numbers. On the main Forecast page, ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup display as whole dollars; other UI values display at most one decimal place.
@@ -161,7 +163,7 @@ The app is static and local-first. Baseline and assumption progress is persisted
 - Do not execute or inject imported content as HTML or code.
 - Keep dependencies pinned through `package-lock.json` and review additions.
 - Bind local container examples to `127.0.0.1`.
-- Add CSP, HSTS, frame protection, MIME protection, and referrer policy before public hosting.
+- Preserve the deployed CSP, HSTS, frame, MIME, referrer, and permissions-policy headers. Keep nginx aligned for all applicable non-TLS protections.
 - Never log imported financial assumptions unnecessarily.
 
 ### Marketing, SEO, legal, internationalization, notifications, and admin

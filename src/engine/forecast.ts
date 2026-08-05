@@ -3,7 +3,7 @@ export type Assumptions = {
   purchaseRate: number; voluntaryCustomerChurn: number; delinquentCustomerChurn: number;
   voluntaryRevenueChurn: number; delinquentRevenueChurn: number;
   expansionRate: number; retractionRate: number; newCustomerArpu: number;
-  grossMargin: number; targetLtvCac: number; monthlyIncrementalVisitors: number;
+  grossMargin: number; targetLtvCac: number; monthlyIncrementalVisitors: number; monthlySalesMarketingOverhead: number;
 }
 
 export type ChannelAssumption = { name: string; visitors: number; goLiveMonth: number; signupRate: number; purchaseRate: number; arpu: number };
@@ -13,7 +13,7 @@ export type ForecastOverrides = { channelVisitors?: Record<string, Record<string
 export type ForecastMonth = {
   month: string; visitors: number; signups: number; newCustomers: number; churnedCustomers: number;
   customers: number; newMrr: number; expansionMrr: number; retractionMrr: number; churnMrr: number;
-  endingMrr: number; arr: number; arpu: number; ltv: number; maxCac: number; maxCostPerSignup: number;
+  endingMrr: number; arr: number; arpu: number; ltv: number | null; maxCac: number | null; maxCostPerSignup: number | null;
 }
 
 const addMonths = (iso: string, count: number) => {
@@ -29,7 +29,11 @@ export function forecast(start: { month: string; visitors: number; customers: nu
     const month = addMonths(start.month, i + 1);
     baselineVisitors = baselineVisitors * (1 + a.monthlyTrafficGrowth) + a.monthlyIncrementalVisitors;
     const channelTotals = channels.reduce((totals, channel) => {
-      channel.activeVisitors = overrides.channelVisitors?.[month]?.[channel.name] ?? (i + 1 === channel.goLiveMonth ? channel.visitors : channel.activeVisitors * (1 + a.monthlyTrafficGrowth));
+      const visitorAdjustment = overrides.channelVisitors?.[month]?.[channel.name];
+      const compoundedVisitors = channel.activeVisitors * (1 + a.monthlyTrafficGrowth);
+      channel.activeVisitors = visitorAdjustment === undefined
+        ? (i + 1 === channel.goLiveMonth ? channel.visitors : compoundedVisitors)
+        : Math.max(0, compoundedVisitors + visitorAdjustment);
       const signups = channel.activeVisitors * channel.signupRate;
       const newCustomers = signups * channel.purchaseRate;
       return { visitors: totals.visitors + channel.activeVisitors, signups: totals.signups + signups, newCustomers: totals.newCustomers + newCustomers, newMrr: totals.newMrr + newCustomers * channel.arpu };
@@ -46,8 +50,8 @@ export function forecast(start: { month: string; visitors: number; customers: nu
     customers = Math.max(0, customers + newCustomers - churnedCustomers);
     mrr = Math.max(0, mrr + newMrr + expansionMrr - retractionMrr - churnMrr);
     const arpu = customers ? mrr / customers : 0;
-    const ltv = revenueChurn ? arpu / revenueChurn : 0;
-    const maxCac = ltv * a.grossMargin / a.targetLtvCac;
-    return { month, visitors: Math.round(visitors), signups: Math.round(signups), newCustomers: Math.round(newCustomers), churnedCustomers: Math.round(churnedCustomers), customers: Math.round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), ltv: round(ltv), maxCac: round(maxCac), maxCostPerSignup: round(maxCac * a.purchaseRate) };
+    const ltv = revenueChurn ? arpu / revenueChurn : null;
+    const maxCac = ltv === null || !a.targetLtvCac ? null : ltv * a.grossMargin / a.targetLtvCac;
+    return { month, visitors: Math.round(visitors), signups: Math.round(signups), newCustomers: Math.round(newCustomers), churnedCustomers: Math.round(churnedCustomers), customers: Math.round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), ltv: ltv === null ? null : round(ltv), maxCac: maxCac === null ? null : round(maxCac), maxCostPerSignup: maxCac === null ? null : round(maxCac * a.purchaseRate) };
   });
 }
