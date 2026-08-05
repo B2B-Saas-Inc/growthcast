@@ -32,7 +32,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
 - Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
-- One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, plus a 1200 × 1200 export containing all eight marquee metrics
+- One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all eight marquee metrics
 
 ### Methodology
 

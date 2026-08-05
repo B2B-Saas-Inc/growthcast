@@ -12,13 +12,14 @@
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
+    "html-to-image": "^1.11.13",
+    "jspdf": "latest",
+    "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "recharts": "latest",
-    "lucide-react": "latest",
-    "jspdf": "latest"
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
     "@eslint/js": "latest",
