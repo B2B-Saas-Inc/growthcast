@@ -4,7 +4,7 @@ This file provides persistent context for AI agents working on GrowthCast. Read 
 
 ## Project overview
 
-GrowthCast is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs, and exchange versioned assumption sets as JSON. The current stage is a functioning static MVP deployed on Vercel with no monetization, accounts, or backend.
+GrowthCast is a white-labelled, local-first SaaS forecasting application for operators who need to model acquisition, customers, recurring revenue, and unit economics. Users configure global and per-channel assumptions, compare scenarios, inspect monthly outputs and channel attribution, and exchange versioned assumption sets as JSON or CSV. The current stage is a functioning static MVP deployed on Vercel with no monetization, accounts, or backend.
 
 The primary activation action is changing an assumption or loading an assumption set and seeing the forecast update deterministically.
 
@@ -14,6 +14,7 @@ The primary activation action is changing an assumption or loading an assumption
 |---|---|
 | Frontend | React, TypeScript, Vite |
 | Charts | Recharts |
+| Documents/archives | jsPDF, JSZip, html2canvas, html-to-image |
 | Icons | Lucide React |
 | Backend/API | None; explicitly deferred |
 | Database/ORM | None; explicitly deferred |
@@ -23,8 +24,8 @@ The primary activation action is changing an assumption or loading an assumption
 | Persistence | Browser `localStorage` for reload-safe progress; JSON/CSV import/export |
 | Unit tests | Vitest |
 | E2E validation | Pi `playwright_validate` |
-| Production runtime | Static nginx container |
-| CI/CD and public hosting | `[TO CONFIGURE]` |
+| Production runtime | Static Vite output on Vercel; nginx container remains the portable local runtime |
+| CI/CD and public hosting | Vercel production deployment at `growthcast.app`; no repository CI workflow yet |
 
 ## Directory structure
 
@@ -34,13 +35,17 @@ The primary activation action is changing an assumption or loading an assumption
 │   ├── App.tsx                 # UI, local state, import/export, pages
 │   ├── styles.css              # Responsive visual system
 │   ├── main.tsx                # React entry point
-│   ├── data/
 │   └── engine/
-│       ├── forecast.ts         # Pure deterministic forecasting engine
-│       └── forecast.test.ts    # Engine invariants and regressions
+│       ├── forecast.ts                 # Pure deterministic forecasting engine
+│       ├── forecast.test.ts            # Forecast invariants and regressions
+│       ├── channelBreakdown.ts         # Cumulative baseline/channel cohort attribution
+│       ├── channelBreakdown.test.ts    # Grouping and reconciliation tests
+│       ├── metrics.ts                  # Cash flow, NRR, blended CAC, Magic Number
+│       └── metrics.test.ts             # SaaS metric and cash-flow regressions
 ├── artifacts/                  # Local screenshots; ignored
 ├── Dockerfile                  # Test/build stage and nginx runtime
-├── nginx.conf                  # SPA fallback and localhost container server
+├── nginx.conf                  # SPA fallback and portable container server
+├── vercel.json                 # Production build, SPA routing, and security headers
 ├── package.json
 ├── package-lock.json
 ├── vite.config.ts
@@ -81,7 +86,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. The Monthly Forecast table is a single-open-row accordion backed by `src/engine/channelBreakdown.ts`: each expanded month groups Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom, showing category subtotals and launched channel rows. Channel customers and MRR are cumulative retained cohorts using the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; category totals reconcile to the parent forecast. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Homepage
 
@@ -176,8 +181,8 @@ Production deployment is the Vercel project `b2b-saas/growth-model`, configured 
 
 ## Testing
 
-- Add unit tests for every forecast formula or state-independent model invariant.
-- Test edge cases: zero churn, zero CPC/CPM, zero allocation, live month zero, delayed go-live, empty channels, and deterministic repeated runs.
+- Add unit tests for every forecast, channel-attribution, or state-independent metric invariant.
+- Test edge cases: zero churn, zero CPC/CPM, zero allocation, live month zero, delayed go-live, empty channels, channel/category reconciliation, and deterministic repeated runs.
 - Use Playwright for page navigation, channel tabs, hide/restore, JSON round-trip, export downloads, responsive overflow, accessibility attributes, and zero console errors.
 - Use stable labels and roles rather than coordinates.
 - A change is not complete until container lint, tests, type checking, and build pass.
@@ -211,6 +216,8 @@ None are currently required. Do not create `.env` files unless a runtime integra
 - **Channel defaults**: General-tab signup conversion, purchase conversion, and ARPU values applied immediately to every subchannel; individual values may then diverge.
 - **Channel**: Acquisition source with a go-live month and funnel assumptions.
 - **Subchannel**: Individually configurable paid or owned channel within a tab.
+- **Channel cohort**: Cumulative customers and MRR attributed to one launched channel after applying the global logo churn, revenue churn, expansion, and downgrade assumptions each month.
+- **Channel category subtotal**: Sum of active channel cohorts under Direct Response, Demand Gen, or Owned / Partner / Custom; together with Baseline / Existing Business these reconcile to the parent Monthly Forecast row.
 - **Live month**: Forecast month when one-time channel traffic enters; `0` means disabled.
 - **Traffic growth**: Global monthly efficiency growth applied to active traffic.
 - **Direct response**: Paid channel modeled from budget allocation and CPC.

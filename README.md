@@ -29,7 +29,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses customer-weighted acquisition ARPU (`total new MRR ÷ total new customers`) rather than ending blended ARPU, so active channel ARPUs affect LTV while changing logo churn alone cannot change LTV
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
-- Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
+- Expandable monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds. Clicking a month reveals reconciled cumulative cohort rows grouped under Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom; launched channels retain customers and MRR through the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; disabled and pre-launch channels remain absent
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
 - A churn-value diagnostic showing implied churned-customer ARPU (`churned MRR ÷ churned customers`) and its ratio to opening ARPU, making the relationship between independently editable logo and revenue churn explicit
 - Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[latest ending ARR − ending ARR three months earlier] ÷ latest three months of Sales & Marketing Spend`). Spend includes paid media plus three months of salaries, commissions, and tools overhead; no additional annualization multiplier is applied
@@ -38,7 +38,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 
 ### Methodology
 
-A dedicated Methodology page documents the monthly calculation sequence, channel activation rules, paid-traffic formulas, customer and revenue bridges, unit economics, metric definitions, and recommended workflow.
+A dedicated Methodology page documents the monthly calculation sequence, channel activation rules, paid-traffic formulas, customer and revenue bridges, unit economics, SaaS metrics, cumulative channel attribution, and recommended workflow.
 
 ### Deep Dive
 
@@ -151,11 +151,13 @@ src/
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests
+    ├── channelBreakdown.ts Reconciled cumulative channel attribution
+    ├── channelBreakdown.test.ts Attribution grouping and reconciliation tests
     ├── metrics.ts          Cash flow, NRR, blended CAC, and Magic Number
     └── metrics.test.ts     SaaS metric and cash-flow regression tests
 ```
 
-The React layer owns presentation and transient state. Forecast formulas belong in `src/engine/forecast.ts` so they remain deterministic and independently testable.
+The React layer owns presentation and transient state. Forecast formulas belong in `src/engine/forecast.ts`; cumulative baseline/channel cohort attribution belongs in `src/engine/channelBreakdown.ts`; SaaS and cash-flow metrics belong in `src/engine/metrics.ts`. All remain deterministic and independently testable.
 
 See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CLAUDE.md) for complete architecture context.
 
@@ -188,7 +190,7 @@ Public-deployment follow-ups are monitoring, formal privacy/legal pages, and a d
 
 - Calibration assumptions originated from private historical exports that are not bundled with the application.
 - Channel CPC, CPM, CTR, allocation, timing, and conversion values are planning assumptions rather than guaranteed performance.
-- The current application is single-user and in-memory.
+- The current application is single-user and browser-local; progress persists in local storage but does not sync across browsers or devices.
 - There is no hosted collaboration, database, authentication, or automatic source-data refresh.
 - The production JavaScript bundle currently emits a non-blocking Vite chunk-size warning.
 

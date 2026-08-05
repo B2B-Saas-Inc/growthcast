@@ -14,7 +14,7 @@ Instructions for coding agents working in this repository.
 - React + TypeScript + Vite single-page application with Home as the default page and Baseline as the model-entry workflow. Forecast, Deep Dive, and Channels remain gated until all five baseline metrics are greater than zero.
 - No backend, authentication, database, cookies, or live analytics connection.
 - Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
-- Forecast calculations belong in `src/engine/forecast.ts`, not React components.
+- Forecast calculations belong in `src/engine/forecast.ts`, cumulative channel cohort attribution in `src/engine/channelBreakdown.ts`, and cash-flow/SaaS metrics in `src/engine/metrics.ts`; do not duplicate them in React components.
 - Reload-safe progress is local-only under versioned key `growth-model-state-v1`; assumption-set JSON/CSV is independently versioned with `schemaVersion`.
 - Production hosting supports static nginx from the multi-stage `Dockerfile` and Vercel via `vercel.json`.
 
@@ -31,6 +31,7 @@ Instructions for coding agents working in this repository.
 - Keep revenue and customer churn independently editable, but reconcile their relationship through `churned customer ARPU = churned MRR ÷ churned customers` and its ratio to opening ARPU. Include both diagnostics in Forecast and churn CSV/PDF outputs.
 - Predicted contribution LTV uses customer-weighted acquisition ARPU: `(total new MRR ÷ total new customers) × gross margin ÷ effective revenue churn`, never ending blended ARPU. Active channel ARPUs must affect LTV in proportion to acquired customers; zero-customer channels must not; changing logo churn alone must not change LTV.
 - Never use floating-point values as stored currency in any future persistence layer. The current in-memory display model may calculate with numbers.
+- Monthly Forecast rows expand one at a time into a channel attribution table grouped as Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom. Include launched enabled channels even when their current traffic is zero; cumulative channel customers and MRR must use the same logo churn, revenue churn, expansion, and downgrade assumptions and category totals must reconcile to the parent month.
 - People counts display as whole numbers. On the main Forecast page, ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup are whole dollars; other displayed values use at most one decimal place.
 - Dual Deep Dive Y axes align zero at the same vertical position, targeted at 80% of plot height so signed bars sit near the X-axis and whitespace remains above. Apply the same lower-zero domain to Cash flow.
 - Budget and churn point edits may optionally propagate through future months. Keep monthly budget growth, isolated month totals, forward step totals, and subchannel spend inputs under the default-collapsed Advanced budget controls disclosure; all must flow through channel traffic, the forecast engine, persistence, and exports.
@@ -55,7 +56,7 @@ The Docker build runs lint, unit tests, type checking, and the production build.
 ## Change discipline
 
 - Make the smallest reviewable change.
-- Add or update deterministic tests for forecast-engine and pure `src/engine/metrics.ts` behavior.
+- Add or update deterministic tests for `src/engine/forecast.ts`, `src/engine/channelBreakdown.ts`, and `src/engine/metrics.ts` behavior.
 - Keep dependencies pinned, use `npm ci` in Docker/Vercel, validate persisted/imported state atomically, and preserve CSP/HSTS plus the mirrored nginx security headers.
 - Validate imported JSON before mutating application state.
 - Preserve backwards compatibility or increment `schemaVersion` with a documented migration.
