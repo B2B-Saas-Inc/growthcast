@@ -36,6 +36,7 @@ Instructions for coding agents working in this repository.
 - Cash-flow active plan shares must total 100%. Monthly cash = ending MRR × monthly share; annual and one-time cash = new MRR × share × 12; fees/refunds are negative percentages of gross cash.
 - Ending-month NRR = 1 + expansion − downgrade − effective ending-month revenue churn. SaaS Magic Number uses the latest two complete calendar quarters: [(current-quarter ARR − prior-quarter ARR) × 4] ÷ prior-quarter Sales & Marketing spend, where spend includes modeled paid budget plus three months of monthly salaries/commissions/tools overhead; show unavailable without two complete quarters or when spend is zero.
 - Every chart image export is an exact 1230 × 600 PNG of the current visible chart state, fitted to the canvas with unclipped axes, local site fonts, title, and description. The designed combined ten-metric export is an exact 1200 × 1200 PNG with title and description.
+- CSV forecast export is a ZIP with seven root-level files: `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`. Each file must reflect saved monthly budget/churn overrides and cash-flow settings.
 
 ## Commands
 
