@@ -33,8 +33,9 @@ Instructions for coding agents working in this repository.
 - People counts display as whole numbers. On the main Forecast page, ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup are whole dollars; other displayed values use at most one decimal place.
 - Dual Deep Dive Y axes align zero at the same vertical position.
 - Budget and churn point edits may optionally propagate through future months. Monthly budget growth, isolated month totals, and step totals must flow through channel traffic, the forecast engine, persistence, and exports.
-- Cash flow remains an explicitly labeled recurring-revenue proxy until annual billing, one-time payments, fees, and refunds have first-class engine inputs.
-- Every chart image export is an exact 1230 × 600 PNG of the current visible chart state, fitted to the canvas with unclipped axes, local site fonts, title, and description. The designed combined eight-metric export is an exact 1200 × 1200 PNG with title and description.
+- Cash-flow active plan shares must total 100%. Monthly cash = ending MRR × monthly share; annual and one-time cash = new MRR × share × 12; fees/refunds are negative percentages of gross cash.
+- NRR = 1 + expansion − downgrade − total revenue churn. SaaS Magic Number = [(current-quarter ARR − prior-quarter ARR) × 4] ÷ prior-quarter modeled paid spend; show unavailable when spend is zero.
+- Every chart image export is an exact 1230 × 600 PNG of the current visible chart state, fitted to the canvas with unclipped axes, local site fonts, title, and description. The designed combined ten-metric export is an exact 1200 × 1200 PNG with title and description.
 
 ## Commands
 

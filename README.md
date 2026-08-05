@@ -31,8 +31,9 @@ The application starts with zeroed metrics and contains no bundled private histo
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
+- Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[(Current Quarter ARR − Prior Quarter ARR) × 4] ÷ Prior Quarter Sales & Marketing Spend`)
 - Forecast export as CSV or a shareable, model-named PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
-- One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all eight marquee metrics
+- One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all ten marquee metrics
 
 ### Methodology
 
@@ -47,7 +48,7 @@ A dedicated tab immediately after Forecast provides six forecast-driven analytic
 - MRR overview with new, expansion, downgrade, churn, ending MRR, and ARR
 - Growth rate with net-new MRR and month-over-month growth
 - Customers overview with new customers, voluntary/delinquent churn, and ending customers
-- Cash flow with monthly subscriptions and net cash. This is explicitly presented as a recurring-revenue proxy because the model does not yet distinguish annual billing, one-time payments, fees, or refunds.
+- Cash flow with editable fee and refund percentages, a monthly/annual plan split, and optional one-time payments as a third split component. Monthly subscription cash uses ending MRR × monthly share; annual and one-time cash use new MRR × their share × 12; fees and refunds reduce gross cash.
 
 Editable Budget and Churn charts each include a local reset and an optional toggle that applies a point edit through every future month. Budget planning also supports an optional compounded monthly increase, an isolated total-budget change for one month, and a step change from a selected month onward. Dragging one subchannel’s budget point moves spend in $100 increments, proportionally redistributes the remainder across other enabled paid channels, keeps each affected monthly total fixed, and immediately updates the table. Churn dragging snaps to 0.1 percentage-point increments. Chart lines can be shown or hidden independently on each Deep Dive tab. Mixed movement/total or monetary/rate charts use independent left and right axes with zero aligned at the same vertical position. Tooltips show monetary values with currency prefixes and two decimal places. Monthly budget and churn overrides immediately recalculate that month and all subsequent forecast balances; they persist locally, round-trip through assumption exports, and appear in exported PDF Deep Dive pages. Churn, downgrade, and other loss bars render below the X-axis as negative values, while New and Expansion remain visible above it; all movement bars align on the same monthly position rather than staggering. Visitors, signups, new customers, churned customers, and ending customers are emitted and displayed as whole people. Customer charts use the right axis for new-customer movement.
 
