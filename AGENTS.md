@@ -28,7 +28,8 @@ Instructions for coding agents working in this repository.
 - Direct-response traffic = allocated spend / CPC.
 - Demand-generation traffic = allocated spend / CPM * 1,000 * CTR.
 - Partner acquisition cost uses ARPU × commission rate across the commissioned months, geometrically adjusted by monthly revenue retention, and contributes to blended CAC.
-- Keep revenue and customer churn separate.
+- Keep revenue and customer churn independently editable, but reconcile their relationship through `churned customer ARPU = churned MRR ÷ churned customers` and its ratio to opening ARPU. Include both diagnostics in Forecast and churn CSV/PDF outputs.
+- Predicted contribution LTV uses stable `newCustomerArpu × gross margin ÷ effective revenue churn`, never ending blended ARPU; changing logo churn alone must not change LTV.
 - Never use floating-point values as stored currency in any future persistence layer. The current in-memory display model may calculate with numbers.
 - People counts display as whole numbers. On the main Forecast page, ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup are whole dollars; other displayed values use at most one decimal place.
 - Dual Deep Dive Y axes align zero at the same vertical position.
