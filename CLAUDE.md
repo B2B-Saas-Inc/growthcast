@@ -112,8 +112,8 @@ Required invariants:
 - Expected CPC is `allocatedSpend / visitors`.
 - Partner assumptions include recurring affiliate commission percentage and commissioned months; defaults are 30% for 12 months. Estimate commission cost using channel ARPU and geometric monthly revenue retention over the commission window.
 - Actual blended CAC is enabled paid launch spend plus one month of Sales & Marketing Overhead plus expected partner commissions, divided by new customers predicted from paid and partner launch traffic.
-- Predicted contribution LTV is `newCustomerArpu × grossMargin ÷ effective revenue churn`. Never use ending blended ARPU: changing logo churn alone must not change LTV.
-- Payback months is blended CAC divided by stable new-customer ARPU multiplied by gross margin, so logo churn does not distort acquisition payback.
+- Predicted contribution LTV is `(total new MRR ÷ total new customers) × grossMargin ÷ effective revenue churn`. This customer-weighted acquisition ARPU includes every active channel's ARPU in proportion to customers acquired; a zero-customer channel has no effect. Never use ending blended ARPU: changing logo churn alone must not change LTV.
+- Payback months is blended CAC divided by customer-weighted acquisition ARPU multiplied by gross margin, so channel economics matter without logo churn distorting acquisition payback.
 - Expected LTV:CAC is predicted contribution LTV divided by blended CAC. Zero revenue churn makes churn-based LTV, Max CAC, and cost/signup unavailable rather than zero.
 - Ending-month NRR is `1 + expansion − downgrade − effective ending-month revenue churn`, including a saved month override.
 - SaaS Magic Number is `(latest ending ARR − ending ARR three months earlier) ÷ latest three months of Sales & Marketing spend`. The denominator is the latest three modeled paid-budget months plus three months of `monthlySalesMarketingOverhead` (salaries, commissions, and tools). Do not annualize the numerator with a ×4 multiplier. Show unavailable without four projected months or when denominator spend is zero.

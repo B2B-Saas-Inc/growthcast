@@ -5,7 +5,7 @@ import { calculateBlendedCac, calculateMagicNumber, calculateNrr, cashFlowFor, d
 const month = (iso: string, arr: number, endingMrr = arr / 12, newMrr = 100): ForecastMonth => ({
   month: iso, visitors: 0, signups: 0, newCustomers: 0, churnedCustomers: 0, customers: 0,
   newMrr, expansionMrr: 0, retractionMrr: 0, churnMrr: 0, endingMrr, arr, arpu: 0,
-  ltv: null, maxCac: null, maxCostPerSignup: null, churnedCustomerArpu: null, churnedArpuRatio: null,
+  acquisitionArpu: null, ltv: null, maxCac: null, maxCostPerSignup: null, churnedCustomerArpu: null, churnedArpuRatio: null,
 });
 
 describe('SaaS metrics', () => {

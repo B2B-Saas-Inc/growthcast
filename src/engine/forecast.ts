@@ -13,7 +13,7 @@ export type ForecastOverrides = { channelVisitors?: Record<string, Record<string
 export type ForecastMonth = {
   month: string; visitors: number; signups: number; newCustomers: number; churnedCustomers: number;
   customers: number; newMrr: number; expansionMrr: number; retractionMrr: number; churnMrr: number;
-  endingMrr: number; arr: number; arpu: number; ltv: number | null; maxCac: number | null; maxCostPerSignup: number | null;
+  endingMrr: number; arr: number; arpu: number; acquisitionArpu: number | null; ltv: number | null; maxCac: number | null; maxCostPerSignup: number | null;
   churnedCustomerArpu: number | null; churnedArpuRatio: number | null;
 }
 
@@ -55,8 +55,9 @@ export function forecast(start: { month: string; visitors: number; customers: nu
     customers = Math.max(0, customers + newCustomers - churnedCustomers);
     mrr = Math.max(0, mrr + newMrr + expansionMrr - retractionMrr - churnMrr);
     const arpu = customers ? mrr / customers : 0;
-    const ltv = revenueChurn ? a.newCustomerArpu / revenueChurn : null;
+    const acquisitionArpu = newCustomers ? newMrr / newCustomers : null;
+    const ltv = revenueChurn && acquisitionArpu !== null ? acquisitionArpu / revenueChurn : null;
     const maxCac = ltv === null || !a.targetLtvCac ? null : ltv * a.grossMargin / a.targetLtvCac;
-    return { month, visitors: Math.round(visitors), signups: Math.round(signups), newCustomers: Math.round(newCustomers), churnedCustomers: Math.round(churnedCustomers), customers: Math.round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), ltv: ltv === null ? null : round(ltv), maxCac: maxCac === null ? null : round(maxCac), maxCostPerSignup: maxCac === null ? null : round(maxCac * a.purchaseRate), churnedCustomerArpu: churnedCustomerArpu === null ? null : round(churnedCustomerArpu), churnedArpuRatio: churnedArpuRatio === null ? null : roundRate(churnedArpuRatio) };
+    return { month, visitors: Math.round(visitors), signups: Math.round(signups), newCustomers: Math.round(newCustomers), churnedCustomers: Math.round(churnedCustomers), customers: Math.round(customers), newMrr: round(newMrr), expansionMrr: round(expansionMrr), retractionMrr: round(retractionMrr), churnMrr: round(churnMrr), endingMrr: round(mrr), arr: round(mrr * 12), arpu: round(arpu), acquisitionArpu: acquisitionArpu === null ? null : round(acquisitionArpu), ltv: ltv === null ? null : round(ltv), maxCac: maxCac === null ? null : round(maxCac), maxCostPerSignup: maxCac === null ? null : round(maxCac * a.purchaseRate), churnedCustomerArpu: churnedCustomerArpu === null ? null : round(churnedCustomerArpu), churnedArpuRatio: churnedArpuRatio === null ? null : roundRate(churnedArpuRatio) };
   });
 }

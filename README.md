@@ -27,7 +27,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, and signup-to-purchase conversion
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, LTV:CAC, and monthly Sales & Marketing Overhead assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
-- Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses stable new-customer ARPU rather than ending blended ARPU, so changing logo churn alone cannot reduce LTV
+- Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses customer-weighted acquisition ARPU (`total new MRR ÷ total new customers`) rather than ending blended ARPU, so active channel ARPUs affect LTV while changing logo churn alone cannot change LTV
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
