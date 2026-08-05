@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ForecastMonth } from './forecast';
-import { calculateMagicNumber, calculateNrr, cashFlowFor, defaultCashFlow } from './metrics';
+import { calculateBlendedCac, calculateMagicNumber, calculateNrr, cashFlowFor, defaultCashFlow } from './metrics';
 
 const month = (iso: string, arr: number, endingMrr = arr / 12, newMrr = 100): ForecastMonth => ({
   month: iso, visitors: 0, signups: 0, newCustomers: 0, churnedCustomers: 0, customers: 0,
@@ -13,18 +13,22 @@ describe('SaaS metrics', () => {
     expect(calculateNrr(.018, .006, .057)).toBeCloseTo(.955);
   });
 
-  it('uses two complete calendar quarters and includes monthly overhead in Magic Number spend', () => {
+  it('compares ending ARR with three months earlier and includes three months of paid spend and overhead', () => {
     const projection = [
-      month('2026-08', 100), month('2026-09', 110),
-      month('2026-10', 120), month('2026-11', 130), month('2026-12', 140),
-      month('2027-01', 150), month('2027-02', 160), month('2027-03', 170),
-      month('2027-04', 180),
+      month('2027-04', 1_203_496), month('2027-05', 1_330_000),
+      month('2027-06', 1_470_000), month('2027-07', 1_609_707),
     ];
-    expect(calculateMagicNumber(projection, projection.map(() => 100), 50)).toBeCloseTo((170 - 140) * 4 / 450);
+    expect(calculateMagicNumber(projection, projection.map(() => 50_000), 30_000)).toBeCloseTo(406_211 / 240_000);
   });
 
-  it('returns unavailable without two complete quarters or prior-quarter spend', () => {
-    expect(calculateMagicNumber([month('2026-10', 100), month('2026-11', 110), month('2026-12', 120)], [0, 0, 0], 0)).toBeNull();
+  it('returns unavailable without four months or quarterly spend', () => {
+    expect(calculateMagicNumber([month('2027-05', 100), month('2027-06', 110), month('2027-07', 120)], [0, 0, 0], 0)).toBeNull();
+    expect(calculateMagicNumber([month('2027-04', 90), month('2027-05', 100), month('2027-06', 110), month('2027-07', 120)], [0, 0, 0, 0], 0)).toBeNull();
+  });
+
+  it('includes monthly Sales & Marketing overhead in blended CAC', () => {
+    expect(calculateBlendedCac(50_000, 30_000, 5_000, 100)).toBe(850);
+    expect(calculateBlendedCac(50_000, 30_000, 5_000, 0)).toBe(0);
   });
 
   it('calculates cash collections, fees, refunds, and net cash', () => {

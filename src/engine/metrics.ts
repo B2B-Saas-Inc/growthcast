@@ -33,16 +33,16 @@ export function calculateNrr(expansionRate: number, retractionRate: number, reve
 }
 
 export function calculateMagicNumber(projection: ForecastMonth[], monthlyPaidSpend: number[], monthlyOverhead: number) {
-  const quarters = Object.values(projection.reduce<Record<string, { row: ForecastMonth; index: number }[]>>((groups, row, index) => {
-    const [year, month] = row.month.split('-').map(Number);
-    const key = `${year}-Q${Math.ceil(month / 3)}`;
-    (groups[key] ??= []).push({ row, index });
-    return groups;
-  }, {})).filter(group => group.length === 3);
-  const current = quarters.at(-1);
-  const prior = quarters.at(-2);
-  if (!current || !prior) return null;
-  const priorSpend = prior.reduce((sum, { index }) => sum + (monthlyPaidSpend[index] || 0) + monthlyOverhead, 0);
-  if (!priorSpend) return null;
-  return ((current.at(-1)!.row.arr - prior.at(-1)!.row.arr) * 4) / priorSpend;
+  if (projection.length < 4) return null;
+  const currentIndex = projection.length - 1;
+  const quarterStartIndex = currentIndex - 2;
+  const priorQuarterEndIndex = currentIndex - 3;
+  const quarterSpend = monthlyPaidSpend.slice(quarterStartIndex, currentIndex + 1)
+    .reduce((sum, spend) => sum + (spend || 0) + monthlyOverhead, 0);
+  if (!quarterSpend) return null;
+  return (projection[currentIndex].arr - projection[priorQuarterEndIndex].arr) / quarterSpend;
+}
+
+export function calculateBlendedCac(paidSpend: number, monthlyOverhead: number, partnerCommissionCost: number, acquiredCustomers: number) {
+  return acquiredCustomers ? (paidSpend + monthlyOverhead + partnerCommissionCost) / acquiredCustomers : 0;
 }

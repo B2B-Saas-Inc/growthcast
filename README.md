@@ -31,7 +31,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
-- Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[(Current Quarter ARR − Prior Quarter ARR) × 4] ÷ Prior Quarter Sales & Marketing Spend`). It uses the latest two complete calendar quarters and adds three months of salaries, commissions, and tools overhead to prior-quarter paid spend
+- Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[latest ending ARR − ending ARR three months earlier] ÷ latest three months of Sales & Marketing Spend`). Spend includes paid media plus three months of salaries, commissions, and tools overhead; no additional annualization multiplier is applied
 - Forecast export as a model-named ZIP containing `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`; or as a shareable PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
 - One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all ten marquee metrics
 
@@ -150,7 +150,7 @@ src/
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests
-    ├── metrics.ts          Cash flow, NRR, and calendar-quarter Magic Number
+    ├── metrics.ts          Cash flow, NRR, blended CAC, and Magic Number
     └── metrics.test.ts     SaaS metric and cash-flow regression tests
 ```
 

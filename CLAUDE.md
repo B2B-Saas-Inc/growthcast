@@ -81,7 +81,7 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. `src/engine/metrics.ts` owns cash flow, NRR, and calendar-quarter SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Homepage
 
@@ -111,12 +111,12 @@ Required invariants:
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
 - Partner assumptions include recurring affiliate commission percentage and commissioned months; defaults are 30% for 12 months. Estimate commission cost using channel ARPU and geometric monthly revenue retention over the commission window.
-- Actual blended CAC is enabled paid launch spend plus expected partner commissions, divided by new customers predicted from paid and partner launch traffic.
+- Actual blended CAC is enabled paid launch spend plus one month of Sales & Marketing Overhead plus expected partner commissions, divided by new customers predicted from paid and partner launch traffic.
 - Predicted LTV is ending revenue LTV multiplied by gross margin.
 - Payback months is blended CAC divided by ending monthly ARPU multiplied by gross margin.
 - Expected LTV:CAC is predicted contribution LTV divided by blended CAC. Zero revenue churn makes churn-based LTV, Max CAC, and cost/signup unavailable rather than zero.
 - Ending-month NRR is `1 + expansion − downgrade − effective ending-month revenue churn`, including a saved month override.
-- SaaS Magic Number uses the latest two complete calendar quarters: `[(current-quarter ending ARR − prior-quarter ending ARR) × 4] ÷ prior-quarter Sales & Marketing spend`. Prior-quarter spend is three complete months of modeled paid budget plus three months of `monthlySalesMarketingOverhead` (salaries, commissions, and tools). Show unavailable without two complete quarters or when denominator spend is zero.
+- SaaS Magic Number is `(latest ending ARR − ending ARR three months earlier) ÷ latest three months of Sales & Marketing spend`. The denominator is the latest three modeled paid-budget months plus three months of `monthlySalesMarketingOverhead` (salaries, commissions, and tools). Do not annualize the numerator with a ×4 multiplier. Show unavailable without four projected months or when denominator spend is zero.
 - MRR bridge separately exposes new, expansion, downgrade, and churn movements.
 - ARR is ending MRR multiplied by 12.
 - People display as whole numbers. On the main Forecast page, ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup display as whole dollars; other UI values display at most one decimal place.
