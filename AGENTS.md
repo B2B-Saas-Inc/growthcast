@@ -34,6 +34,7 @@ Instructions for coding agents working in this repository.
 - Dual Deep Dive Y axes align zero at the same vertical position.
 - Budget and churn point edits may optionally propagate through future months. Monthly budget growth, isolated month totals, and step totals must flow through channel traffic, the forecast engine, persistence, and exports.
 - Cash flow remains an explicitly labeled recurring-revenue proxy until annual billing, one-time payments, fees, and refunds have first-class engine inputs.
+- Every chart image export is an exact 1230 × 600 PNG of the current visible chart state. The combined eight-metric export is an exact 1200 × 1200 PNG.
 
 ## Commands
 

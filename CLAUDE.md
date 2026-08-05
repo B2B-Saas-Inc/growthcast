@@ -182,7 +182,7 @@ Production deployment is the Vercel project `b2b-saas/growth-model`, configured 
 
 ## Data and exports
 
-Forecast CSV, shareable forecast PDF, and assumption JSON/CSV are generated entirely in the browser. PDF generation uses synchronously loaded jsPDF so browser download activation is retained and must include model identity, generation context, summary metrics, core assumptions, monthly forecast, and a planning disclaimer. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
+Forecast CSV, shareable forecast PDF, assumption JSON/CSV, and PNG snapshots are generated entirely in the browser. Every Forecast and Deep Dive chart exposes an image-download icon that captures its current visible state into an exact 1230 × 600 PNG. The eight marquee metric cards export together as an exact 1200 × 1200 PNG. PDF generation uses synchronously loaded jsPDF so browser download activation is retained and must include model identity, generation context, summary metrics, core assumptions, monthly forecast, and a planning disclaimer. Filenames derive from the sanitized model name. Exports must contain no credentials and should remain portable. A future hosted archive/export feature would require authorization, expiring downloads, retention policy, encrypted backups, and restore testing; these are not part of the current app.
 
 ## Accessibility
 
