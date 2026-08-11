@@ -32,3 +32,5 @@ CONTINUITY.md
 npm-debug.log*
 .vercel
 .env*
+
+.aidesigner/

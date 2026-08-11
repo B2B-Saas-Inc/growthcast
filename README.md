@@ -8,7 +8,7 @@ The application has no backend, accounts, credentials, or live API dependency. I
 
 ### Homepage
 
-The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline. Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
+The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline. The GrowthCast mark appears in the application header and supplies the favicon, while production metadata uses a dedicated 1200 × 630 Open Graph image for social previews. Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
 
 ### Baseline setup
 
@@ -24,13 +24,14 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Editable model name used in the document title and exported filenames
 - Conservative, Baseline, and Ambitious scenario presets
 - Starting-month selector covering August 2026 through August 2028
-- Adjustable forecast range, traffic growth, visitor-to-signup conversion, and signup-to-purchase conversion
+- Adjustable forecast range, traffic growth, visitor-to-signup conversion, signup-to-purchase conversion, and average days from signup to upgrade
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, LTV:CAC, and monthly Sales & Marketing Overhead assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses customer-weighted acquisition ARPU (`total new MRR ÷ total new customers`) rather than ending blended ARPU, so active channel ARPUs affect LTV while changing logo churn alone cannot change LTV
 - MRR trajectory, monthly revenue bridge, and customer-growth visualizations
 - Expandable monthly forecast table with visitors, signups, new customers, total customers, ARPU, MRR, ARR, and acquisition thresholds. Clicking a month reveals reconciled cumulative cohort rows grouped under Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom; launched channels retain customers and MRR through the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; disabled and pre-launch channels remain absent
 - Whole-number people counts plus whole-dollar ARPU, Ending MRR, Ending ARR, Max CAC, and Max cost/signup on the main Forecast page
+- Signup conversions are delayed by **Days to upgrade**. Signups are assumed to arrive evenly through each calendar month; only the share old enough to upgrade contributes customers and MRR in that month, while the remainder rolls into subsequent months. The current trailing-30-day Mixpanel average is 3.0 days (measured July 12–August 10, 2026 from `User Signup` to `Plan Upgraded`, within 90 days)
 - A churn-value diagnostic showing implied churned-customer ARPU (`churned MRR ÷ churned customers`) and its ratio to opening ARPU, making the relationship between independently editable logo and revenue churn explicit
 - Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[latest ending ARR − ending ARR three months earlier] ÷ latest three months of Sales & Marketing Spend`). Spend includes paid media plus three months of salaries, commissions, and tools overhead; no additional annualization multiplier is applied
 - Forecast export as a model-named ZIP containing `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`; or as a shareable PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
@@ -157,7 +158,7 @@ src/
     └── metrics.test.ts     SaaS metric and cash-flow regression tests
 ```
 
-The React layer owns presentation and transient state. Forecast formulas belong in `src/engine/forecast.ts`; cumulative baseline/channel cohort attribution belongs in `src/engine/channelBreakdown.ts`; SaaS and cash-flow metrics belong in `src/engine/metrics.ts`. All remain deterministic and independently testable.
+The React layer owns presentation and transient state. Forecast formulas, including calendar-aware signup-to-upgrade lag allocation, belong in `src/engine/forecast.ts`; cumulative baseline/channel cohort attribution belongs in `src/engine/channelBreakdown.ts`; SaaS and cash-flow metrics belong in `src/engine/metrics.ts`. All remain deterministic and independently testable.
 
 See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CLAUDE.md) for complete architecture context.
 

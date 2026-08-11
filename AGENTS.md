@@ -23,6 +23,7 @@ Instructions for coding agents working in this repository.
 - Calibration used complete private history from August 2024 through July 2026; raw history must not be bundled. Runtime always begins from user-entered/imported baseline visitors, customers, and MRR.
 - `User Signup` is the signup event; `Page view` unique users are the visitor series.
 - Baseline visitor-to-signup is 13.7%; baseline signup-to-purchase is 0.8%.
+- Days to upgrade shifts uniformly acquired monthly signups into paid customers and new MRR using actual calendar-month lengths; conversions after month end roll into subsequent months. The default is the current trailing-30-day 3.0-day Mixpanel average.
 - A channel contributes its launch traffic once in its go-live month. Thereafter that cohort compounds only at the global Traffic growth rate.
 - Live month `0` disables a channel completely, including traffic, spend, and budget allocation.
 - Direct-response traffic = allocated spend / CPC.

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculateChannelBreakdown, type BreakdownChannel } from './channelBreakdown';
 import { forecast, type Assumptions } from './forecast';
 
-const assumptions: Assumptions = { months: 2, monthlyTrafficGrowth: 0, signupRate: .1, purchaseRate: .1, voluntaryCustomerChurn: .02, delinquentCustomerChurn: .01, voluntaryRevenueChurn: .02, delinquentRevenueChurn: .01, expansionRate: .01, retractionRate: .005, newCustomerArpu: 40, grossMargin: .8, targetLtvCac: 3, monthlyIncrementalVisitors: 0, monthlySalesMarketingOverhead: 0 };
+const assumptions: Assumptions = { months: 2, monthlyTrafficGrowth: 0, signupRate: .1, purchaseRate: .1, voluntaryCustomerChurn: .02, delinquentCustomerChurn: .01, voluntaryRevenueChurn: .02, delinquentRevenueChurn: .01, expansionRate: .01, retractionRate: .005, newCustomerArpu: 40, grossMargin: .8, targetLtvCac: 3, daysToUpgrade: 0, monthlyIncrementalVisitors: 0, monthlySalesMarketingOverhead: 0 };
 const channels: BreakdownChannel[] = [
   { name: 'Branded Search', model: 'cpc', visitors: 100, goLiveMonth: 1, signupRate: .2, purchaseRate: .1, arpu: 60 },
   { name: 'YouTube', model: 'cpm', visitors: 200, goLiveMonth: 2, signupRate: .1, purchaseRate: .2, arpu: 80 },

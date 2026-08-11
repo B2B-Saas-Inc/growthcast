@@ -109,6 +109,7 @@ Required invariants:
 - Signup data uses unique `User Signup` users.
 - Baseline visitor-to-signup conversion is 13.7%.
 - Baseline signup-to-purchase conversion is 0.8%.
+- `daysToUpgrade` delays signup conversion into paid customers and new MRR. Assume signups arrive uniformly through each actual calendar month, shift them by the configured average delay, count only upgrades landing in the current month, and carry the remaining cohort into later months. The default is 3.0 days, the current trailing-30-day Mixpanel average from `User Signup` to `Plan Upgraded` for July 12–August 10, 2026 with a 90-day conversion window.
 - Customer churn and revenue churn remain independently editable. Reconcile their economic relationship each month through `churnedCustomerArpu = churnMrr ÷ churnedCustomers` and `churnedArpuRatio = churnedCustomerArpu ÷ openingArpu`; expose both in Forecast diagnostics and churn CSV/PDF outputs.
 - Channel traffic is introduced once at go-live, then compounds with global Traffic growth. Monthly paid-spend schedules become explicit adjustments to the compounded active cohort rather than replacing engine state.
 - Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue; when a paid channel is changed to 0, redistribute its allocation proportionally across the other enabled paid channels so enabled allocation remains 100%.
@@ -141,7 +142,7 @@ JSON exports include:
 - `forecastStartMonth`
 - `scenario`
 - `budget`
-- `assumptions`
+- `assumptions` (including `daysToUpgrade`)
 - `channelDefaults`
 - `channels`
 

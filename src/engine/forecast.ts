@@ -3,7 +3,7 @@ export type Assumptions = {
   purchaseRate: number; voluntaryCustomerChurn: number; delinquentCustomerChurn: number;
   voluntaryRevenueChurn: number; delinquentRevenueChurn: number;
   expansionRate: number; retractionRate: number; newCustomerArpu: number;
-  grossMargin: number; targetLtvCac: number; monthlyIncrementalVisitors: number; monthlySalesMarketingOverhead: number;
+  grossMargin: number; targetLtvCac: number; daysToUpgrade: number; monthlyIncrementalVisitors: number; monthlySalesMarketingOverhead: number;
 }
 
 export type ChannelAssumption = { name: string; visitors: number; goLiveMonth: number; signupRate: number; purchaseRate: number; arpu: number };
@@ -24,9 +24,25 @@ const addMonths = (iso: string, count: number) => {
 const round = (n: number) => Math.round(n * 100) / 100;
 const roundRate = (n: number) => Math.round(n * 10000) / 10000;
 
+export function delayedConversionShares(sourceMonth: string, delayDays: number, maxOffsets: number): number[] {
+  const [year, month] = sourceMonth.split('-').map(Number);
+  const sourceStart = Date.UTC(year, month - 1, 1);
+  const sourceEnd = Date.UTC(year, month, 1);
+  const sourceDays = (sourceEnd - sourceStart) / 86400000;
+  const shiftedStart = sourceStart + Math.max(0, delayDays) * 86400000;
+  const shiftedEnd = sourceEnd + Math.max(0, delayDays) * 86400000;
+  return Array.from({ length: maxOffsets }, (_, offset) => {
+    const targetStart = Date.UTC(year, month - 1 + offset, 1);
+    const targetEnd = Date.UTC(year, month + offset, 1);
+    return Math.max(0, Math.min(shiftedEnd, targetEnd) - Math.max(shiftedStart, targetStart)) / 86400000 / sourceDays;
+  });
+}
+
 export function forecast(start: { month: string; visitors: number; customers: number; mrr: number }, a: Assumptions, channelInputs: ChannelAssumption[] = [], overrides: ForecastOverrides = {}): ForecastMonth[] {
   let baselineVisitors = start.visitors, customers = start.customers, mrr = start.mrr;
   const channels = channelInputs.map(channel => ({ ...channel, activeVisitors: 0 }));
+  const pendingCustomers = Array.from({ length: a.months }, () => 0);
+  const pendingMrr = Array.from({ length: a.months }, () => 0);
   return Array.from({ length: a.months }, (_, i) => {
     const month = addMonths(start.month, i + 1);
     baselineVisitors = baselineVisitors * (1 + a.monthlyTrafficGrowth) + a.monthlyIncrementalVisitors;
@@ -42,10 +58,17 @@ export function forecast(start: { month: string; visitors: number; customers: nu
     }, { visitors: 0, signups: 0, newCustomers: 0, newMrr: 0 });
     const visitors = baselineVisitors + channelTotals.visitors;
     const signups = baselineVisitors * a.signupRate + channelTotals.signups;
-    const newCustomers = baselineVisitors * a.signupRate * a.purchaseRate + channelTotals.newCustomers;
+    const potentialCustomers = baselineVisitors * a.signupRate * a.purchaseRate + channelTotals.newCustomers;
+    const potentialMrr = baselineVisitors * a.signupRate * a.purchaseRate * a.newCustomerArpu + channelTotals.newMrr;
+    const shares = delayedConversionShares(month, a.daysToUpgrade, a.months - i);
+    shares.forEach((share, offset) => {
+      pendingCustomers[i + offset] += potentialCustomers * share;
+      pendingMrr[i + offset] += potentialMrr * share;
+    });
+    const newCustomers = pendingCustomers[i];
+    const newMrr = pendingMrr[i];
     const openingArpu = customers ? mrr / customers : 0;
     const churnedCustomers = customers * (a.voluntaryCustomerChurn + a.delinquentCustomerChurn);
-    const newMrr = baselineVisitors * a.signupRate * a.purchaseRate * a.newCustomerArpu + channelTotals.newMrr;
     const expansionMrr = mrr * a.expansionRate;
     const retractionMrr = mrr * a.retractionRate;
     const revenueChurn = overrides.revenueChurn?.[month] ?? (a.voluntaryRevenueChurn + a.delinquentRevenueChurn);

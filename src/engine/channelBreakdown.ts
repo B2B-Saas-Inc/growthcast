@@ -1,4 +1,4 @@
-import type { Assumptions, ChannelAssumption, ForecastOverrides } from './forecast';
+import { delayedConversionShares, type Assumptions, type ChannelAssumption, type ForecastOverrides } from './forecast';
 
 export type BreakdownChannel = ChannelAssumption & { model: 'manual' | 'cpc' | 'cpm' };
 export type ChannelBreakdownRow = {
@@ -16,7 +16,7 @@ export type ChannelBreakdownRow = {
 export type ChannelBreakdownCategory = { name: string; total: ChannelBreakdownRow; channels: ChannelBreakdownRow[] };
 export type ChannelMonthBreakdown = { month: string; categories: ChannelBreakdownCategory[] };
 
-type SegmentState = { customers: number; mrr: number; activeVisitors: number };
+type SegmentState = { customers: number; mrr: number; activeVisitors: number; pendingCustomers: number[]; pendingMrr: number[] };
 type SegmentMonth = ChannelBreakdownRow & { newMrr: number; purchaseRate: number };
 
 const addMonths = (iso: string, count: number) => {
@@ -25,10 +25,16 @@ const addMonths = (iso: string, count: number) => {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 };
 
-function advanceSegment(name: string, state: SegmentState, visitors: number, signupRate: number, purchaseRate: number, newCustomerArpu: number, assumptions: Assumptions, revenueChurn: number): SegmentMonth {
+function advanceSegment(name: string, state: SegmentState, month: string, monthIndex: number, visitors: number, signupRate: number, purchaseRate: number, newCustomerArpu: number, assumptions: Assumptions, revenueChurn: number): SegmentMonth {
   const signups = visitors * signupRate;
-  const newCustomers = signups * purchaseRate;
-  const newMrr = newCustomers * newCustomerArpu;
+  const potentialCustomers = signups * purchaseRate;
+  const shares = delayedConversionShares(month, assumptions.daysToUpgrade, assumptions.months - monthIndex);
+  shares.forEach((share, offset) => {
+    state.pendingCustomers[monthIndex + offset] += potentialCustomers * share;
+    state.pendingMrr[monthIndex + offset] += potentialCustomers * newCustomerArpu * share;
+  });
+  const newCustomers = state.pendingCustomers[monthIndex];
+  const newMrr = state.pendingMrr[monthIndex];
   state.customers = Math.max(0, state.customers + newCustomers - state.customers * (assumptions.voluntaryCustomerChurn + assumptions.delinquentCustomerChurn));
   state.mrr = Math.max(0, state.mrr + newMrr + state.mrr * assumptions.expansionRate - state.mrr * assumptions.retractionRate - state.mrr * revenueChurn);
   const arpu = state.customers ? state.mrr / state.customers : 0;
@@ -52,8 +58,9 @@ function subtotal(name: string, rows: SegmentMonth[], assumptions: Assumptions, 
 
 export function calculateChannelBreakdown(start: { month: string; visitors: number; customers: number; mrr: number }, assumptions: Assumptions, channels: BreakdownChannel[], overrides: ForecastOverrides = {}): ChannelMonthBreakdown[] {
   let baselineVisitors = start.visitors;
-  const baselineState: SegmentState = { customers: start.customers, mrr: start.mrr, activeVisitors: 0 };
-  const channelStates = new Map(channels.map(channel => [channel.name, { customers: 0, mrr: 0, activeVisitors: 0 } satisfies SegmentState]));
+  const emptyPending = () => Array.from({ length: assumptions.months }, () => 0);
+  const baselineState: SegmentState = { customers: start.customers, mrr: start.mrr, activeVisitors: 0, pendingCustomers: emptyPending(), pendingMrr: emptyPending() };
+  const channelStates = new Map(channels.map(channel => [channel.name, { customers: 0, mrr: 0, activeVisitors: 0, pendingCustomers: emptyPending(), pendingMrr: emptyPending() } satisfies SegmentState]));
   const categoryFor = (model: BreakdownChannel['model']) => model === 'cpc' ? 'Direct Response' : model === 'cpm' ? 'Demand Gen' : 'Owned / Partner / Custom';
   const categoryOrder = ['Baseline / Existing Business', 'Direct Response', 'Demand Gen', 'Owned / Partner / Custom'];
 
@@ -61,7 +68,7 @@ export function calculateChannelBreakdown(start: { month: string; visitors: numb
     const month = addMonths(start.month, index + 1);
     const revenueChurn = overrides.revenueChurn?.[month] ?? assumptions.voluntaryRevenueChurn + assumptions.delinquentRevenueChurn;
     baselineVisitors = baselineVisitors * (1 + assumptions.monthlyTrafficGrowth) + assumptions.monthlyIncrementalVisitors;
-    const baseline = advanceSegment('Baseline / existing business', baselineState, baselineVisitors, assumptions.signupRate, assumptions.purchaseRate, assumptions.newCustomerArpu, assumptions, revenueChurn);
+    const baseline = advanceSegment('Baseline / existing business', baselineState, month, index, baselineVisitors, assumptions.signupRate, assumptions.purchaseRate, assumptions.newCustomerArpu, assumptions, revenueChurn);
     const groups = new Map<string, SegmentMonth[]>([['Baseline / Existing Business', [baseline]]]);
 
     channels.forEach(channel => {
@@ -70,7 +77,7 @@ export function calculateChannelBreakdown(start: { month: string; visitors: numb
       const adjustment = overrides.channelVisitors?.[month]?.[channel.name];
       const compoundedVisitors = state.activeVisitors * (1 + assumptions.monthlyTrafficGrowth);
       state.activeVisitors = adjustment === undefined ? (index + 1 === channel.goLiveMonth ? channel.visitors : compoundedVisitors) : Math.max(0, compoundedVisitors + adjustment);
-      const row = advanceSegment(channel.name, state, state.activeVisitors, channel.signupRate, channel.purchaseRate, channel.arpu, assumptions, revenueChurn);
+      const row = advanceSegment(channel.name, state, month, index, state.activeVisitors, channel.signupRate, channel.purchaseRate, channel.arpu, assumptions, revenueChurn);
       const category = categoryFor(channel.model);
       groups.set(category, [...(groups.get(category) || []), row]);
     });
