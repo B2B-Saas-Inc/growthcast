@@ -15,9 +15,9 @@ The default landing page introduces the model through a Hero, the decade of grow
 The editable model name lives with the baseline inputs. GrowthCast is the default identity, while changing the model name updates the document title and export filenames.
 
 
-The first tab defines the opening state for the model instead of requiring the bundled project data. Users can enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
+The first tab defines the opening state and lets the user choose a B2C or B2B model. B2C preserves the visitor → signup → purchase workflow: users enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. B2B uses the latest complete month's steady-state pipeline flow with visitors, MQLs, SQLs, new customers, total customers, and ARR. Each funnel stage must be no larger than the preceding stage. The observed MQL, SQL, and closed-won throughput calibrates the three pipeline conversion rates; the average deal cycle controls when forecast SQL cohorts close. MRR and average monthly revenue per account are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The application starts with zeroed metrics and contains no bundled private historical performance. Forecast, Deep Dive, and Channels redirect to Baseline until all five required baseline metrics are greater than zero, and the Baseline page explains what is missing. Master Reset returns to the Baseline tab and clears the model. Enter or import an authorized baseline before using the forecast. A local `baseline.csv` may contain private values for convenient reloading, but it is intentionally excluded from Git and Docker images. Baseline files include the paid-media budget; the authorized local file sets it to $0.
+The application starts with zeroed metrics and contains no bundled private historical performance. Forecast, Deep Dive, and Channels redirect to Baseline until the selected model's required baseline metrics are greater than zero. Master Reset returns to B2C Baseline and clears the model. Baseline files include the selected business model and paid-media budget.
 
 ### Forecast
 
@@ -25,6 +25,8 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Conservative, Baseline, and Ambitious scenario presets
 - Starting-month selector covering August 2026 through August 2028
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, signup-to-purchase conversion, and average days from signup to upgrade
+- B2B pipeline assumptions for visitor-to-MQL, MQL-to-SQL, SQL-to-closed-won, average deal cycle in days, and ACV. Closed-won customers and new MRR are delayed with actual calendar-month lengths; `new MRR = closed won × ACV ÷ 12`
+- A B2B pipeline-over-time chart for MQLs, SQLs, and closed-won customers alongside the combined MRR/ARR trajectory and revenue bridge
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, LTV:CAC, and monthly Sales & Marketing Overhead assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses customer-weighted acquisition ARPU (`total new MRR ÷ total new customers`) rather than ending blended ARPU, so active channel ARPUs affect LTV while changing logo churn alone cannot change LTV
@@ -34,7 +36,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Signup conversions are delayed by **Days to upgrade**. Signups are assumed to arrive evenly through each calendar month; only the share old enough to upgrade contributes customers and MRR in that month, while the remainder rolls into subsequent months. The current trailing-30-day Mixpanel average is 3.0 days (measured July 12–August 10, 2026 from `User Signup` to `Plan Upgraded`, within 90 days)
 - A churn-value diagnostic showing implied churned-customer ARPU (`churned MRR ÷ churned customers`) and its ratio to opening ARPU, making the relationship between independently editable logo and revenue churn explicit
 - Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[latest ending ARR − ending ARR three months earlier] ÷ latest three months of Sales & Marketing Spend`). Spend includes paid media plus three months of salaries, commissions, and tools overhead; no additional annualization multiplier is applied
-- Forecast export as a model-named ZIP containing `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`; or as a shareable PDF report containing summary metrics, assumptions, the monthly forecast, all three main charts, all six Deep Dive charts, and dedicated Deep Dive tables
+- Forecast export as a model-named ZIP containing `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`; B2B forecast rows use `mqls`, `sqls`, and `maxCostPerMql` instead of B2C-only signup fields. A shareable PDF report contains summary metrics, assumptions, the monthly forecast, all applicable main charts (including B2B pipeline), all six Deep Dive charts, and dedicated Deep Dive tables
 - One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all ten marquee metrics
 
 ### Methodology
@@ -92,7 +94,7 @@ Choose JSON or CSV and export a versioned assumption file containing:
 - Every channel and subchannel setting
 - Visibility and activation configuration
 
-Loading either JSON or the exported CSV restores the model name, baseline metrics, starting month, and all assumptions. Files are parsed and validated locally before application state changes.
+Loading either JSON or the exported CSV restores the model name, baseline metrics, starting month, and all assumptions. Files are size-limited, parsed, and validated locally before application state changes. Spreadsheet exports neutralize formula-like user text.
 
 ## Calibration and privacy
 
@@ -164,7 +166,7 @@ See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CL
 
 ## Assumption JSON compatibility
 
-Exports currently use `schemaVersion: 2`; version 1 JSON remains import-compatible and defaults its starting month to August 2026. Import and local-state loading share a version-aware validator. It rejects unsupported versions, malformed baselines, incomplete or out-of-range assumptions, duplicate/invalid channels, invalid override maps, invalid cash splits, negative values, and non-finite numbers before applying state. If the contract changes, increment the schema version and provide a migration or explicit compatibility error.
+Exports use `schemaVersion: 3`; versions 1 and 2 remain import-compatible and migrate to B2C with default B2B pipeline fields available if the user switches models. Import and local-state loading share a version-aware validator. It rejects unsupported versions, malformed baselines, incomplete or out-of-range assumptions, duplicate/invalid channels, invalid override maps, invalid cash splits, negative values, and non-finite numbers before applying state.
 
 ## Privacy and security
 

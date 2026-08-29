@@ -86,7 +86,13 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: navigation redirects to Baseline until visitors, signups, new customers, total customers, and MRR are all greater than zero. Baseline owns the editable model name, opening month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived. It may format and present outputs but must not duplicate forecast formulas. The Monthly Forecast table is a single-open-row accordion backed by `src/engine/channelBreakdown.ts`: each expanded month groups Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom, showing category subtotals and launched channel rows. Channel customers and MRR are cumulative retained cohorts using the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; category totals reconcile to the parent forecast. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+`src/App.tsx` owns UI state and local persistence orchestration and renders six logical pages: Home, Baseline, Forecast, Deep Dive, Channels, and Methodology. Home is the default landing page and routes users into Baseline. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels are baseline-gated: B2C requires visitors, signups, new customers, total customers, and MRR; B2B requires visitors, MQLs, SQLs, new customers, total customers, and ARR. Baseline owns the editable model name and selected model's opening metrics; derived values and B2B rate calibration remain presentation orchestration, while forecast formulas stay in the engines. The Monthly Forecast table is a single-open-row accordion backed by `src/engine/channelBreakdown.ts`: each expanded month groups Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom, showing category subtotals and launched channel rows. Channel customers and MRR are cumulative retained cohorts using the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; category totals reconcile to the parent forecast. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+
+### B2C and B2B model contracts
+
+Baseline selects `b2c` or `b2b`; missing `businessModel` values from older saved state migrate to B2C. B2C remains gated on visitors, signups, new customers, total customers, and MRR. B2B is gated on visitors, MQLs, SQLs, new customers, total customers, and ARR; MRR and average monthly revenue per account are derived.
+
+B2B closed-won customers equal `visitors × mqlRate × sqlRate × closeRate`. New MRR equals `closed won × ACV ÷ 12`. `dealCycleDays` shifts SQL-derived closes uniformly across actual calendar months. The latest complete month's B2B baseline MQL, SQL, and new-customer flow calibrates the global MQL, SQL, and close rates. Baseline traffic and every channel use this same pipeline contract, while channels can override MQL, SQL, close, and ACV assumptions. Forecast shows MQLs, SQLs, and closed won over time alongside realized MRR and ARR. Keep all B2B calculations in the engine and channel-attribution modules.
 
 ### Homepage
 
@@ -146,7 +152,7 @@ JSON exports include:
 - `channelDefaults`
 - `channels`
 
-Exports support JSON and a two-column CSV representation whose values are JSON encoded. Imports detect `.json` or `.csv` and must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
+Exports use `schemaVersion: 3` and support JSON and a two-column CSV representation whose values are JSON encoded. Imports detect `.json` or `.csv`, migrate versions 1 and 2 to B2C defaults, and must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
 
 ### Authentication, onboarding, and tenancy
 
@@ -211,7 +217,7 @@ None are currently required. Do not create `.env` files unless a runtime integra
 ## Terminology
 
 - **Model name**: User-supplied white-label name stored in assumption JSON.
-- **Baseline**: User-supplied opening month, visitors, signups, new customers, total customers, and MRR. ARPU and ARR are derived. Live forecast calculations use baseline visitors, customers, and MRR.
+- **Baseline**: B2C supplies opening visitors, signups, new customers, total customers, and MRR. B2B supplies steady-state visitors, MQLs, SQLs, wins, total customers, and ARR; funnel throughput calibrates the global pipeline rates. Live forecast calculations use baseline visitors, customers, and MRR.
 - **Scenario**: Named set of global forecast assumptions.
 - **Baseline traffic**: Historical visitor base compounded by global Traffic growth.
 - **Channel defaults**: General-tab signup conversion, purchase conversion, and ARPU values applied immediately to every subchannel; individual values may then diverge.
