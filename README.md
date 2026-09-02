@@ -1,14 +1,16 @@
 # GrowthCast
 
-A white-labelled, local-first SaaS growth and recurring-revenue forecasting application. Configure acquisition channels, funnel conversion, customer and revenue churn, expansion, ARPU, margin, and LTV:CAC targets; then inspect the monthly effect on customers, MRR, ARR, and allowable acquisition cost.
+GrowthCast is a GTM Engineering agency site for Series A and later companies with product-market fit. Its free, local-first Forecast tool models acquisition, recurring revenue, and unit economics.
 
 The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides privacy-conscious product analytics and receives a first name and email only when a user explicitly requests a Growth Plan.
 
 ## Features
 
-### Homepage
+### Agency homepage
 
-The default landing page introduces the model through a Hero, the decade of growth-leadership experience behind it, and a practical How to use walkthrough. It explains the five baseline inputs, the headline growth metrics, and the move from forecast assumptions into channel planning, with direct calls to start the Baseline. The GrowthCast mark appears in the application header and supplies the favicon, while production metadata uses a dedicated 1200 × 630 Open Graph image for social previews. Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
+The default route presents GrowthCast as **GTM Engineering for Growth**. It targets founders, CEOs, VC partners, and private-equity partners at Series A and later companies that have traction but need a repeatable growth system. The page explains the growth-system problem, the AAARRR operating view, Current Demand / Future Demand, the working method, directional proof, fit, and the Forecast resource. Draft proof language must be checked for scope, attribution, evidence, and publication permission before final copy.
+
+The agency header has no Services tab. It links to Why GrowthCast, How it works, and **Resources > Tools > Forecast**. The Forecast tool is available at `/resources/tools/forecast`; direct visits and browser history preserve the agency/tool boundary. Inside the tool, Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
 
 ### Baseline setup
 
@@ -123,7 +125,7 @@ docker build -t growth-model .
 docker run --rm -p 127.0.0.1:8080:8080 growth-model
 ```
 
-Open [http://127.0.0.1:8080](http://127.0.0.1:8080).
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080) for the agency site or [http://127.0.0.1:8080/resources/tools/forecast](http://127.0.0.1:8080/resources/tools/forecast) for the Forecast tool.
 
 Binding to `127.0.0.1` keeps the app local to your machine.
 

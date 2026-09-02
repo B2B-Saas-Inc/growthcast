@@ -464,144 +464,544 @@ aside {
   background: #fff;
   border: 1px solid #d7d2c7;
 }
-.homeHero {
-  padding: clamp(32px, 7vw, 92px);
-  max-width: 1120px;
-}
-.homeHero > span,
-.homeWhy span,
-.homeHowIntro span,
-.homeMetrics > div > span {
-  font: 9px "DM Mono";
-  letter-spacing: 0.08em;
-  color: #ff6b4a;
-}
-.homeHero h2 {
-  font-size: clamp(42px, 7vw, 92px);
-  letter-spacing: -0.06em;
-  line-height: 0.92;
-  max-width: 1000px;
-  margin: 18px 0 25px;
-}
-.homeHero > p {
-  font-size: clamp(17px, 2vw, 24px);
-  line-height: 1.5;
-  max-width: 820px;
-  color: #595650;
-}
-.homeActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 32px;
-}
-.homeActions button,
-.homeClose button {
-  padding: 14px 18px;
-  border: 1px solid #27282a;
-  background: transparent;
-  cursor: pointer;
-}
-.homeActions .homePrimary,
-.homeClose .homePrimary {
-  background: #27282a;
-  color: #fff;
-}
-.homeWhy {
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: 60px;
-  padding: clamp(32px, 6vw, 80px);
-  background: #27282a;
-  color: #fff;
-}
-.homeWhy h3,
-.homeHow h3,
-.homeMetrics h3 {
-  font-size: clamp(28px, 4vw, 52px);
-  letter-spacing: -0.045em;
-  line-height: 1.05;
-  margin: 14px 0;
-}
-.homeWhy p {
-  font-size: 15px;
-  line-height: 1.8;
-  color: #d3d0ca;
-  margin: 0 0 18px;
-}
-.homeHow {
-  padding: clamp(32px, 6vw, 80px);
-}
-.homeHowIntro {
-  max-width: 780px;
-}
-.homeHowIntro > p {
-  font-size: 16px;
-  color: #666159;
-  line-height: 1.6;
-}
-.homeSteps {
-  list-style: none;
+.marketingHome {
+  max-width: none;
   padding: 0;
-  margin: 45px 0 0;
-  border-top: 1px solid #d8d3c8;
-}
-.homeSteps > li {
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  gap: 20px;
-  padding: 28px 0;
-  border-bottom: 1px solid #d8d3c8;
-}
-.homeSteps > li > b {
-  font: 20px "DM Mono";
-  color: #ff6b4a;
-}
-.homeSteps h4 {
-  font-size: 22px;
-  margin: 0 0 10px;
-}
-.homeSteps p,
-.homeSteps li {
-  font-size: 14px;
-  line-height: 1.7;
-  color: #5e5a53;
-}
-.homeSteps ul {
-  columns: 2;
-  padding-left: 18px;
-  margin: 0;
-}
-.homeMetrics {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 40px;
-  padding: clamp(32px, 6vw, 80px);
   background: #f4f1e9;
 }
-.metricChips {
-  display: flex;
-  align-content: flex-start;
-  flex-wrap: wrap;
-  gap: 8px;
+.marketingHome .layout,
+.marketingHome .dashboard {
+  width: 100%;
 }
-.metricChips span {
-  border: 1px solid #aaa49a;
-  padding: 12px 14px;
-  font: 10px "DM Mono";
-  background: #fff;
-}
-.homeClose {
+.siteHeader {
+  position: relative;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
-  padding: 35px clamp(32px, 6vw, 80px);
+  width: min(100% - 48px, 1500px);
+  margin: 0 auto;
+  padding: 20px 0;
+  border-bottom: 1px solid #cfc9be;
+}
+.siteBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  color: #242426;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  cursor: pointer;
+}
+.siteBrand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+}
+.siteNav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.siteNav > a,
+.resourceNav > summary {
+  padding: 10px 12px;
+  color: #4f4b45;
+  font: 10px "DM Mono";
+  text-decoration: none;
+  cursor: pointer;
+}
+.siteNav > a:hover,
+.resourceNav > summary:hover {
+  color: #242426;
+}
+.siteNav .siteNavCta {
+  border: 1px solid #242426;
+  color: #fff;
+  background: #242426;
+}
+.resourceNav {
+  position: relative;
+}
+.resourceNav > summary {
+  list-style: none;
+}
+.resourceNav > summary::-webkit-details-marker {
+  display: none;
+}
+.resourceNav > summary:after {
+  content: " +";
+  color: #ff6b4a;
+}
+.resourceNav[open] > summary:after {
+  content: " −";
+}
+.resourceNav > div {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 210px;
+  padding: 8px;
+  border: 1px solid #242426;
+  background: #fff;
+  box-shadow: 6px 6px 0 rgb(36 36 38 / 14%);
+}
+.resourceNav span {
+  display: block;
+  padding: 7px 9px;
+  color: #908a80;
+  font: 8px "DM Mono";
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.resourceNav button {
+  width: 100%;
+  padding: 11px 9px;
+  border: 0;
+  background: #f4f1e9;
+  text-align: left;
+  cursor: pointer;
+}
+.agencyHome {
+  overflow: hidden;
+  border: 0;
+  background: #fff;
+}
+.sectionLabel {
+  color: #ff6b4a;
+  font: 9px "DM Mono";
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.agencyHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  min-height: 690px;
+  border-bottom: 1px solid #d7d2c7;
+}
+.agencyHeroCopy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(60px, 9vw, 150px) clamp(28px, 7vw, 110px);
+}
+.agencyHero h1 {
+  max-width: 900px;
+  margin: 20px 0 28px;
+  font-size: clamp(52px, 7.2vw, 112px);
+  line-height: 0.89;
+  letter-spacing: -0.07em;
+}
+.agencyHeroCopy > p {
+  max-width: 720px;
+  margin: 0;
+  color: #5d5952;
+  font-size: clamp(17px, 1.7vw, 24px);
+  line-height: 1.5;
+}
+.agencyActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 34px;
+}
+.agencyActions a,
+.agencyActions button,
+.forecastResource button,
+.agencyClose a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 13px 18px;
+  border: 1px solid #242426;
+  color: #242426;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.agencyActions .agencyPrimary,
+.agencyClose a {
+  color: #fff;
+  background: #242426;
+}
+.agencySystem {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(28px, 5vw, 72px);
+  color: #fff;
+  background: #27282a;
+}
+.systemCore {
+  margin-bottom: auto;
+  padding-top: 35px;
+}
+.systemCore small {
+  display: block;
+  margin-bottom: 12px;
+  color: #ff9a82;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.systemCore strong {
+  display: block;
+  max-width: 440px;
+  font-size: clamp(26px, 3vw, 46px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+.agencySystem ol {
+  margin: 50px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #595a5d;
+}
+.agencySystem li {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #494a4d;
+}
+.agencySystem li b {
+  color: #ff8064;
+  font: 10px "DM Mono";
+}
+.agencySystem li span {
+  font-size: 14px;
+}
+.agencyProof {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 62px);
+  padding: 25px 28px;
+  overflow: hidden;
+  border-bottom: 1px solid #d7d2c7;
+  background: #f4f1e9;
+  white-space: nowrap;
+}
+.agencyProof span {
+  color: #827d74;
+  font: 8px "DM Mono";
+  text-transform: uppercase;
+}
+.agencyProof strong {
+  font-size: 16px;
+  letter-spacing: -0.03em;
+}
+.agencyProblem,
+.agencyDefinition,
+.agencyMethod,
+.demandSection,
+.agencyResults,
+.agencyFit,
+.forecastResource {
+  padding: clamp(60px, 8vw, 125px) clamp(28px, 7vw, 110px);
+}
+.agencyProblem,
+.agencyDefinition,
+.agencyResults,
+.forecastResource {
+  border-bottom: 1px solid #d7d2c7;
+}
+.sectionIntro {
+  max-width: 950px;
+}
+.sectionIntro h3,
+.agencyDefinition h3,
+.agencyFit h3,
+.forecastResource h3,
+.agencyClose h3 {
+  margin: 16px 0;
+  font-size: clamp(36px, 5vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.sectionIntro > p,
+.forecastResource p,
+.agencyClose p {
+  max-width: 760px;
+  color: #666159;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.problemBody {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: clamp(40px, 7vw, 110px);
+  margin-top: 70px;
+}
+.problemLead {
+  margin: 0;
+  font-size: clamp(23px, 3vw, 40px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+.problemGrid {
+  border-top: 1px solid #d4cfc5;
+}
+.problemGrid article {
+  display: grid;
+  grid-template-columns: 50px minmax(180px, 0.7fr) 1fr;
+  gap: 20px;
+  padding: 25px 0;
+  border-bottom: 1px solid #d4cfc5;
+}
+.problemGrid b,
+.methodSteps > li > b {
+  color: #ff6b4a;
+  font: 13px "DM Mono";
+}
+.problemGrid h4,
+.methodSteps h4,
+.demandGrid h4,
+.resultGrid h4 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+}
+.problemGrid p,
+.methodSteps p,
+.demandGrid p,
+.resultGrid p,
+.agencyDefinition p,
+.agencyFit li {
+  margin: 0;
+  color: #625e57;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.agencyDefinition {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(50px, 8vw, 130px);
+  color: #fff;
+  background: #27282a;
+}
+.agencyDefinition p {
+  color: #d3d0ca;
+  font-size: 17px;
+}
+.agencyDefinition p + p {
+  margin-top: 22px;
+}
+.agencyMethod {
+  background: #f4f1e9;
+}
+.methodSteps {
+  margin: 65px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #ccc6bb;
+}
+.methodSteps > li {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 25px;
+  padding: 28px 0;
+  border-bottom: 1px solid #ccc6bb;
+}
+.methodSteps > li > div {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(280px, 1fr);
+  gap: 40px;
+}
+.demandSection {
+  color: #fff;
+  background: #27282a;
+}
+.demandSection .sectionIntro h3 {
+  color: #fff;
+}
+.demandGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  margin-top: 60px;
+  border: 1px solid #5a5b5e;
+  background: #5a5b5e;
+}
+.demandGrid article {
+  padding: clamp(28px, 5vw, 68px);
+  background: #27282a;
+}
+.demandGrid span {
+  color: #ff9a82;
+  font: 9px "DM Mono";
+  text-transform: uppercase;
+}
+.demandGrid h4 {
+  margin: 18px 0;
+  color: #fff;
+  font-size: clamp(27px, 3vw, 42px);
+}
+.demandGrid p {
+  color: #d3d0ca;
+}
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 60px;
+  border: 1px solid #d1cbc0;
+  background: #d1cbc0;
+}
+.resultGrid article {
+  padding: clamp(25px, 4vw, 52px);
+  background: #fff;
+}
+.resultGrid strong {
+  display: block;
+  margin-bottom: 25px;
+  color: #ff6b4a;
+  font-size: clamp(44px, 5vw, 76px);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+.resultGrid h4 {
+  margin-bottom: 12px;
+}
+.agencyFit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+}
+.fitColumn {
+  padding: clamp(50px, 7vw, 100px);
+}
+.fitColumn h3 {
+  font-size: clamp(30px, 3.8vw, 54px);
+}
+.fitColumn ul {
+  margin: 35px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid currentColor;
+}
+.fitColumn li {
+  padding: 16px 0;
+  border-bottom: 1px solid currentColor;
+}
+.fitYes {
+  color: #fff;
   background: #ff6b4a;
 }
-.homeClose p {
-  font-size: 20px;
-  font-weight: 700;
-  max-width: 700px;
+.fitYes .sectionLabel,
+.fitYes li {
+  color: #242426;
+}
+.fitNo {
+  background: #ebe7dd;
+}
+.forecastResource {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 60px;
+  background: #fff;
+}
+.forecastResource > div {
+  max-width: 900px;
+}
+.forecastResource button {
+  flex: 0 0 auto;
+  color: #fff;
+  background: #242426;
+}
+.agencyClose {
+  padding: clamp(70px, 10vw, 155px) clamp(28px, 7vw, 110px);
+  text-align: center;
+  background: #f4f1e9;
+}
+.agencyClose h3,
+.agencyClose p {
+  max-width: 920px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.agencyClose a {
+  margin-top: 20px;
+}
+.marketingHome footer {
+  padding: 28px;
+  background: #f4f1e9;
+}
+@media (max-width: 900px) {
+  .agencyHero,
+  .agencyDefinition,
+  .problemBody {
+    grid-template-columns: 1fr;
+  }
+  .agencyHero {
+    min-height: 0;
+  }
+  .agencySystem {
+    min-height: 520px;
+  }
+  .problemGrid article {
+    grid-template-columns: 42px 1fr;
+  }
+  .problemGrid article p {
+    grid-column: 2;
+  }
+  .resultGrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 620px) {
+  .siteHeader {
+    align-items: flex-start;
+    width: min(100% - 28px, 1500px);
+  }
+  .siteNav {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .siteNav > a {
+    display: none;
+  }
+  .resourceNav > summary {
+    border: 1px solid #242426;
+  }
+  .agencyHeroCopy {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+  .agencyHero h1 {
+    font-size: clamp(50px, 15vw, 72px);
+  }
+  .agencyActions,
+  .forecastResource {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .agencyActions > *,
+  .forecastResource button {
+    width: 100%;
+  }
+  .agencyProof {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  .methodSteps > li,
+  .methodSteps > li > div {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .demandGrid,
+  .agencyFit {
+    grid-template-columns: 1fr;
+  }
+  .fitColumn {
+    padding: 48px 24px;
+  }
 }
 .deepCard {
   background: #fff;
@@ -1590,39 +1990,6 @@ footer a {
   }
 }
 @media (max-width: 620px) {
-  .homeHero {
-    padding: 38px 20px;
-  }
-  .homeHero h2 {
-    font-size: 44px;
-  }
-  .homeWhy,
-  .homeMetrics {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 38px 20px;
-  }
-  .homeHow {
-    padding: 38px 20px;
-  }
-  .homeSteps > li {
-    grid-template-columns: 48px 1fr;
-  }
-  .homeSteps ul {
-    columns: 1;
-  }
-  .homeActions,
-  .homeClose {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .homeActions button,
-  .homeClose button {
-    width: 100%;
-  }
-  .homeClose {
-    padding: 28px 20px;
-  }
   .pageNav {
     flex-wrap: wrap;
   }

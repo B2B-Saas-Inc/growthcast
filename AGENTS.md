@@ -6,7 +6,7 @@ Instructions for coding agents working in this repository.
 
 1. Read `README.md`, `CLAUDE.md`, and local `CONTINUITY.md` when present.
 2. Inspect the current implementation before proposing architectural changes.
-3. Use GrowthCast as the default product/model identity, while preserving the editable model name on Baseline for white-labelled document titles and export filenames. Preserve the homepage's practitioner-led voice and route its primary calls to Baseline.
+3. Use GrowthCast as the agency and default model identity, while preserving the editable model name on Baseline for white-labelled document titles and export filenames. The default route is the GTM Engineering agency homepage; the forecast product starts at `/resources/tools/forecast` under Resources > Tools > Forecast. Do not add a Services navigation tab.
 4. Use containers for dependency installation and verification. Do not install host packages.
 
 ## Architecture
