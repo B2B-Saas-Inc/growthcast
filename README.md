@@ -10,6 +10,8 @@ The application has no backend or accounts. It runs as a static site and automat
 
 The default route presents GrowthCast as **GTM Engineering for Growth**. It targets founders, CEOs, VC partners, and private-equity partners at Series A and later companies that have traction but need a repeatable growth system. Its full-width hero leads into the AAARRR operating view, Current Demand / Future Demand, anonymized directional proof, fit, and the Forecast resource. Proof language must be checked for scope, attribution, evidence, and publication permission before final copy.
 
+Agency contact requests use the configured PostHog delivery path. The contact dialog reports an actionable error instead of claiming success when analytics is unavailable or the browser is offline, and it supports focus containment, Escape dismissal, and focus restoration.
+
 **Why GrowthCast** at `/why-growthcast` explains the cross-functional growth problem and GTM Engineering point of view. **How We Work** at `/how-it-works` focuses on the four engagement stages and client operating changes rather than repeating the homepage. The agency header has no Services tab. It links to both pages and **Resources > Tools > Forecast**. The Forecast tool is available at `/resources/tools/forecast`; direct visits and browser history preserve the agency/tool boundary. Inside the tool, Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
 
 ### Baseline setup
@@ -149,6 +151,8 @@ npm run preview
 ```
 
 For UI changes, validate the running production image with Playwright at desktop and mobile widths. The responsive layout stacks forecast cards, wraps navigation/actions, adapts Deep Dive controls, and keeps large tables horizontally scrollable on narrow screens.
+
+At mobile widths, agency navigation remains fully available in a touch-sized grid, marketing sections use reduced type and spacing, dense forecast controls stack, and charts preserve readable axes through contained horizontal scrolling. Contact and Growth Plan overlays use dynamic viewport limits and safe-area padding.
 
 ## Architecture
 

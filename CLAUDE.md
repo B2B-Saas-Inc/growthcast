@@ -170,6 +170,8 @@ Not currently applicable. If introduced, use schema-as-code, reviewed migrations
 
 PostHog captures product interaction events through a same-origin reverse proxy. The Growth Plan form identifies a person with their submitted first name and email only after explicit submission. The `growth_plan_requested` event includes the current `baseline` and `assumptions` JSON objects, but those objects are not person properties. Browser console errors must remain zero in validation. Never send secrets or imported files to analytics.
 
+The agency contact form also uses PostHog as its delivery path. It must not show a success state when PostHog is disabled or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
+
 ### Security
 
 The app is static and local-first. Baseline and assumption progress is persisted under versioned local-storage key `growth-model-state-v1`; malformed or unavailable storage must fall back safely. Maintain these controls:
@@ -213,6 +215,7 @@ Target WCAG 2.2 AA:
 - Announce import success and errors with an appropriate status region.
 - Respect reduced-motion preferences if motion is added.
 - Validate desktop and mobile layouts before release.
+- Keep all agency navigation reachable on mobile, use at least 44px touch targets for primary controls, and preserve readable chart axes with contained horizontal scrolling rather than compressing them beyond legibility.
 
 ## Environment variables
 
