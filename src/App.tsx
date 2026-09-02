@@ -4443,9 +4443,15 @@ export default function App() {
     if (!firstName || !email) return;
     if (isPostHogEnabled) {
       posthog.identify(email, { email, first_name: firstName });
-      posthog.capture("growth_plan_requested", {
-        source: "model_change_slide_in",
-      });
+      posthog.capture(
+        "growth_plan_requested",
+        { source: "model_change_slide_in" },
+        {
+          $set: { email, first_name: firstName },
+          send_instantly: true,
+          transport: "fetch",
+        },
+      );
     }
     try {
       localStorage.setItem("growth-plan-requested-v1", "true");
