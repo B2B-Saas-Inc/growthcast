@@ -300,6 +300,46 @@ describe("forecast", () => {
     expect(month.endingMrr).toBe(20000);
     expect(month.signups).toBe(0);
   });
+  it("keeps B2B customer and contract revenue movements discrete", () => {
+    const base = {
+      ...a,
+      months: 1,
+      monthlyTrafficGrowth: 0,
+      businessModel: "b2b" as const,
+      mqlRate: 1,
+      sqlRate: 1,
+      closeRate: 0.004,
+      dealCycleDays: 0,
+      acv: 48000,
+      voluntaryCustomerChurn: 0.05,
+      delinquentCustomerChurn: 0,
+      voluntaryRevenueChurn: 0.05,
+      delinquentRevenueChurn: 0,
+      expansionRate: 0,
+      retractionRate: 0,
+    };
+    const [belowOneWin] = forecast(
+      { month: "2026-07", visitors: 100, customers: 1, mrr: 4000 },
+      base,
+    );
+    expect(belowOneWin.newCustomers).toBe(0);
+    expect(belowOneWin.newMrr).toBe(0);
+    expect(belowOneWin.churnedCustomers).toBe(0);
+    expect(belowOneWin.churnMrr).toBe(0);
+    expect(belowOneWin.customers).toBe(1);
+    expect(belowOneWin.endingMrr).toBe(4000);
+
+    const [wholeWins] = forecast(
+      { month: "2026-07", visitors: 1000, customers: 20, mrr: 80000 },
+      { ...base, closeRate: 0.002 },
+    );
+    expect(wholeWins.newCustomers).toBe(2);
+    expect(wholeWins.newMrr).toBe(8000);
+    expect(wholeWins.churnedCustomers).toBe(1);
+    expect(wholeWins.churnMrr).toBe(4000);
+    expect(wholeWins.customers).toBe(21);
+    expect(wholeWins.endingMrr).toBe(84000);
+  });
   it("uses exact calendar boundaries for B2B deal-cycle cohorts", () => {
     expect(delayedConversionShares("2026-08", 45, 3)).toEqual([
       0,
@@ -329,7 +369,7 @@ describe("forecast", () => {
     expect(months[0].newCustomers).toBe(0);
     expect(months[1].newCustomers).toBe(52);
     expect(months[2].newCustomers).toBe(102);
-    expect(months[1].newMrr).toBeCloseTo((10000 * 16) / 31, 2);
+    expect(months[1].newMrr).toBe(5200);
     expect(months[0].acquisitionArpu).toBeNull();
     expect(months[0].maxCostPerMql).toBeNull();
     expect(months[1].acquisitionArpu).toBeCloseTo(100, 2);

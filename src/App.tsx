@@ -94,10 +94,15 @@ const addIsoMonths = (month: string, count: number) => {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 const previousMonth = (month: string) => addIsoMonths(month, -1);
-const monthOptions = Array.from({ length: 25 }, (_, i) => {
-  const d = new Date(Date.UTC(2026, 7 + i, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
-});
+const currentMonth = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+};
+const defaultBaselineMonth = currentMonth();
+const defaultForecastStartMonth = addIsoMonths(defaultBaselineMonth, 1);
+const monthOptions = Array.from({ length: 25 }, (_, i) =>
+  addIsoMonths(defaultForecastStartMonth, i),
+);
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 const clamp = (value: number, min = 0, max = Number.POSITIVE_INFINITY) =>
   Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
@@ -2699,7 +2704,7 @@ export default function App() {
   const [forecastStartMonth, setForecastStartMonth] = useState(
     saved.forecastStartMonth && monthOptions.includes(saved.forecastStartMonth)
       ? saved.forecastStartMonth
-      : "2026-08",
+      : defaultForecastStartMonth,
   );
   const [pageView, setPageView] = useState<
     "home" | "baseline" | "forecast" | "deepdive" | "channels" | "methodology"
@@ -2711,7 +2716,7 @@ export default function App() {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<Baseline>(
     saved.baseline || {
-      month: "2026-07",
+      month: defaultBaselineMonth,
       visitors: 0,
       signups: 0,
       mqls: 0,
@@ -4175,26 +4180,7 @@ export default function App() {
       setMonthlyBudgetOverrides({});
       setScenario("Imported baseline");
       setImportMessage("");
-      const required =
-        importedBusinessModel === "b2b"
-          ? [
-              next.visitors,
-              next.mqls,
-              next.sqls,
-              next.newCustomers,
-              next.customers,
-              next.arr,
-            ]
-          : [
-              next.visitors,
-              next.signups,
-              next.newCustomers,
-              next.customers,
-              next.mrr,
-            ];
-      setPageView(
-        required.every((value) => value > 0) ? "forecast" : "baseline",
-      );
+      setPageView("forecast");
       if (isPostHogEnabled) {
         posthog.capture("baseline_imported", {
           business_model: importedBusinessModel,
@@ -4406,7 +4392,7 @@ export default function App() {
         value.forecastStartMonth &&
           monthOptions.includes(value.forecastStartMonth)
           ? value.forecastStartMonth
-          : "2026-08",
+          : defaultForecastStartMonth,
       );
       setModelName(
         typeof value.modelName === "string" && value.modelName.trim()
@@ -4430,30 +4416,7 @@ export default function App() {
       if (fileInput.current) fileInput.current.value = "";
     }
   };
-  const baselineReady = (
-    businessModel === "b2b"
-      ? [
-          baseline.visitors,
-          baseline.mqls,
-          baseline.sqls,
-          baseline.newCustomers,
-          baseline.customers,
-          baseline.arr,
-        ]
-      : [
-          baseline.visitors,
-          baseline.signups,
-          baseline.newCustomers,
-          baseline.customers,
-          baseline.mrr,
-        ]
-  ).every((value) => value > 0);
   const openModelPage = (target: "forecast" | "deepdive" | "channels") => {
-    if (!baselineReady) {
-      setPageView("baseline");
-      setImportMessage("");
-      return;
-    }
     setPageView(target);
     setImportMessage("");
   };
@@ -4550,7 +4513,7 @@ export default function App() {
                   onClick={() => {
                     setA(defaults);
                     setBaseline({
-                      month: "2026-07",
+                      month: defaultBaselineMonth,
                       visitors: 0,
                       signups: 0,
                       mqls: 0,
@@ -4578,7 +4541,7 @@ export default function App() {
                     setCashFlowSettings(defaultCashFlow);
                     setPageView("baseline");
                     setModelName("GrowthCast");
-                    setForecastStartMonth("2026-08");
+                    setForecastStartMonth(defaultForecastStartMonth);
                     setScenario("Baseline");
                     setImportMessage("");
                     if (isPostHogEnabled) {
@@ -4859,15 +4822,6 @@ export default function App() {
             </div>
           </section>
           <section className="baselineCard">
-            {!baselineReady && (
-              <div className="baselineWarning" role="note">
-                <strong>Start with your baseline</strong>
-                <span>
-                  Enter all {businessModel === "b2b" ? "six" : "five"} baseline
-                  numbers to see the Forecast, Deep Dive, and Channels pages.
-                </span>
-              </div>
-            )}
             <div className="baselineHead">
               <div>
                 <span>Forecast anchor</span>

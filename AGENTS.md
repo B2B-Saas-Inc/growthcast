@@ -11,7 +11,7 @@ Instructions for coding agents working in this repository.
 
 ## Architecture
 
-- React + TypeScript + Vite single-page application with Home as the default page and Baseline as the model-entry workflow. Forecast, Deep Dive, and Channels remain gated until all five baseline metrics are greater than zero.
+- React + TypeScript + Vite single-page application with Home as the default page and Baseline as the model-entry workflow. Forecast, Deep Dive, and Channels accept zero-valued baselines for pre-revenue modeling.
 - No backend, authentication, database, cookies, or live analytics connection.
 - Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
 - Forecast calculations belong in `src/engine/forecast.ts`, cumulative channel cohort attribution in `src/engine/channelBreakdown.ts`, and cash-flow/SaaS metrics in `src/engine/metrics.ts`; do not duplicate them in React components.
@@ -29,7 +29,7 @@ Instructions for coding agents working in this repository.
 - Direct-response traffic = allocated spend / CPC.
 - Demand-generation traffic = allocated spend / CPM * 1,000 * CTR.
 - Partner acquisition cost uses ARPU × commission rate across the commissioned months, geometrically adjusted by monthly revenue retention, and contributes to blended CAC.
-- Keep revenue and customer churn independently editable, but reconcile their relationship through `churned customer ARPU = churned MRR ÷ churned customers` and its ratio to opening ARPU. Include both diagnostics in Forecast and churn CSV/PDF outputs.
+- Keep revenue and customer churn independently editable, but realize customer churn in whole-customer units and B2B revenue churn in whole monthly-contract (`ACV ÷ 12`) units. Reconcile realized movement through `churned customer ARPU = churned MRR ÷ churned customers` and its ratio to opening ARPU. Include both diagnostics in Forecast and churn CSV/PDF outputs.
 - Predicted contribution LTV uses customer-weighted acquisition ARPU: `(total new MRR ÷ total new customers) × gross margin ÷ effective revenue churn`, never ending blended ARPU. Active channel ARPUs must affect LTV in proportion to acquired customers; zero-customer channels must not; changing logo churn alone must not change LTV.
 - Never use floating-point values as stored currency in any future persistence layer. The current in-memory display model may calculate with numbers.
 - Monthly Forecast rows expand one at a time into a channel attribution table grouped as Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom. Include launched enabled channels even when their current traffic is zero; cumulative channel customers and MRR must use the same logo churn, revenue churn, expansion, and downgrade assumptions and category totals must reconcile to the parent month.

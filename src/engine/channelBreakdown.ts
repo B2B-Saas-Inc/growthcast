@@ -1,5 +1,6 @@
 import {
   delayedConversionShares,
+  forecast,
   type Assumptions,
   type ChannelAssumption,
   type ForecastOverrides,
@@ -82,23 +83,39 @@ function advanceSegment(
     state.pendingMrr[monthIndex + offset] +=
       potentialCustomers * newCustomerArpu * share;
   });
-  const newCustomers = state.pendingCustomers[monthIndex];
-  const newMrr = state.pendingMrr[monthIndex];
-  state.customers = Math.max(
-    0,
-    state.customers +
-      newCustomers -
+  const pendingCustomerCount = state.pendingCustomers[monthIndex];
+  const newCustomers = isB2b
+    ? Math.round(pendingCustomerCount)
+    : pendingCustomerCount;
+  const newMrr =
+    isB2b && pendingCustomerCount
+      ? newCustomers * (state.pendingMrr[monthIndex] / pendingCustomerCount)
+      : state.pendingMrr[monthIndex];
+  const churnedCustomers = Math.min(
+    state.customers,
+    Math.round(
       state.customers *
         (assumptions.voluntaryCustomerChurn +
           assumptions.delinquentCustomerChurn),
+    ),
   );
+  const churnMrr = isB2b
+    ? Math.min(
+        state.mrr,
+        newCustomerArpu
+          ? Math.round((state.mrr * revenueChurn) / newCustomerArpu) *
+              newCustomerArpu
+          : 0,
+      )
+    : state.mrr * revenueChurn;
+  state.customers = Math.max(0, state.customers + newCustomers - churnedCustomers);
   state.mrr = Math.max(
     0,
     state.mrr +
       newMrr +
       state.mrr * assumptions.expansionRate -
       state.mrr * assumptions.retractionRate -
-      state.mrr * revenueChurn,
+      churnMrr,
   );
   const arpu = state.customers ? state.mrr / state.customers : 0;
   const acquisitionArpu = newCustomers ? newMrr / newCustomers : null;
@@ -213,6 +230,7 @@ export function calculateChannelBreakdown(
       } satisfies SegmentState,
     ]),
   );
+  const parentProjection = forecast(start, assumptions, channels, overrides);
   const categoryFor = (model: BreakdownChannel["model"]) =>
     model === "cpc"
       ? "Direct Response"
@@ -291,6 +309,26 @@ export function calculateChannelBreakdown(
       const category = categoryFor(channel.model);
       groups.set(category, [...(groups.get(category) || []), row]);
     });
+
+    const parent = parentProjection[index];
+    const allRows = [...groups.values()].flat();
+    const customerDelta =
+      parent.customers - allRows.reduce((sum, row) => sum + row.customers, 0);
+    const newCustomerDelta =
+      parent.newCustomers -
+      allRows.reduce((sum, row) => sum + row.newCustomers, 0);
+    const mrrDelta =
+      parent.endingMrr -
+      allRows.reduce((sum, row) => sum + row.endingMrr, 0);
+    baseline.customers += customerDelta;
+    baseline.newCustomers += newCustomerDelta;
+    baseline.endingMrr += mrrDelta;
+    baseline.arr = baseline.endingMrr * 12;
+    baseline.arpu = baseline.customers
+      ? baseline.endingMrr / baseline.customers
+      : 0;
+    baselineState.customers += customerDelta;
+    baselineState.mrr += mrrDelta;
 
     return {
       month,

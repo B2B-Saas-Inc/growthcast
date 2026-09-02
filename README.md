@@ -12,12 +12,11 @@ The default landing page introduces the model through a Hero, the decade of grow
 
 ### Baseline setup
 
-The editable model name lives with the baseline inputs. GrowthCast is the default identity, while changing the model name updates the document title and export filenames.
-
+The editable model name lives with the baseline inputs. GrowthCast is the default identity, while changing the model name updates the document title and export filenames. New and reset models default the baseline to the current calendar month and begin the forecast in the following month.
 
 The first tab defines the opening state and lets the user choose a B2C or B2B model. B2C preserves the visitor → signup → purchase workflow: users enter baseline month, visitors, signups, new customers, total customers, and MRR; ARPU and ARR are derived automatically. B2B uses the latest complete month's steady-state pipeline flow with visitors, MQLs, SQLs, new customers, total customers, and ARR. Each funnel stage must be no larger than the preceding stage. The observed MQL, SQL, and closed-won throughput calibrates the three pipeline conversion rates; the average deal cycle controls when forecast SQL cohorts close. MRR and average monthly revenue per account are derived automatically. The page can upload or export baseline CSV files and also load a complete assumptions JSON/CSV.
 
-The application starts with zeroed metrics and contains no bundled private historical performance. Forecast, Deep Dive, and Channels redirect to Baseline until the selected model's required baseline metrics are greater than zero. Master Reset returns to B2C Baseline and clears the model. Baseline files include the selected business model and paid-media budget.
+The application starts with zeroed metrics and contains no bundled private historical performance. Forecast, Deep Dive, and Channels remain available when baseline metrics are zero, so users can model from a pre-revenue or empty starting state. Master Reset returns to B2C Baseline and clears the model. Baseline files include the selected business model and paid-media budget.
 
 ### Forecast
 
@@ -26,7 +25,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Starting-month selector covering August 2026 through August 2028
 - Adjustable forecast range, traffic growth, visitor-to-signup conversion, signup-to-purchase conversion, and average days from signup to upgrade
 - B2B pipeline assumptions for visitor-to-MQL, MQL-to-SQL, SQL-to-closed-won, average deal cycle in days, and ACV. Closed-won customers and new MRR are delayed with actual calendar-month lengths; `new MRR = closed won × ACV ÷ 12`
-- A B2B pipeline-over-time chart for MQLs, SQLs, and closed-won customers alongside the combined MRR/ARR trajectory and revenue bridge
+- A B2B pipeline-over-time chart for MQLs, SQLs, and closed-won customers alongside the combined MRR/ARR trajectory and revenue bridge. B2B wins and churn occur in whole-account units, while MRR moves in whole monthly-contract increments derived from ACV; sub-account wins and sub-contract revenue churn carry no movement
 - Expandable customer churn, revenue churn, expansion, downgrade, ARPU, margin, LTV:CAC, and monthly Sales & Marketing Overhead assumptions
 - Ending MRR, ending ARR, total customers, maximum CAC, and maximum cost per signup
 - Second metric row for payback period, predicted contribution LTV, actual blended paid CAC, and expected LTV:CAC. Predicted LTV uses customer-weighted acquisition ARPU (`total new MRR ÷ total new customers`) rather than ending blended ARPU, so active channel ARPUs affect LTV while changing logo churn alone cannot change LTV

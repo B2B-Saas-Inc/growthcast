@@ -200,17 +200,37 @@ export function forecast(
       pendingCustomers[i + offset] += potentialCustomers * share;
       pendingMrr[i + offset] += potentialMrr * share;
     });
-    const newCustomers = pendingCustomers[i];
-    const newMrr = pendingMrr[i];
+    const pendingCustomerCount = pendingCustomers[i];
+    const newCustomers = isB2b
+      ? Math.round(pendingCustomerCount)
+      : pendingCustomerCount;
+    const newMrr =
+      isB2b && pendingCustomerCount
+        ? newCustomers * (pendingMrr[i] / pendingCustomerCount)
+        : pendingMrr[i];
     const openingArpu = customers ? mrr / customers : 0;
-    const churnedCustomers =
-      customers * (a.voluntaryCustomerChurn + a.delinquentCustomerChurn);
+    const churnedCustomers = Math.min(
+      customers,
+      Math.round(
+        customers *
+          (a.voluntaryCustomerChurn + a.delinquentCustomerChurn),
+      ),
+    );
     const expansionMrr = mrr * a.expansionRate;
     const retractionMrr = mrr * a.retractionRate;
     const revenueChurn =
       overrides.revenueChurn?.[month] ??
       a.voluntaryRevenueChurn + a.delinquentRevenueChurn;
-    const churnMrr = mrr * revenueChurn;
+    const monthlyContractValue = baselineAcv / 12;
+    const churnMrr = isB2b
+      ? Math.min(
+          mrr,
+          monthlyContractValue
+            ? Math.round((mrr * revenueChurn) / monthlyContractValue) *
+                monthlyContractValue
+            : 0,
+        )
+      : mrr * revenueChurn;
     const churnedCustomerArpu = churnedCustomers
       ? churnMrr / churnedCustomers
       : null;
