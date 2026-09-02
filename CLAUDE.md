@@ -100,7 +100,7 @@ The homepage tells the product story in three sections: Hero, Why it exists, and
 
 ### Growth Plan request
 
-A persistent bottom banner rises from its tray 15 seconds after a user changes a Forecast assumption or Channel setting. Navigation does not trigger or cancel it; another qualifying change restarts the timer. It collects first name and email only after explicit submission, calls `posthog.identify(email, { email, first_name })` to create or update the PostHog person, and captures `growth_plan_requested`. Successful submission is stored locally under `growth-plan-requested-v1`. PostHog browser traffic uses the neutral same-origin `/gcast-io` reverse-proxy path; Vercel rewrites and nginx route US-region API, SDK asset, and remote-config requests to the appropriate PostHog hosts.
+A persistent bottom banner rises from its tray 15 seconds after a user changes a Forecast assumption or Channel setting. While visible, its measured responsive height is added to the page's bottom spacing so no content is trapped behind the fixed banner. Navigation does not trigger or cancel it; another qualifying change restarts the timer. It collects first name and email only after explicit submission, calls `posthog.identify(email, { email, first_name })` to create or update the PostHog person, and captures `growth_plan_requested`. Successful submission is stored locally under `growth-plan-requested-v1`. PostHog browser traffic uses the neutral same-origin `/gcast-io` reverse-proxy path; Vercel rewrites and nginx route US-region API, SDK asset, and remote-config requests to the appropriate PostHog hosts.
 
 ### Deep Dive analytics
 

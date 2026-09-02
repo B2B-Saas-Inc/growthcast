@@ -1,5 +1,6 @@
 import {
   Fragment,
+  type CSSProperties,
   type FormEvent,
   useCallback,
   useEffect,
@@ -2768,6 +2769,8 @@ export default function App() {
     }
   });
   const [growthPlanStatus, setGrowthPlanStatus] = useState("");
+  const [growthPlanHeight, setGrowthPlanHeight] = useState(0);
+  const growthPlanPrompt = useRef<HTMLElement>(null);
   const priorAssumptions = useRef(JSON.stringify(a));
   const priorChannelSettings = useRef(
     JSON.stringify({ channels, channelDefaults }),
@@ -2795,6 +2798,18 @@ export default function App() {
     () => () => window.clearTimeout(growthPlanTimer.current),
     [],
   );
+  useEffect(() => {
+    if (!showGrowthPlan || !growthPlanPrompt.current) {
+      setGrowthPlanHeight(0);
+      return;
+    }
+    const prompt = growthPlanPrompt.current;
+    const updateHeight = () => setGrowthPlanHeight(prompt.offsetHeight);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(prompt);
+    return () => observer.disconnect();
+  }, [showGrowthPlan]);
   useEffect(() => {
     document.title = `${modelName || "GrowthCast"} Forecast`;
   }, [modelName]);
@@ -4441,7 +4456,14 @@ export default function App() {
     setGrowthPlanStatus("Thanks — your Growth Plan request is in.");
   };
   return (
-    <main>
+    <main
+      className={showGrowthPlan ? "growthPlanVisible" : undefined}
+      style={
+        {
+          "--growth-plan-height": `${growthPlanHeight}px`,
+        } as CSSProperties
+      }
+    >
       <header>
         <div>
           <div className="brandTitle">
@@ -6038,6 +6060,7 @@ export default function App() {
       </section>
       {showGrowthPlan && (
         <aside
+          ref={growthPlanPrompt}
           className="growthPlanPrompt"
           role="region"
           aria-labelledby="growth-plan-title"
