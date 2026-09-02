@@ -2,7 +2,7 @@
 
 GrowthCast is a GTM Engineering agency site for Series A and later companies with product-market fit. Its free, local-first Forecast tool models acquisition, recurring revenue, and unit economics.
 
-The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides privacy-conscious product analytics and receives a first name and email only when a user explicitly requests a Growth Plan.
+The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
 
 ## Features
 
@@ -154,7 +154,9 @@ For UI changes, validate the running production image with Playwright at desktop
 
 ```text
 src/
-├── App.tsx                 UI, pages, state, JSON/CSV import and export
+├── AgencyApp.tsx           Lightweight agency routes, navigation, and contact form
+├── App.tsx                 Forecast UI, state, and JSON/CSV import and export
+├── posthog.ts              Deferred analytics with replay and surveys disabled
 ├── styles.css              Responsive visual system
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
@@ -172,6 +174,10 @@ See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CL
 ## Assumption JSON compatibility
 
 Exports use `schemaVersion: 3`; versions 1 and 2 remain import-compatible and migrate to B2C with default B2B pipeline fields available if the user switches models. Import and local-state loading share a version-aware validator. It rejects unsupported versions, malformed baselines, incomplete or out-of-range assumptions, duplicate/invalid channels, invalid override maps, invalid cash splits, negative values, and non-finite numbers before applying state.
+
+## Social image
+
+The 1200 × 630 Open Graph image is `public/growthcast-og.png`. Its editable p5.js source is `scripts/generate-og-image.html`; serve the repository root, open the generator, and press `S` to export a replacement PNG.
 
 ## Privacy and security
 

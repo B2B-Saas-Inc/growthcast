@@ -1,23 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="#f4f1e9"/>
-  <g stroke="#d8d3c9" stroke-width="1" stroke-dasharray="3 7" opacity=".8">
-    <path d="M650 80V550M760 80V550M870 80V550M980 80V550M1090 80V550"/>
-    <path d="M610 140H1140M610 245H1140M610 350H1140M610 455H1140"/>
+  <text x="72" y="82" fill="#242426" font-family="Manrope,Arial,sans-serif" font-size="36" font-weight="700">GrowthCast</text>
+  <text x="74" y="144" fill="#9e321b" font-family="DM Mono,monospace" font-size="15" font-weight="500" letter-spacing="1">GTM ENGINEERING FOR GROWTH</text>
+  <g fill="#242426" font-family="Manrope,Arial,sans-serif" font-size="69" font-weight="700" letter-spacing="-3">
+    <text x="72" y="225">You gave the board a</text>
+    <text x="72" y="297">growth target. Here’s how</text>
+    <text x="72" y="369">you’re going to crush it.</text>
   </g>
-  <g transform="translate(74 70)">
-    <circle cx="33" cy="33" r="31" fill="none" stroke="#27282a" stroke-width="9"/>
-    <path d="M15 42c11 12 23 14 35 5 8-6 12-14 18-28" fill="none" stroke="#27282a" stroke-width="9" stroke-linecap="round"/>
-    <path d="M57 31c4-6 7-12 10-19" fill="none" stroke="#7b61ff" stroke-width="9" stroke-linecap="round"/>
-    <circle cx="68" cy="10" r="6" fill="#ff6b4a"/>
+  <g fill="none" stroke-width="3">
+    <path d="M650 448C780 448 825 500 925 500" stroke="#242426"/>
+    <path d="M650 486C780 486 825 500 925 500" stroke="#a63820"/>
+    <path d="M650 524C780 524 825 500 925 500" stroke="#176c2c"/>
+    <path d="M650 562C780 562 825 500 925 500" stroke="#625e57"/>
   </g>
-  <text x="170" y="121" fill="#27282a" font-family="Manrope, Arial, sans-serif" font-size="38" font-weight="700" letter-spacing="-1.5">GrowthCast</text>
-  <text x="74" y="266" fill="#27282a" font-family="Manrope, Arial, sans-serif" font-size="70" font-weight="700" letter-spacing="-3.5">Model growth</text>
-  <text x="74" y="342" fill="#27282a" font-family="Manrope, Arial, sans-serif" font-size="70" font-weight="700" letter-spacing="-3.5">without spreadsheet dread.</text>
-  <text x="77" y="410" fill="#6d6a64" font-family="DM Mono, monospace" font-size="16" letter-spacing="2">ACQUISITION · CUSTOMERS · MRR · CASH FLOW</text>
-  <path d="M620 466C697 439 730 371 795 386C859 400 885 306 952 321" fill="none" stroke="#ff6b4a" stroke-width="8" stroke-linecap="round"/>
-  <path d="M952 321C1008 328 1045 262 1123 205" fill="none" stroke="#7b61ff" stroke-width="8" stroke-linecap="round" stroke-dasharray="2 22"/>
-  <circle cx="1123" cy="205" r="13" fill="#ff6b4a"/>
-  <path d="M74 548H1126" stroke="#27282a" stroke-width="2"/>
-  <text x="74" y="582" fill="#6d6a64" font-family="DM Mono, monospace" font-size="15" letter-spacing="1.5">GROWTHCAST.APP</text>
-  <text x="1126" y="582" fill="#6d6a64" text-anchor="end" font-family="DM Mono, monospace" font-size="15" letter-spacing="1.5">DECISIONS, NOT GUESSWORK</text>
+  <path d="M925 500C1000 500 1050 438 1130 438" fill="none" stroke="#a63820" stroke-width="8"/>
+  <circle cx="1130" cy="438" r="9" fill="#a63820"/>
+  <text x="650" y="592" fill="#625e57" font-family="DM Mono,monospace" font-size="13" font-weight="500">MARKETING  ·  PRODUCT  ·  SALES  ·  DATA</text>
+  <text x="1128" y="82" fill="#242426" text-anchor="end" font-family="DM Mono,monospace" font-size="13" font-weight="500">GROWTHCAST.APP</text>
 </svg>

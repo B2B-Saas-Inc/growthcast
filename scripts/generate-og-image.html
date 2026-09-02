@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>GrowthCast OG image generator</title><style>html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#f4f1e9}canvas{display:block}</style><script src="https://cdn.jsdelivr.net/npm/p5@2.0.5/lib/p5.min.js"></script></head><body><script>
+let manrope, mono;
+function preload() {
+  manrope = loadFont('../public/fonts/manrope-700.ttf');
+  mono = loadFont('../public/fonts/dm-mono-500.ttf');
+}
+function setup() {
+  createCanvas(1200, 630);
+  pixelDensity(1);
+  background('#f4f1e9');
+  noStroke();
+  fill('#242426'); textFont(manrope); textSize(36); textAlign(LEFT, BASELINE); text('GrowthCast', 72, 82);
+  fill('#9e321b'); textFont(mono); textSize(15); text('GTM ENGINEERING FOR GROWTH', 74, 144);
+  fill('#242426'); textFont(manrope); textSize(69); textLeading(72);
+  text('You gave the board a\ngrowth target. Here’s how\nyou’re going to crush it.', 72, 225);
+  const colors = ['#242426', '#a63820', '#176c2c', '#625e57'];
+  const ys = [448, 486, 524, 562];
+  noFill(); strokeWeight(3);
+  colors.forEach((color, index) => { stroke(color); bezier(650, ys[index], 780, ys[index], 825, 500, 925, 500); });
+  stroke('#a63820'); strokeWeight(8); bezier(925, 500, 1000, 500, 1050, 438, 1130, 438);
+  noStroke(); fill('#a63820'); circle(1130, 438, 18);
+  fill('#625e57'); textFont(mono); textSize(13); text('MARKETING  ·  PRODUCT  ·  SALES  ·  DATA', 650, 592);
+  fill('#242426'); textAlign(RIGHT, BASELINE); text('GROWTHCAST.APP', 1128, 82);
+}
+function keyPressed() { if (key === 's' || key === 'S') saveCanvas('growthcast-og', 'png'); }
+</script></body></html>

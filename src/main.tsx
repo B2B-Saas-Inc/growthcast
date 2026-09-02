@@ -1,5 +1,14 @@
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import './posthog';
-import App from './App';
-createRoot(document.getElementById('root')!).render(<StrictMode><App/></StrictMode>);
+import './styles.css';
+
+const isForecastRoute = window.location.pathname.startsWith('/resources/tools/forecast');
+const App = lazy(() => (isForecastRoute ? import('./App') : import('./AgencyApp')));
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <Suspense fallback={null}>
+      <App />
+    </Suspense>
+  </StrictMode>,
+);
