@@ -2695,6 +2695,49 @@ function DeepDive({
   );
 }
 
+type PageView =
+  | "home"
+  | "why"
+  | "how"
+  | "baseline"
+  | "forecast"
+  | "deepdive"
+  | "channels"
+  | "methodology";
+
+const pageFromPath = (path: string): PageView => {
+  if (path.startsWith("/resources/tools/forecast")) return "baseline";
+  if (path.startsWith("/why-growthcast")) return "why";
+  if (path.startsWith("/how-it-works")) return "how";
+  return "home";
+};
+
+function AgencySystem() {
+  return (
+    <section className="agencySystem" aria-label="GrowthCast operating system">
+      <div className="systemCore">
+        <small>One growth system</small>
+        <strong>Strategy, data, product, and execution</strong>
+      </div>
+      <ol>
+        {[
+          "Awareness",
+          "Acquisition",
+          "Activation",
+          "Revenue",
+          "Retention",
+          "Referral",
+        ].map((stage, index) => (
+          <li key={stage}>
+            <b>{String(index + 1).padStart(2, "0")}</b>
+            <span>{stage}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function AgencyHome({ onForecast }: { onForecast: () => void }) {
   return (
     <article className="homeCard agencyHome">
@@ -2713,159 +2756,40 @@ function AgencyHome({ onForecast }: { onForecast: () => void }) {
               target="_blank"
               rel="noreferrer"
             >
-              Talk about your growth system
+              Let's Talk Growth
             </a>
             <button type="button" onClick={onForecast}>
               Build a forecast
             </button>
           </div>
         </div>
-        <div className="agencySystem" aria-label="GrowthCast operating system">
-          <div className="systemCore">
-            <small>One growth system</small>
-            <strong>Strategy, data, product, and execution</strong>
-          </div>
-          <ol>
-            {[
-              "Awareness",
-              "Acquisition",
-              "Activation",
-              "Revenue",
-              "Retention",
-              "Referral",
-            ].map((stage, index) => (
-              <li key={stage}>
-                <b>{String(index + 1).padStart(2, "0")}</b>
-                <span>{stage}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
       </section>
 
       <section className="agencyProof" aria-label="Selected experience">
-        <span>Operator experience from</span>
-        <strong>beehiiv</strong>
-        <strong>Brightwave</strong>
-        <strong>Butter</strong>
+        <span>Operator experience across</span>
+        <strong>Newsletter software</strong>
+        <strong>AI research</strong>
+        <strong>Creative software</strong>
         <span>and two acquired agencies</span>
       </section>
 
-      <section id="why-growthcast" className="agencyProblem">
+      <section className="homeSystemIntro">
         <div className="sectionIntro">
-          <span className="sectionLabel">The growth gap</span>
-          <h3>Traction proves demand. It does not give you a system.</h3>
-        </div>
-        <div className="problemBody">
-          <p className="problemLead">
-            Growth slows when each team, channel, and tool works from a
-            different plan.
-          </p>
-          <div className="problemGrid">
-            <article>
-              <b>01</b>
-              <h4>Activity hides the constraint</h4>
-              <p>
-                Teams ship campaigns and reports. Leaders still cannot see what
-                limits revenue or what to fix first.
-              </p>
-            </article>
-            <article>
-              <b>02</b>
-              <h4>Tools do not create a process</h4>
-              <p>
-                A CRM, an analytics stack, and AI tools add cost when the work
-                around them has no clear owner or shared goal.
-              </p>
-            </article>
-            <article>
-              <b>03</b>
-              <h4>More spend can scale waste</h4>
-              <p>
-                Paid media can test demand fast. It cannot repair weak tracking,
-                a poor handoff, or a product that fails to retain users.
-              </p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="agencyDefinition">
-        <div>
-          <span className="sectionLabel">The GrowthCast view</span>
-          <h3>Engineer the whole path to revenue.</h3>
-        </div>
-        <div>
+          <span className="sectionLabel">One plan across the company</span>
+          <h3>Growth breaks when each function works from a different plan.</h3>
           <p>
-            GTM Engineering joins the work that drives demand, turns interest
-            into use, and turns use into revenue. It gives each part one plan,
-            one set of measures, and one clear job.
-          </p>
-          <p>
-            The work can include growth leadership, CRM, analytics, AI
-            workflows, paid media, search, lifecycle, conversion, and product.
-            The mix follows the constraint. It does not follow an agency menu.
+            GrowthCast joins the work across marketing, product, data, and
+            revenue. The constraint sets the work. The channel does not.
           </p>
         </div>
       </section>
 
-      <section id="how-it-works" className="agencyMethod">
-        <div className="sectionIntro">
-          <span className="sectionLabel">How it works</span>
-          <h3>Find the constraint. Build the system. Prove what works.</h3>
-          <p>
-            GrowthCast works across the full customer path. Each step has a
-            clear output and a clear measure.
-          </p>
-        </div>
-        <ol className="methodSteps">
-          <li>
-            <b>01</b>
-            <div>
-              <h4>Map the current system</h4>
-              <p>
-                Review the customer path, data, tools, team, spend, and unit
-                economics. Find the point that limits growth.
-              </p>
-            </div>
-          </li>
-          <li>
-            <b>02</b>
-            <div>
-              <h4>Set the growth model</h4>
-              <p>
-                Link demand, conversion, revenue, and retention to one plan.
-                Define what must be true before you add spend or staff.
-              </p>
-            </div>
-          </li>
-          <li>
-            <b>03</b>
-            <div>
-              <h4>Build the working system</h4>
-              <p>
-                Put the right process, tracking, tools, and owners in place.
-                Use AI where it cuts work or improves a decision.
-              </p>
-            </div>
-          </li>
-          <li>
-            <b>04</b>
-            <div>
-              <h4>Test, learn, and scale</h4>
-              <p>
-                Run focused tests. Keep what creates revenue. Improve the system
-                as the market, product, and company change.
-              </p>
-            </div>
-          </li>
-        </ol>
-      </section>
+      <AgencySystem />
 
       <section className="demandSection">
         <div className="sectionIntro">
           <span className="sectionLabel">One plan, two time frames</span>
-          <h3>Convert demand now. Create demand for what comes next.</h3>
+          <h3>Convert demand now. Build demand for the years ahead.</h3>
         </div>
         <div className="demandGrid">
           <article>
@@ -2873,15 +2797,16 @@ function AgencyHome({ onForecast }: { onForecast: () => void }) {
             <h4>Help ready buyers act.</h4>
             <p>
               Improve search, paid media, conversion, CRM, and lifecycle work so
-              existing demand reaches revenue with less waste.
+              buyers who need the product now can reach revenue with less waste.
             </p>
           </article>
           <article>
             <span>Future demand</span>
-            <h4>Give the market a reason to remember you.</h4>
+            <h4>Reach buyers before they enter the market.</h4>
             <p>
-              Build useful ideas, proof, content, and product moments that shape
-              the next buying decision before a prospect enters the funnel.
+              Most buyers are not ready to buy today. Build broad reach and
+              clear links between the brand and the problems it solves. Buyers
+              can then recall the brand when the need becomes urgent.
             </p>
           </article>
         </div>
@@ -2895,23 +2820,23 @@ function AgencyHome({ onForecast }: { onForecast: () => void }) {
         <div className="resultGrid">
           <article>
             <strong>$20M+</strong>
-            <h4>beehiiv ARR</h4>
+            <h4>ARR at a newsletter platform</h4>
             <p>
               First-employee experience from launch through more than $20
-              million in ARR.
+              million in annual recurring revenue.
             </p>
           </article>
           <article>
             <strong>200+</strong>
-            <h4>Brightwave enterprise clients</h4>
+            <h4>Enterprise clients at an AI research platform</h4>
             <p>
-              A GTM motion built for private equity helped close more than 200
+              A new motion for private-equity buyers helped close more than 200
               enterprise clients in six months.
             </p>
           </article>
           <article>
             <strong>450%</strong>
-            <h4>Butter signup growth</h4>
+            <h4>Signup growth at a creative platform</h4>
             <p>
               An integrated growth plan increased user signups by 450% within
               two weeks of the engagement start.
@@ -2968,7 +2893,166 @@ function AgencyHome({ onForecast }: { onForecast: () => void }) {
           target="_blank"
           rel="noreferrer"
         >
-          Talk with EJ about growth
+          Let's Talk Growth
+        </a>
+      </section>
+    </article>
+  );
+}
+
+function AgencyWhy() {
+  return (
+    <article className="homeCard agencyHome agencySubpage">
+      <section className="subpageHero">
+        <span className="sectionLabel">Why GrowthCast</span>
+        <h1>Growth fails in the gaps between teams.</h1>
+        <p>
+          Companies add people, tools, and channels. Revenue still stalls when
+          each part works from a different plan.
+        </p>
+      </section>
+      <section className="agencyProblem">
+        <div className="sectionIntro">
+          <span className="sectionLabel">The growth gap</span>
+          <h3>Traction proves demand. It does not give you a system.</h3>
+        </div>
+        <div className="problemBody">
+          <p className="problemLead">
+            The real constraint often sits between the functions on the org chart.
+          </p>
+          <div className="problemGrid">
+            <article>
+              <b>01</b>
+              <h4>Activity hides the constraint</h4>
+              <p>
+                Teams ship campaigns and reports. Leaders still cannot see what
+                limits revenue or what to fix first.
+              </p>
+            </article>
+            <article>
+              <b>02</b>
+              <h4>Tools do not create a process</h4>
+              <p>
+                A CRM, an analytics stack, and AI tools add cost when the work
+                around them has no clear owner or shared goal.
+              </p>
+            </article>
+            <article>
+              <b>03</b>
+              <h4>More spend can scale waste</h4>
+              <p>
+                Paid media can test demand fast. It cannot repair weak tracking,
+                a poor handoff, or a product that fails to retain users.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section className="agencyDefinition">
+        <div>
+          <span className="sectionLabel">The GrowthCast view</span>
+          <h3>Engineer the whole path to revenue.</h3>
+        </div>
+        <div>
+          <p>
+            GTM Engineering joins the work that drives demand, turns interest
+            into use, and turns use into revenue. Each part gets one plan, one
+            set of measures, and one clear job.
+          </p>
+          <p>
+            The work can include growth leadership, CRM, analytics, AI
+            workflows, paid media, search, lifecycle, conversion, and product.
+            The mix follows the constraint. It does not follow an agency menu.
+          </p>
+        </div>
+      </section>
+      <section className="agencyClose">
+        <span className="sectionLabel">A joined growth system</span>
+        <h3>Fix the constraint, not the loudest channel.</h3>
+        <a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">
+          Let's Talk Growth
+        </a>
+      </section>
+    </article>
+  );
+}
+
+function AgencyHow() {
+  return (
+    <article className="homeCard agencyHome agencySubpage">
+      <section className="subpageHero">
+        <span className="sectionLabel">How it works</span>
+        <h1>Start with the facts. Build only what growth needs.</h1>
+        <p>
+          GrowthCast works inside the business. The work starts with a clear
+          diagnosis and ends with a system the team can run.
+        </p>
+      </section>
+      <section className="agencyMethod">
+        <div className="sectionIntro">
+          <span className="sectionLabel">The engagement</span>
+          <h3>Four stages from diagnosis to scale.</h3>
+        </div>
+        <ol className="methodSteps">
+          <li>
+            <b>01</b>
+            <div>
+              <h4>Map the current system</h4>
+              <p>
+                Review the customer path, data, tools, team, spend, and unit
+                economics. Find the point that limits growth.
+              </p>
+            </div>
+          </li>
+          <li>
+            <b>02</b>
+            <div>
+              <h4>Set the growth model</h4>
+              <p>
+                Link demand, conversion, revenue, and retention to one plan.
+                Define what must be true before you add spend or staff.
+              </p>
+            </div>
+          </li>
+          <li>
+            <b>03</b>
+            <div>
+              <h4>Build the working system</h4>
+              <p>
+                Put the right process, tracking, tools, and owners in place.
+                Use AI where it cuts work or improves a decision.
+              </p>
+            </div>
+          </li>
+          <li>
+            <b>04</b>
+            <div>
+              <h4>Test, learn, and scale</h4>
+              <p>
+                Run focused tests. Keep what creates revenue. Improve the system
+                as the market, product, and company change.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <section className="deliverySection">
+        <div className="sectionIntro">
+          <span className="sectionLabel">What changes</span>
+          <h3>Clear owners. Shared measures. Less work without a purpose.</h3>
+        </div>
+        <div className="deliveryGrid">
+          <article><b>Decisions</b><p>Leaders know what limits growth and what to fund next.</p></article>
+          <article><b>Systems</b><p>Data, CRM, lifecycle, product, and media support the same goal.</p></article>
+          <article><b>Work</b><p>Teams stop tasks that do not affect demand, revenue, or retention.</p></article>
+          <article><b>Learning</b><p>Each test adds evidence that improves the next decision.</p></article>
+        </div>
+      </section>
+      <section className="agencyClose">
+        <span className="sectionLabel">Work with GrowthCast</span>
+        <h3>Build a system your team can keep using.</h3>
+        <a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">
+          Let's Talk Growth
         </a>
       </section>
     </article>
@@ -2987,12 +3071,8 @@ export default function App() {
       ? saved.forecastStartMonth
       : defaultForecastStartMonth,
   );
-  const [pageView, setPageView] = useState<
-    "home" | "baseline" | "forecast" | "deepdive" | "channels" | "methodology"
-  >(() =>
-    window.location.pathname.startsWith("/resources/tools/forecast")
-      ? "baseline"
-      : "home",
+  const [pageView, setPageView] = useState<PageView>(() =>
+    pageFromPath(window.location.pathname),
   );
   const [channelTab, setChannelTab] = useState<ChannelModel | "general">(
     "general",
@@ -3117,15 +3197,15 @@ export default function App() {
     document.title =
       pageView === "home"
         ? "GrowthCast | GTM Engineering for Growth"
-        : `${modelName || "GrowthCast"} Forecast`;
+        : pageView === "why"
+          ? "Why GrowthCast | GTM Engineering for Growth"
+          : pageView === "how"
+            ? "How GrowthCast Works | GTM Engineering for Growth"
+            : `${modelName || "GrowthCast"} Forecast`;
   }, [modelName, pageView]);
   useEffect(() => {
     const handleHistory = () =>
-      setPageView(
-        window.location.pathname.startsWith("/resources/tools/forecast")
-          ? "baseline"
-          : "home",
-      );
+      setPageView(pageFromPath(window.location.pathname));
     window.addEventListener("popstate", handleHistory);
     return () => window.removeEventListener("popstate", handleHistory);
   }, []);
@@ -4753,6 +4833,13 @@ export default function App() {
     setImportMessage("");
     window.scrollTo({ top: 0 });
   };
+  const openAgencyPage = (target: "why" | "how") => {
+    const path = target === "why" ? "/why-growthcast" : "/how-it-works";
+    window.history.pushState({}, "", path);
+    setPageView(target);
+    setImportMessage("");
+    window.scrollTo({ top: 0 });
+  };
   const openForecastTool = () => {
     window.history.pushState({}, "", "/resources/tools/forecast");
     setPageView("baseline");
@@ -4793,24 +4880,37 @@ export default function App() {
     setGrowthPlanSubmitted(true);
     setGrowthPlanStatus("Thanks — your Growth Plan request is in.");
   };
+  const isAgencyPage = ["home", "why", "how"].includes(pageView);
   return (
     <main
-      className={`${pageView === "home" ? "marketingHome" : ""}${showGrowthPlan ? " growthPlanVisible" : ""}`.trim() || undefined}
+      className={`${isAgencyPage ? "marketingHome" : ""}${showGrowthPlan ? " growthPlanVisible" : ""}`.trim() || undefined}
       style={
         {
           "--growth-plan-height": `${growthPlanHeight}px`,
         } as CSSProperties
       }
     >
-      {pageView === "home" ? (
+      {isAgencyPage ? (
         <header className="siteHeader">
           <button className="siteBrand" type="button" onClick={openAgencyHome}>
             <img src="/growthcast-logo.svg" alt="" />
             <span>GrowthCast</span>
           </button>
           <nav className="siteNav" aria-label="Main navigation">
-            <a href="#why-growthcast">Why GrowthCast</a>
-            <a href="#how-it-works">How it works</a>
+            <button
+              className={pageView === "why" ? "active" : ""}
+              type="button"
+              onClick={() => openAgencyPage("why")}
+            >
+              Why GrowthCast
+            </button>
+            <button
+              className={pageView === "how" ? "active" : ""}
+              type="button"
+              onClick={() => openAgencyPage("how")}
+            >
+              How it works
+            </button>
             <details className="resourceNav">
               <summary>Resources</summary>
               <div>
@@ -4995,6 +5095,10 @@ export default function App() {
       )}
       {pageView === "home" ? (
         <AgencyHome onForecast={openForecastTool} />
+      ) : pageView === "why" ? (
+        <AgencyWhy />
+      ) : pageView === "how" ? (
+        <AgencyHow />
       ) : (
       <section
         className={`layout ${pageView === "baseline" ? "baselineMode" : pageView === "deepdive" ? "deepMode" : pageView === "channels" ? "channelMode" : pageView === "methodology" ? "methodMode" : "forecastMode"}`}
