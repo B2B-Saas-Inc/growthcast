@@ -227,10 +227,7 @@
 .articleBreadcrumb svg { width: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .articleBreadcrumb > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .articleHero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 1.05fr);
-  align-items: start;
-  gap: clamp(42px, 6vw, 90px);
+  display: block;
   padding: 48px 0 64px;
 }
 .articleHeroCopy { min-width: 0; }
@@ -263,15 +260,6 @@
 }
 .articleAuthor { margin: 30px 0 0; font-family: "DM Mono", monospace; font-size: 16px; font-weight: 500; }
 .articleMeta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; color: #66625b; font-family: "DM Mono", monospace; font-size: 13px; }
-.articleCover {
-  overflow: hidden;
-  margin: 28px 0 0;
-  border: 1px solid #cfc9be;
-  border-radius: 22px;
-  background: #fffdf8;
-  aspect-ratio: 1200 / 630;
-}
-.articleCover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .articleLayout {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
@@ -337,8 +325,6 @@
   .blogHero { padding: 42px 0 28px; }
   .featuredPost { grid-template-columns: 1fr; }
   .postGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .articleHero { grid-template-columns: 1fr; }
-  .articleCover { margin-top: 0; }
   .articleLayout { grid-template-columns: minmax(0, 1fr); }
   .articleRail { position: static; }
   .articleToc nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }

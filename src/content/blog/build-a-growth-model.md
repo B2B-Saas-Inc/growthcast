@@ -5,6 +5,7 @@ publishedAt: 2026-09-02
 author: "EJ White"
 tags: ["Growth Modeling", "GTM Engineering"]
 featured: true
+image: "/blog/build-a-growth-model-og.png"
 ---
 
 A growth plan is only useful when its assumptions connect to revenue.

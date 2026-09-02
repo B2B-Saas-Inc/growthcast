@@ -194,6 +194,8 @@ Exports use `schemaVersion: 3`; versions 1 and 2 remain import-compatible and mi
 
 The 1200 × 630 Open Graph image is `public/growthcast-og.png`. Its editable p5.js source is `scripts/generate-og-image.html`; serve the repository root, open the generator, and press `S` to export a replacement PNG.
 
+Blog artwork uses a two-stage p5.js workflow. `scripts/generate-blog-shape.html` creates the article-specific abstract artwork, and `scripts/generate-blog-social.html` places that artwork into a reusable 1200 × 630 safe-zone template with the article title, author, and publication date. Store both generated files under `public/blog` and set the finished social card as the post's `image` frontmatter value. That image is used for Open Graph metadata and `/blog` cards, not inside the article body.
+
 ## Privacy and security
 
 - No authentication or external API credentials

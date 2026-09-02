@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GrowthCast blog social image generator</title>
+    <style>
+      @font-face{font-family:ManropeCard;src:url('/public/fonts/manrope-700.ttf') format('truetype');font-weight:700}
+      @font-face{font-family:MonoCard;src:url('/public/fonts/dm-mono-500.ttf') format('truetype');font-weight:500}
+      html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#f4f1e9}canvas{position:relative;z-index:1;display:block}.artwork{position:absolute;z-index:2;left:736px;top:179px;width:392px;height:294px;object-fit:contain}
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/p5@2.0.5/lib/p5.min.js"></script>
+  </head>
+  <body><img class="artwork" alt="" />
+    <script>
+      const manrope = 'ManropeCard';
+      const mono = 'MonoCard';
+      const params = new URLSearchParams(location.search);
+      const title = params.get('title') || 'Build a growth model before you build a growth plan';
+      const author = params.get('author') || 'EJ White';
+      const date = params.get('date') || 'September 2, 2026';
+      const art = params.get('art') || '/public/blog/build-a-growth-model-shape.png';
+      document.querySelector('.artwork').src = art;
+
+      function fittedTitle(value, x, y, maxWidth, maxHeight) {
+        let size = 58;
+        let lines = [];
+        while (size >= 38) {
+          textSize(size); textLeading(size * 1.02);
+          lines = [];
+          let line = '';
+          for (const word of value.split(/\s+/)) {
+            const candidate = line ? `${line} ${word}` : word;
+            if (textWidth(candidate) <= maxWidth) line = candidate;
+            else { lines.push(line); line = word; }
+          }
+          if (line) lines.push(line);
+          if (lines.length * size * 1.02 <= maxHeight) break;
+          size -= 2;
+        }
+        lines.forEach((line, index) => text(line, x, y + index * size * 1.02));
+      }
+
+      function setup() {
+        createCanvas(1200, 630);
+        pixelDensity(1);
+        noLoop();
+        document.fonts.ready.then(redraw);
+      }
+
+      function draw() {
+        background('#f4f1e9');
+
+        // 48px platform trim zone; all text stays inside the 72px content safe zone.
+        noFill(); stroke('#cfc9be'); strokeWeight(2); rect(48, 48, 1104, 534, 34);
+        noStroke();
+        fill('#242426'); textFont(manrope); textSize(30); textAlign(LEFT, TOP); text('GrowthCast', 82, 78);
+        fill('#9e321b'); textFont(mono); textSize(13); text('GTM ENGINEERING', 82, 137);
+        fill('#242426'); textFont(manrope); fittedTitle(title, 82, 178, 650, 244);
+
+        fill('#625e57'); textFont(mono); textSize(13);
+        text(`BY ${author.toUpperCase()}`, 82, 492);
+        text(date.toUpperCase(), 82, 524);
+
+        fill('#625e57'); textFont(mono); textSize(11); textAlign(RIGHT, TOP);
+        text('GROWTHCAST.APP  /  IDEAS FOR THE WHOLE GROWTH SYSTEM', 1118, 534);
+      }
+    </script>
+  </body>
+</html>
