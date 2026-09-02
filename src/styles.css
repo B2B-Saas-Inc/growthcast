@@ -563,14 +563,21 @@ aside {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.resourceNav button {
+.resourceNav button,
+.resourceNav > div > a {
+  display: block;
   width: 100%;
   padding: 11px 9px;
   border: 0;
+  color: #242426;
   background: #f4f1e9;
+  font-size: 13px;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
+.resourceNav button:hover,
+.resourceNav > div > a:hover { background: #ddebd8; }
 .resourceNav p {
   display: flex;
   justify-content: space-between;

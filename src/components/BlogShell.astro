@@ -1,0 +1,24 @@
+---
+type Props = { current?: "blog" };
+const { current } = Astro.props;
+---
+<header class="blogHeader">
+  <a class="blogBrand" href="/">GrowthCast</a>
+  <nav aria-label="Main navigation">
+    <a href="/why-growthcast">Why GrowthCast</a>
+    <a href="/how-it-works">How We Work</a>
+    <a href="/blog" aria-current={current === "blog" ? "page" : undefined}>Blog</a>
+    <a class="blogNavCta" href="/resources/tools/forecast">Build a Forecast</a>
+  </nav>
+</header>
+<slot />
+<footer class="blogFooter">
+  <a class="blogBrand" href="/">GrowthCast</a>
+  <p>GTM Engineering for Growth.</p>
+  <nav aria-label="Footer navigation">
+    <a href="/blog">Blog</a>
+    <a href="/resources/tools/forecast">Forecast</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+  </nav>
+</footer>

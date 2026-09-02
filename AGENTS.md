@@ -11,7 +11,7 @@ Instructions for coding agents working in this repository.
 
 ## Architecture
 
-- React + TypeScript + Vite single-page application with Home as the default page and Baseline as the model-entry workflow. Forecast, Deep Dive, and Channels accept zero-valued baselines for pre-revenue modeling.
+- Astro + TypeScript static site with React islands. Astro owns public routes, SEO, the Markdown blog, RSS, and sitemap generation; `src/App.tsx` remains the interactive local-first agency/Forecast island. Forecast, Deep Dive, and Channels accept zero-valued baselines for pre-revenue modeling.
 - No backend, authentication, database, cookies, or live analytics connection.
 - Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
 - Forecast calculations belong in `src/engine/forecast.ts`, cumulative channel cohort attribution in `src/engine/channelBreakdown.ts`, and cash-flow/SaaS metrics in `src/engine/metrics.ts`; do not duplicate them in React components.

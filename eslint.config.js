@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', '.astro'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

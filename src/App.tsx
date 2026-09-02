@@ -3118,7 +3118,7 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
   );
 }
 
-export default function App() {
+export default function App({ initialPath = "/" }: { initialPath?: string }) {
   const [saved] = useState(loadSavedModel);
   const fileInput = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState("");
@@ -3131,7 +3131,7 @@ export default function App() {
       : defaultForecastStartMonth,
   );
   const [pageView, setPageView] = useState<PageView>(() =>
-    pageFromPath(window.location.pathname),
+    pageFromPath(initialPath),
   );
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
@@ -5127,7 +5127,7 @@ export default function App() {
                 <button type="button" onClick={openForecastTool}>Forecast</button>
                 <span>Publishing</span>
                 <p>Newsletter <small>Coming soon</small></p>
-                <p>Blog <small>Coming soon</small></p>
+                <a href="/blog">Blog</a>
                 <p>Case Studies <small>Coming soon</small></p>
               </div>
             </details>
@@ -6713,6 +6713,7 @@ export default function App() {
             <a className="u-url p-name" href="/">GrowthCast</a>
           </div>
           <nav aria-label="GrowthCast links">
+            <a href="/blog">Read the Blog</a>
             <span title="Email address coming soon">Email Our Founder</span>
             <a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a>
             <span title="Social profile coming soon">Follow GrowthCast</span>

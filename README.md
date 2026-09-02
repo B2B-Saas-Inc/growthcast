@@ -4,6 +4,8 @@ GrowthCast is a GTM Engineering agency site for Series A and later companies wit
 
 The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides privacy-conscious product analytics and receives a first name and email only when a user explicitly requests a Growth Plan.
 
+Astro owns the static routes, metadata, blog, RSS feed, and sitemap. The agency and Forecast experience is rendered as a React island so its existing local-first state and export workflows remain interactive without turning the blog into a client-side application.
+
 ## Features
 
 ### Agency homepage
@@ -49,6 +51,10 @@ Fifteen seconds after a user changes a Forecast assumption or Channel setting, a
 ### Methodology
 
 A dedicated Methodology page documents the monthly calculation sequence, channel activation rules, paid-traffic formulas, customer and revenue bridges, unit economics, SaaS metrics, cumulative channel attribution, and recommended workflow.
+
+### Blog
+
+The Astro-native blog lives at `/blog`. Posts are typed Markdown or MDX files in `src/content/blog`, with validated title, description, publication dates, author, tags, draft state, featured state, and optional social image. Astro generates static article routes, search/filter views, article metadata and JSON-LD, an RSS feed at `/rss.xml`, and a sitemap index at `/sitemap-index.xml`. The blog uses GrowthCast's local Manrope and DM Mono fonts and its existing neutral, green, blue, and coral design language.
 
 ### Deep Dive
 
@@ -138,7 +144,7 @@ The repository follows a container-first workflow. The Docker build installs dep
 1. ESLint
 2. Vitest
 3. TypeScript project build
-4. Vite production build
+4. Astro static production build
 
 Package scripts available inside a Node container are:
 
@@ -158,8 +164,13 @@ At mobile widths, agency navigation remains fully available in a touch-sized gri
 
 ```text
 src/
-├── App.tsx                 UI, pages, state, JSON/CSV import and export
-├── styles.css              Responsive visual system
+├── App.tsx                 React agency/Forecast island, state, and exports
+├── components/             Astro shell and React island entry points
+├── content/blog/           Typed Markdown/MDX blog posts
+├── layouts/                Shared Astro metadata and document shell
+├── pages/                  Static routes, blog pages, and RSS endpoint
+├── styles.css              Forecast and agency visual system
+├── blog.css                GrowthCast blog visual system
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests
@@ -189,7 +200,7 @@ Exports use `schemaVersion: 3`; versions 1 and 2 remain import-compatible and mi
 
 ## Deployment
 
-[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Vite build, serve `dist`, preserve SPA routing, and apply CSP, HSTS, frame, MIME, referrer, and permissions-policy security headers. The nginx image mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
+[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Astro build, serve `dist`, preserve the PostHog proxy, and apply HSTS, frame, MIME, referrer, and permissions-policy security headers. Astro generates a per-page hash-based CSP that permits its hydration scripts without weakening script policy. The nginx image serves Astro's generated directory routes and mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
 
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes
@@ -204,7 +215,7 @@ Public-deployment follow-ups are monitoring, formal privacy/legal pages, and a d
 - Channel CPC, CPM, CTR, allocation, timing, and conversion values are planning assumptions rather than guaranteed performance.
 - The current application is single-user and browser-local; progress persists in local storage but does not sync across browsers or devices.
 - There is no hosted collaboration, database, authentication, or automatic source-data refresh.
-- The production JavaScript bundle currently emits a non-blocking Vite chunk-size warning.
+- The large interactive Forecast island currently emits a non-blocking client-chunk size warning during the Astro build.
 
 ## License
 

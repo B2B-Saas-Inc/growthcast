@@ -1,0 +1,91 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogShell from "../../components/BlogShell.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const canonical = `/blog/${post.id}`;
+const image = post.data.image || "/growthcast-og.png";
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      headline: post.data.title,
+      description: post.data.description,
+      image: new URL(image, Astro.site).href,
+      datePublished: post.data.publishedAt.toISOString(),
+      dateModified: (post.data.updatedAt || post.data.publishedAt).toISOString(),
+      author: { "@type": "Person", name: post.data.author },
+      publisher: { "@type": "Organization", name: "GrowthCast", url: "https://growthcast.app" },
+      mainEntityOfPage: new URL(canonical, Astro.site).href,
+      keywords: post.data.tags.join(", "),
+      isAccessibleForFree: true,
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://growthcast.app/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://growthcast.app/blog" },
+        { "@type": "ListItem", position: 3, name: post.data.title, item: new URL(canonical, Astro.site).href },
+      ],
+    },
+  ],
+};
+const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date);
+---
+<BaseLayout
+  title={`${post.data.title} | GrowthCast`}
+  description={post.data.description}
+  canonical={canonical}
+  image={image}
+  type="article"
+  publishedTime={post.data.publishedAt}
+  tags={post.data.tags}
+  schema={articleSchema}
+>
+  <BlogShell current="blog">
+    <main class="articleMain">
+      <nav class="blogBreadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog">Blog</a><span>/</span><span aria-current="page">Article</span></nav>
+      <header class="articleHero">
+        <div class="postCardTags">{post.data.tags.map((tag) => <a href={`/blog?tag=${encodeURIComponent(tag)}`}>{tag}</a>)}</div>
+        <h1>{post.data.title}</h1>
+        <p>{post.data.description}</p>
+        <div class="articleMeta">
+          <span>By {post.data.author}</span>
+          <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+          {post.data.updatedAt && <span>Updated {formatDate(post.data.updatedAt)}</span>}
+        </div>
+      </header>
+      <div class="articleLayout">
+        {headings.length > 0 && (
+          <aside class="articleToc">
+            <strong>In this article</strong>
+            <nav aria-label="Table of contents">
+              {headings.filter((heading) => heading.depth <= 3).map((heading) => <a class={`depth-${heading.depth}`} href={`#${heading.slug}`}>{heading.text}</a>)}
+            </nav>
+          </aside>
+        )}
+        <article class="articleBody"><Content /></article>
+        <aside class="articleShare">
+          <strong>Share</strong>
+          <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(new URL(canonical, Astro.site).href)}`} target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href={`mailto:?subject=${encodeURIComponent(post.data.title)}&body=${encodeURIComponent(new URL(canonical, Astro.site).href)}`}>Email</a>
+        </aside>
+      </div>
+      <aside class="blogCta articleCta">
+        <span class="sectionLabel">From idea to operating plan</span>
+        <h2>Model your next stage of growth.</h2>
+        <p>Use GrowthCast Forecast to test the assumptions behind traffic, conversion, retention, and revenue.</p>
+        <a href="/resources/tools/forecast">Build a free forecast</a>
+      </aside>
+      <a class="backToBlog" href="/blog">← Back to all articles</a>
+    </main>
+  </BlogShell>
+</BaseLayout>
