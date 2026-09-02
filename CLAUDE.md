@@ -100,7 +100,7 @@ The homepage tells the product story in three sections: Hero, Why it exists, and
 
 ### Growth Plan request
 
-A dismissible bottom slide-in appears after the first user-originated Forecast assumption or Channel setting change. It collects first name and email only after explicit submission, calls `posthog.identify(email, { email, first_name })` to create or update the PostHog person, and captures `growth_plan_requested`. Successful submission is stored locally under `growth-plan-requested-v1`. PostHog browser traffic uses the neutral same-origin `/gcast-io` reverse-proxy path; Vercel rewrites and nginx route US-region API, SDK asset, and remote-config requests to the appropriate PostHog hosts.
+A persistent bottom banner slides into its tray after a user changes a Forecast assumption or Channel setting and then navigates away from that assumptions page. It collects first name and email only after explicit submission, calls `posthog.identify(email, { email, first_name })` to create or update the PostHog person, and captures `growth_plan_requested`. Successful submission is stored locally under `growth-plan-requested-v1`. PostHog browser traffic uses the neutral same-origin `/gcast-io` reverse-proxy path; Vercel rewrites and nginx route US-region API, SDK asset, and remote-config requests to the appropriate PostHog hosts.
 
 ### Deep Dive analytics
 

@@ -2755,7 +2755,7 @@ export default function App() {
     normalizeChannels(saved.channels),
   );
   const [showGrowthPlan, setShowGrowthPlan] = useState(false);
-  const [growthPlanDismissed, setGrowthPlanDismissed] = useState(false);
+  const [growthPlanChanged, setGrowthPlanChanged] = useState(false);
   const [growthPlanSubmitted, setGrowthPlanSubmitted] = useState(() => {
     try {
       return localStorage.getItem("growth-plan-requested-v1") === "true";
@@ -2768,6 +2768,7 @@ export default function App() {
   const priorChannelSettings = useRef(
     JSON.stringify({ channels, channelDefaults }),
   );
+  const priorPageView = useRef(pageView);
   useEffect(() => {
     const nextAssumptions = JSON.stringify(a);
     const nextChannelSettings = JSON.stringify({ channels, channelDefaults });
@@ -2776,13 +2777,18 @@ export default function App() {
     const channelsChanged =
       pageView === "channels" &&
       nextChannelSettings !== priorChannelSettings.current;
+    const navigatedAwayFromAssumptions =
+      priorPageView.current !== pageView &&
+      (priorPageView.current === "forecast" ||
+        priorPageView.current === "channels");
     priorAssumptions.current = nextAssumptions;
     priorChannelSettings.current = nextChannelSettings;
+    priorPageView.current = pageView;
+    if (forecastChanged || channelsChanged) setGrowthPlanChanged(true);
     if (
-      !growthPlanSubmitted &&
-      !growthPlanDismissed &&
-      !showGrowthPlan &&
-      (forecastChanged || channelsChanged)
+      growthPlanChanged &&
+      navigatedAwayFromAssumptions &&
+      !growthPlanSubmitted
     ) {
       setShowGrowthPlan(true);
     }
@@ -2790,10 +2796,9 @@ export default function App() {
     a,
     channels,
     channelDefaults,
-    growthPlanDismissed,
+    growthPlanChanged,
     growthPlanSubmitted,
     pageView,
-    showGrowthPlan,
   ]);
   useEffect(() => {
     document.title = `${modelName || "GrowthCast"} Forecast`;
@@ -6090,21 +6095,10 @@ export default function App() {
       {showGrowthPlan && (
         <aside
           className="growthPlanPrompt"
-          role="dialog"
+          role="region"
           aria-labelledby="growth-plan-title"
           aria-describedby="growth-plan-description"
         >
-          <button
-            className="growthPlanClose"
-            type="button"
-            aria-label="Close Growth Plan form"
-            onClick={() => {
-              setShowGrowthPlan(false);
-              setGrowthPlanDismissed(true);
-            }}
-          >
-            ×
-          </button>
           <div>
             <span className="eyebrow">Your next step</span>
             <h2 id="growth-plan-title">
