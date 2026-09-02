@@ -69,6 +69,7 @@ const readingMinutes = Math.max(1, Math.ceil((post.body || "").trim().split(/\s+
             {post.data.updatedAt && <span>Updated {formatDate(post.data.updatedAt)}</span>}
           </div>
         </div>
+        {post.data.artwork && <figure class="articleArtwork"><img src={post.data.artwork} alt="Abstract growth paths converging into a shared system" width="560" height="420" /></figure>}
       </header>
       <div class="articleLayout">
         <aside class="articleRail">

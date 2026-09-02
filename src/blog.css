@@ -227,7 +227,10 @@
 .articleBreadcrumb svg { width: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .articleBreadcrumb > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .articleHero {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.8fr);
+  align-items: center;
+  gap: clamp(42px, 6vw, 90px);
   padding: 48px 0 64px;
 }
 .articleHeroCopy { min-width: 0; }
@@ -260,6 +263,8 @@
 }
 .articleAuthor { margin: 30px 0 0; font-family: "DM Mono", monospace; font-size: 16px; font-weight: 500; }
 .articleMeta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; color: #66625b; font-family: "DM Mono", monospace; font-size: 13px; }
+.articleArtwork { margin: 0; }
+.articleArtwork img { display: block; width: 100%; height: auto; mix-blend-mode: multiply; }
 .articleLayout {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
@@ -325,6 +330,8 @@
   .blogHero { padding: 42px 0 28px; }
   .featuredPost { grid-template-columns: 1fr; }
   .postGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .articleHero { grid-template-columns: 1fr; }
+  .articleArtwork { width: min(100%, 560px); }
   .articleLayout { grid-template-columns: minmax(0, 1fr); }
   .articleRail { position: static; }
   .articleToc nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
