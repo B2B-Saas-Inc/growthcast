@@ -41,7 +41,7 @@ The application starts with zeroed metrics and contains no bundled private histo
 
 ### Growth Plan request
 
-After a user changes a Forecast assumption or Channel setting and navigates away, a persistent bottom banner offers a personalized Growth Plan. Submitting a first name and email identifies or creates the person in PostHog and captures the `growth_plan_requested` event. A successful request is remembered in local storage so the panel is not shown again in that browser.
+Fifteen seconds after a user changes a Forecast assumption or Channel setting, a persistent banner rises from a tray at the bottom and offers a personalized Growth Plan. Submitting a first name and email identifies or creates the person in PostHog and captures the `growth_plan_requested` event. A successful request is remembered in local storage so the panel is not shown again in that browser.
 
 ### Methodology
 

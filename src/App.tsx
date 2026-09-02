@@ -2755,7 +2755,6 @@ export default function App() {
     normalizeChannels(saved.channels),
   );
   const [showGrowthPlan, setShowGrowthPlan] = useState(false);
-  const [growthPlanChanged, setGrowthPlanChanged] = useState(false);
   const [growthPlanSubmitted, setGrowthPlanSubmitted] = useState(() => {
     try {
       return localStorage.getItem("growth-plan-requested-v1") === "true";
@@ -2768,7 +2767,7 @@ export default function App() {
   const priorChannelSettings = useRef(
     JSON.stringify({ channels, channelDefaults }),
   );
-  const priorPageView = useRef(pageView);
+  const growthPlanTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     const nextAssumptions = JSON.stringify(a);
     const nextChannelSettings = JSON.stringify({ channels, channelDefaults });
@@ -2777,29 +2776,20 @@ export default function App() {
     const channelsChanged =
       pageView === "channels" &&
       nextChannelSettings !== priorChannelSettings.current;
-    const navigatedAwayFromAssumptions =
-      priorPageView.current !== pageView &&
-      (priorPageView.current === "forecast" ||
-        priorPageView.current === "channels");
     priorAssumptions.current = nextAssumptions;
     priorChannelSettings.current = nextChannelSettings;
-    priorPageView.current = pageView;
-    if (forecastChanged || channelsChanged) setGrowthPlanChanged(true);
-    if (
-      growthPlanChanged &&
-      navigatedAwayFromAssumptions &&
-      !growthPlanSubmitted
-    ) {
-      setShowGrowthPlan(true);
+    if ((forecastChanged || channelsChanged) && !growthPlanSubmitted) {
+      window.clearTimeout(growthPlanTimer.current);
+      growthPlanTimer.current = window.setTimeout(
+        () => setShowGrowthPlan(true),
+        15_000,
+      );
     }
-  }, [
-    a,
-    channels,
-    channelDefaults,
-    growthPlanChanged,
-    growthPlanSubmitted,
-    pageView,
-  ]);
+  }, [a, channels, channelDefaults, growthPlanSubmitted, pageView]);
+  useEffect(
+    () => () => window.clearTimeout(growthPlanTimer.current),
+    [],
+  );
   useEffect(() => {
     document.title = `${modelName || "GrowthCast"} Forecast`;
   }, [modelName]);
