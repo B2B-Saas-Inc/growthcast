@@ -1,17 +1,11 @@
-.blogHeader,
 .blogFooter,
 .blogMain,
 .articleMain {
   width: min(100% - 76px, 1524px);
   margin-inline: auto;
 }
-.blogHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 96px;
-  border-bottom: 1px solid #cfc9be;
-}
+.blogSiteHeader { width: min(100% - 48px, 1500px); }
+.blogSiteHeader .siteBrand { text-decoration: none; }
 .blogBrand {
   color: #242426;
   font-size: 28px;
@@ -19,32 +13,22 @@
   letter-spacing: -0.04em;
   text-decoration: none;
 }
-.blogHeader nav,
 .blogFooter nav {
   display: flex;
   align-items: center;
   gap: 28px;
 }
-.blogHeader nav a,
 .blogFooter nav a {
   color: #242426;
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
 }
-.blogHeader nav a:hover,
-.blogHeader nav a[aria-current="page"],
 .blogFooter nav a:hover {
   text-decoration: underline;
   text-underline-offset: 5px;
 }
-.blogHeader nav .blogNavCta {
-  padding: 13px 18px;
-  border: 1px solid #242426;
-  background: #242426;
-  color: #fffdf8;
-  text-decoration: none;
-}
+.blogSiteHeader .resourceNav [aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 .blogBreadcrumb {
   display: flex;
   gap: 9px;
@@ -350,10 +334,6 @@
 .articleCta { width: min(100%, 1100px); margin-inline: auto; }
 .backToBlog { color: #242426; font-family: "DM Mono", monospace; font-size: 11px; text-transform: uppercase; }
 @media (max-width: 900px) {
-  .blogHeader { align-items: flex-start; flex-direction: column; gap: 18px; padding: 20px 0; }
-  .blogHeader nav { width: 100%; flex-wrap: wrap; gap: 10px; }
-  .blogHeader nav a { display: flex; align-items: center; justify-content: center; min-height: 44px; flex: 1 1 160px; border: 1px solid #cfc9be; }
-  .blogHeader nav .blogNavCta { border-color: #242426; }
   .blogHero { padding: 42px 0 28px; }
   .featuredPost { grid-template-columns: 1fr; }
   .postGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -364,11 +344,10 @@
   .articleToc nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 620px) {
-  .blogHeader,
   .blogFooter,
   .blogMain,
   .articleMain { width: calc(100% - 40px); }
-  .blogHeader nav a { flex-basis: calc(50% - 5px); }
+  .blogSiteHeader { width: min(100% - 28px, 1500px); }
   .blogHero h1 { font-size: clamp(44px, 15vw, 68px); }
   .blogFilters > div { flex-direction: column; gap: 8px; }
   .blogFilters input { border-right: 1px solid #aaa398; }

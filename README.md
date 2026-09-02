@@ -54,7 +54,7 @@ A dedicated Methodology page documents the monthly calculation sequence, channel
 
 ### Blog
 
-The Astro-native blog lives at `/blog`. Posts are typed Markdown or MDX files in `src/content/blog`, with validated title, description, publication dates, author, tags, draft state, featured state, and optional social image. Astro generates static article routes, search/filter views, article metadata and JSON-LD, an RSS feed at `/rss.xml`, and a sitemap index at `/sitemap-index.xml`. The blog uses GrowthCast's local Manrope and DM Mono fonts and its existing neutral, green, blue, and coral design language. Article pages preserve the MediaMixModel reference UX: a title-and-cover hero, breadcrumb and back navigation, author/read-time metadata, and a boxed sticky table-of-contents/share rail that stacks on mobile.
+The Astro-native blog lives at `/blog`. Posts are typed Markdown or MDX files in `src/content/blog`, with validated title, description, publication dates, author, tags, draft state, featured state, and optional social image. Astro generates static article routes, search/filter views, article metadata and JSON-LD, an RSS feed at `/rss.xml`, and a sitemap index at `/sitemap-index.xml`. Blog pages share the agency site's full Company/Resources navigation and contact entry point, use GrowthCast's local Manrope and DM Mono fonts, and retain its neutral, green, blue, and coral design language. Article pages preserve the MediaMixModel reference UX: a title-and-cover hero, breadcrumb and back navigation, author/read-time metadata, and a boxed sticky table-of-contents/share rail that stacks on mobile.
 
 ### Deep Dive
 

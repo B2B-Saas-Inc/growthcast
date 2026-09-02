@@ -502,6 +502,14 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
     setContactStatus("");
     setShowContactForm(true);
   }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("contact") !== "1") return;
+    url.searchParams.delete("contact");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    const frame = window.requestAnimationFrame(openContact);
+    return () => window.cancelAnimationFrame(frame);
+  }, [openContact]);
   const closeContact = useCallback(() => {
     setShowContactForm(false);
     window.requestAnimationFrame(() => contactTrigger.current?.focus());

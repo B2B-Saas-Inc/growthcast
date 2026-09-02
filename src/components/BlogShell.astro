@@ -2,13 +2,28 @@
 type Props = { current?: "blog" };
 const { current } = Astro.props;
 ---
-<header class="blogHeader">
-  <a class="blogBrand" href="/">GrowthCast</a>
-  <nav aria-label="Main navigation">
+<header class="siteHeader blogSiteHeader">
+  <a class="siteBrand" href="/">GrowthCast</a>
+  <nav class="siteNav" aria-label="Main navigation">
     <a href="/why-growthcast">Why GrowthCast</a>
     <a href="/how-it-works">How We Work</a>
-    <a href="/blog" aria-current={current === "blog" ? "page" : undefined}>Blog</a>
-    <a class="blogNavCta" href="/resources/tools/forecast">Build a Forecast</a>
+    <details class="resourceNav companyNav">
+      <summary>Company</summary>
+      <div>
+        <a href="/company/about">About</a>
+        <a href="/company/philosophy">Philosophy</a>
+        <a href="/company/partners">Partners</a>
+        <a href="/company/careers">Careers</a>
+      </div>
+    </details>
+    <details class="resourceNav">
+      <summary aria-current={current === "blog" ? "page" : undefined}>Resources</summary>
+      <div>
+        <span>Tools</span><a href="/resources/tools/forecast">Forecast</a>
+        <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog" aria-current={current === "blog" ? "page" : undefined}>Blog</a><p>Case Studies <small>Coming soon</small></p>
+      </div>
+    </details>
+    <a class="siteNavCta" href="/?contact=1">Let's Talk Growth</a>
   </nav>
 </header>
 <slot />
@@ -22,3 +37,9 @@ const { current } = Astro.props;
     <a href="/terms">Terms</a>
   </nav>
 </footer>
+<script>
+  const menus = Array.from(document.querySelectorAll<HTMLDetailsElement>(".blogSiteHeader details"));
+  menus.forEach((menu) => menu.addEventListener("toggle", () => {
+    if (menu.open) menus.forEach((other) => { if (other !== menu) other.open = false; });
+  }));
+</script>
