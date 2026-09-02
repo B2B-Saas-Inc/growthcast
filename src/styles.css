@@ -1905,6 +1905,27 @@ a:focus-visible,
   box-shadow: 0 -8px 30px rgb(0 0 0 / 16%);
   animation: growthPlanRiseFromBottom 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.growthPlanPrompt.growthPlanPromptClosing {
+  animation: growthPlanSinkToBottom 360ms cubic-bezier(0.64, 0, 0.78, 0) both;
+}
+.growthPlanClose {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+.growthPlanClose:hover,
+.growthPlanClose:focus-visible {
+  color: #ff6b4a;
+}
 .growthPlanPrompt h2 {
   margin: 8px 0 4px;
   font-size: clamp(20px, 2.2vw, 30px);
@@ -1963,6 +1984,10 @@ a:focus-visible,
 @keyframes growthPlanRiseFromBottom {
   from { transform: translate3d(0, 100%, 0); }
   to { transform: translate3d(0, 0, 0); }
+}
+@keyframes growthPlanSinkToBottom {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 100%, 0); }
 }
 @media (max-width: 900px) {
   .growthPlanPrompt {

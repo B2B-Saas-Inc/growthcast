@@ -2761,6 +2761,7 @@ export default function App() {
     normalizeChannels(saved.channels),
   );
   const [showGrowthPlan, setShowGrowthPlan] = useState(false);
+  const [growthPlanClosing, setGrowthPlanClosing] = useState(false);
   const [growthPlanSubmitted, setGrowthPlanSubmitted] = useState(() => {
     try {
       return localStorage.getItem("growth-plan-requested-v1") === "true";
@@ -2776,6 +2777,16 @@ export default function App() {
     JSON.stringify({ channels, channelDefaults }),
   );
   const growthPlanTimer = useRef<number | undefined>(undefined);
+  const growthPlanCloseTimer = useRef<number | undefined>(undefined);
+  const dismissGrowthPlan = useCallback(() => {
+    if (!showGrowthPlan || growthPlanClosing) return;
+    setGrowthPlanClosing(true);
+    window.clearTimeout(growthPlanCloseTimer.current);
+    growthPlanCloseTimer.current = window.setTimeout(() => {
+      setShowGrowthPlan(false);
+      setGrowthPlanClosing(false);
+    }, 360);
+  }, [growthPlanClosing, showGrowthPlan]);
   useEffect(() => {
     const nextAssumptions = JSON.stringify(a);
     const nextChannelSettings = JSON.stringify({ channels, channelDefaults });
@@ -2788,16 +2799,24 @@ export default function App() {
     priorChannelSettings.current = nextChannelSettings;
     if ((forecastChanged || channelsChanged) && !growthPlanSubmitted) {
       window.clearTimeout(growthPlanTimer.current);
-      growthPlanTimer.current = window.setTimeout(
-        () => setShowGrowthPlan(true),
-        15_000,
-      );
+      growthPlanTimer.current = window.setTimeout(() => {
+        setGrowthPlanClosing(false);
+        setShowGrowthPlan(true);
+      }, 15_000);
     }
   }, [a, channels, channelDefaults, growthPlanSubmitted, pageView]);
   useEffect(
-    () => () => window.clearTimeout(growthPlanTimer.current),
+    () => () => {
+      window.clearTimeout(growthPlanTimer.current);
+      window.clearTimeout(growthPlanCloseTimer.current);
+    },
     [],
   );
+  useEffect(() => {
+    if (!showGrowthPlan || !growthPlanSubmitted) return;
+    window.addEventListener("scroll", dismissGrowthPlan, { passive: true });
+    return () => window.removeEventListener("scroll", dismissGrowthPlan);
+  }, [dismissGrowthPlan, growthPlanSubmitted, showGrowthPlan]);
   useEffect(() => {
     if (!showGrowthPlan || !growthPlanPrompt.current) {
       setGrowthPlanHeight(0);
@@ -6067,11 +6086,19 @@ export default function App() {
       {showGrowthPlan && (
         <aside
           ref={growthPlanPrompt}
-          className="growthPlanPrompt"
+          className={`growthPlanPrompt${growthPlanClosing ? " growthPlanPromptClosing" : ""}`}
           role="region"
           aria-labelledby="growth-plan-title"
           aria-describedby="growth-plan-description"
         >
+          <button
+            type="button"
+            className="growthPlanClose"
+            aria-label="Close Growth Plan request"
+            onClick={dismissGrowthPlan}
+          >
+            ×
+          </button>
           <div>
             <span className="eyebrow">Your next step</span>
             <h2 id="growth-plan-title">
