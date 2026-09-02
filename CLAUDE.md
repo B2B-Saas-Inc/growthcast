@@ -95,7 +95,7 @@ Astro owns route generation, document metadata, the blog, RSS, and sitemap. Publ
 
 ### Blog architecture
 
-The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. `/blog` renders featured/latest content with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` renders article content, table of contents, share links, BreadcrumbList, and BlogPosting schema. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the local Manrope/DM Mono fonts and GrowthCast colors from the existing visual system.
+The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. `/blog` renders image-led article cards with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` preserves the MediaMixModel reference UX with a title-and-cover hero, breadcrumb and back navigation, author/read-time metadata, a boxed sticky table-of-contents/share rail that stacks on mobile, BreadcrumbList, and BlogPosting schema. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the local Manrope/DM Mono fonts and GrowthCast colors from the existing visual system.
 
 ### B2C and B2B model contracts
 

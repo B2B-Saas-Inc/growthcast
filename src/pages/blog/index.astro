@@ -6,7 +6,6 @@ import BlogShell from "../../components/BlogShell.astro";
 const posts = (await getCollection("blog", ({ data }) => !data.draft))
   .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
 const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
-const featured = posts.find((post) => post.data.featured);
 const title = "Growth Strategy and GTM Engineering Blog | GrowthCast";
 const description = "Practical guides to growth modeling, demand, conversion, retention, revenue operations, and GTM engineering.";
 const blogSchema = {
@@ -28,11 +27,11 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "sh
   <BlogShell current="blog">
     <main class="blogMain">
       <nav class="blogBreadcrumb" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Blog</span></nav>
-      <section class="blogHero">
-        <span class="sectionLabel">Ideas for the whole growth system</span>
-        <h1>Growth should add up.</h1>
-        <p>Clear thinking for teams connecting demand, product, sales, data, and revenue.</p>
-      </section>
+      <header class="blogHero">
+        <span>Resources</span>
+        <h1>Blog</h1>
+        <p>Deep dives, reviews, and practical guides for teams connecting demand, product, sales, data, and revenue.</p>
+      </header>
 
       <form class="blogFilters" action="/blog" method="get" role="search">
         <label for="blog-search">Search the blog</label>
@@ -52,22 +51,7 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "sh
         </nav>
       )}
 
-      {featured && (
-        <article class="featuredPost" data-featured-post data-search={`${featured.data.title} ${featured.data.description} ${featured.data.tags.join(" ")}`.toLowerCase()} data-tags={featured.data.tags.join("|")}>
-          <div>
-            <span class="sectionLabel">Featured</span>
-            <h2><a href={`/blog/${featured.id}`}>{featured.data.title}</a></h2>
-            <p>{featured.data.description}</p>
-          </div>
-          <div class="postMeta">
-            <time datetime={featured.data.publishedAt.toISOString()}>{formatDate(featured.data.publishedAt)}</time>
-            <span>{featured.data.author}</span>
-            <a href={`/blog/${featured.id}`}>Read article →</a>
-          </div>
-        </article>
-      )}
-
-      <section class="postSection" aria-labelledby="articles-title" hidden={posts.length === 1 && Boolean(featured)}>
+      <section class="postSection" aria-labelledby="articles-title">
         <div class="postSectionHeading">
           <h2 id="articles-title">Latest articles</h2>
           <span id="blog-result-count">{posts.length} {posts.length === 1 ? "article" : "articles"}</span>
@@ -76,19 +60,20 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "sh
             {posts.map((post) => (
               <article
                 class="postCard"
-                hidden={post.id === featured?.id}
                 data-post-card
-                data-featured={post.id === featured?.id ? "true" : "false"}
                 data-search={`${post.data.title} ${post.data.description} ${post.data.tags.join(" ")}`.toLowerCase()}
                 data-tags={post.data.tags.join("|")}
               >
-                <div class="postCardTags">{post.data.tags.slice(0, 2).map((tag) => <span>{tag}</span>)}</div>
-                <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
-                <p>{post.data.description}</p>
-                <footer>
-                  <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
-                  <a href={`/blog/${post.id}`} aria-label={`Read ${post.data.title}`}>Read →</a>
-                </footer>
+                <a class="postCardImage" href={`/blog/${post.id}`} tabindex="-1"><img src={post.data.image || "/growthcast-og.png"} alt="" width="1200" height="630" /></a>
+                <div class="postCardContent">
+                  <div class="postCardTags">{post.data.tags.slice(0, 2).map((tag) => <span>{tag}</span>)}</div>
+                  <h3><a href={`/blog/${post.id}`}>{post.data.title}</a></h3>
+                  <p>{post.data.description}</p>
+                  <footer>
+                    <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+                    <a href={`/blog/${post.id}`} aria-label={`Read ${post.data.title}`}>Read →</a>
+                  </footer>
+                </div>
               </article>
             ))}
           </div>
@@ -115,22 +100,20 @@ const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "sh
     document.querySelectorAll<HTMLElement>("[data-blog-tag]").forEach((link) => {
       link.classList.toggle("active", (link.dataset.blogTag || "") === tag);
     });
-    const featured = document.querySelector<HTMLElement>("[data-featured-post]");
-    if (featured) featured.hidden = filtering;
     let matches = 0;
     document.querySelectorAll<HTMLElement>("[data-post-card]").forEach((card) => {
       const queryMatch = !query || (card.dataset.search || "").includes(query);
       const tagMatch = !tag || (card.dataset.tags || "").split("|").includes(tag);
-      const show = queryMatch && tagMatch && (filtering || card.dataset.featured !== "true");
+      const show = queryMatch && tagMatch;
       card.hidden = !show;
       if (show) matches += 1;
     });
     const section = document.querySelector<HTMLElement>(".postSection");
-    if (section) section.hidden = !filtering && matches === 0;
+    if (section) section.hidden = false;
     const heading = document.querySelector<HTMLElement>("#articles-title");
     if (heading) heading.textContent = filtering ? "Matching articles" : "Latest articles";
     const count = document.querySelector<HTMLElement>("#blog-result-count");
-    const total = filtering ? matches : matches + (featured ? 1 : 0);
+    const total = matches;
     if (count) count.textContent = `${total} ${total === 1 ? "article" : "articles"}`;
     const empty = document.querySelector<HTMLElement>("[data-blog-empty]");
     if (empty) empty.hidden = matches > 0;
