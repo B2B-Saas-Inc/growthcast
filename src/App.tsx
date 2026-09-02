@@ -4461,12 +4461,17 @@ export default function App() {
     const email = String(data.get("email") || "").trim().toLowerCase();
     if (!firstName || !email) return;
     if (isPostHogEnabled) {
-      posthog.identify(email, { email, first_name: firstName });
+      const modelMetadata = { baseline, assumptions: a };
+      posthog.identify(email, {
+        email,
+        first_name: firstName,
+        ...modelMetadata,
+      });
       posthog.capture(
         "growth_plan_requested",
-        { source: "model_change_slide_in" },
+        { source: "model_change_slide_in", ...modelMetadata },
         {
-          $set: { email, first_name: firstName },
+          $set: { email, first_name: firstName, ...modelMetadata },
           send_instantly: true,
           transport: "fetch",
         },
