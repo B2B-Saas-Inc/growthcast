@@ -1,5 +1,6 @@
 import {
   Fragment,
+  type FormEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -49,6 +50,7 @@ import {
   defaultCashFlow,
   type CashFlowSettings,
 } from "./engine/metrics";
+import posthog, { isPostHogEnabled } from "./posthog";
 import "./styles.css";
 
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
@@ -1179,6 +1181,13 @@ function ImageExportButton({
               square,
             );
             setStatus(`${filename} downloaded`);
+            if (isPostHogEnabled) {
+              posthog.capture("chart_image_exported", {
+                export_scope: targetId.startsWith("deep-chart-")
+                  ? "deep_dive"
+                  : "forecast",
+              });
+            }
           } catch {
             setStatus(`Could not export ${filename}`);
           } finally {
@@ -2745,6 +2754,47 @@ export default function App() {
   const [channels, setChannels] = useState(() =>
     normalizeChannels(saved.channels),
   );
+  const [showGrowthPlan, setShowGrowthPlan] = useState(false);
+  const [growthPlanDismissed, setGrowthPlanDismissed] = useState(false);
+  const [growthPlanSubmitted, setGrowthPlanSubmitted] = useState(() => {
+    try {
+      return localStorage.getItem("growth-plan-requested-v1") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [growthPlanStatus, setGrowthPlanStatus] = useState("");
+  const priorAssumptions = useRef(JSON.stringify(a));
+  const priorChannelSettings = useRef(
+    JSON.stringify({ channels, channelDefaults }),
+  );
+  useEffect(() => {
+    const nextAssumptions = JSON.stringify(a);
+    const nextChannelSettings = JSON.stringify({ channels, channelDefaults });
+    const forecastChanged =
+      pageView === "forecast" && nextAssumptions !== priorAssumptions.current;
+    const channelsChanged =
+      pageView === "channels" &&
+      nextChannelSettings !== priorChannelSettings.current;
+    priorAssumptions.current = nextAssumptions;
+    priorChannelSettings.current = nextChannelSettings;
+    if (
+      !growthPlanSubmitted &&
+      !growthPlanDismissed &&
+      !showGrowthPlan &&
+      (forecastChanged || channelsChanged)
+    ) {
+      setShowGrowthPlan(true);
+    }
+  }, [
+    a,
+    channels,
+    channelDefaults,
+    growthPlanDismissed,
+    growthPlanSubmitted,
+    pageView,
+    showGrowthPlan,
+  ]);
   useEffect(() => {
     document.title = `${modelName || "GrowthCast"} Forecast`;
   }, [modelName]);
@@ -4035,9 +4085,14 @@ export default function App() {
     );
     doc.save(`${slug()}-forecast.pdf`);
   };
-  const exportForecast = () =>
-    forecastFormat === "pdf" ? exportPdf() : exportCsv();
-  const exportBaseline = () =>
+  const exportForecast = async () => {
+    if (forecastFormat === "pdf") exportPdf();
+    else await exportCsv();
+    if (isPostHogEnabled) {
+      posthog.capture("forecast_exported", { format: forecastFormat });
+    }
+  };
+  const exportBaseline = () => {
     download(
       `${slug()}-baseline.csv`,
       assumptionCsv({
@@ -4048,6 +4103,10 @@ export default function App() {
       }),
       "text/csv",
     );
+    if (isPostHogEnabled) {
+      posthog.capture("baseline_exported", { business_model: businessModel });
+    }
+  };
   const importBaseline = async (file?: File) => {
     if (!file) return;
     try {
@@ -4141,6 +4200,11 @@ export default function App() {
       setPageView(
         required.every((value) => value > 0) ? "forecast" : "baseline",
       );
+      if (isPostHogEnabled) {
+        posthog.capture("baseline_imported", {
+          business_model: importedBusinessModel,
+        });
+      }
     } catch (error) {
       setImportMessage(
         error instanceof Error ? error.message : "Could not load baseline CSV",
@@ -4177,6 +4241,9 @@ export default function App() {
         : assumptionCsv(value),
       downloadFormat === "json" ? "application/json" : "text/csv",
     );
+    if (isPostHogEnabled) {
+      posthog.capture("assumptions_exported", { format: downloadFormat });
+    }
   };
   const importAssumptions = async (file?: File) => {
     if (!file) return;
@@ -4353,6 +4420,11 @@ export default function App() {
       );
       setScenario(value.scenario || "Imported");
       setImportMessage(`Loaded ${file.name}`);
+      if (isPostHogEnabled) {
+        posthog.capture("assumptions_imported", {
+          format: isCsv ? "csv" : "json",
+        });
+      }
     } catch (error) {
       setImportMessage(
         error instanceof Error
@@ -4389,6 +4461,26 @@ export default function App() {
     }
     setPageView(target);
     setImportMessage("");
+  };
+  const requestGrowthPlan = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const firstName = String(data.get("firstName") || "").trim();
+    const email = String(data.get("email") || "").trim().toLowerCase();
+    if (!firstName || !email) return;
+    if (isPostHogEnabled) {
+      posthog.identify(email, { email, first_name: firstName });
+      posthog.capture("growth_plan_requested", {
+        source: "model_change_slide_in",
+      });
+    }
+    try {
+      localStorage.setItem("growth-plan-requested-v1", "true");
+    } catch {
+      /* The request still succeeds when persistence is unavailable. */
+    }
+    setGrowthPlanSubmitted(true);
+    setGrowthPlanStatus("Thanks — your Growth Plan request is in.");
   };
   return (
     <main>
@@ -4494,6 +4586,9 @@ export default function App() {
                     setForecastStartMonth("2026-08");
                     setScenario("Baseline");
                     setImportMessage("");
+                    if (isPostHogEnabled) {
+                      posthog.capture("model_reset");
+                    }
                   }}
                 >
                   <RotateCcw size={16} /> Reset
@@ -4580,6 +4675,9 @@ export default function App() {
                 onClick={() => {
                   setScenario(name);
                   setA({ ...a, ...scenarios[name] });
+                  if (isPostHogEnabled && scenario !== name) {
+                    posthog.capture("scenario_selected", { scenario: name });
+                  }
                 }}
               >
                 {name}
@@ -4808,7 +4906,14 @@ export default function App() {
                 type="button"
                 className={businessModel === "b2c" ? "active" : ""}
                 aria-pressed={businessModel === "b2c"}
-                onClick={() => setA({ ...a, businessModel: "b2c" })}
+                onClick={() => {
+                  setA({ ...a, businessModel: "b2c" });
+                  if (isPostHogEnabled && businessModel !== "b2c") {
+                    posthog.capture("business_model_selected", {
+                      business_model: "b2c",
+                    });
+                  }
+                }}
               >
                 <strong>B2C</strong>
                 <span>Signup and purchase funnel</span>
@@ -4817,7 +4922,14 @@ export default function App() {
                 type="button"
                 className={businessModel === "b2b" ? "active" : ""}
                 aria-pressed={businessModel === "b2b"}
-                onClick={() => setA({ ...a, businessModel: "b2b" })}
+                onClick={() => {
+                  setA({ ...a, businessModel: "b2b" });
+                  if (isPostHogEnabled && businessModel !== "b2b") {
+                    posthog.capture("business_model_selected", {
+                      business_model: "b2b",
+                    });
+                  }
+                }}
               >
                 <strong>B2B</strong>
                 <span>MQL, SQL, and closed-won pipeline</span>
@@ -5975,6 +6087,64 @@ export default function App() {
           </section>
         </div>
       </section>
+      {showGrowthPlan && (
+        <aside
+          className="growthPlanPrompt"
+          role="dialog"
+          aria-labelledby="growth-plan-title"
+          aria-describedby="growth-plan-description"
+        >
+          <button
+            className="growthPlanClose"
+            type="button"
+            aria-label="Close Growth Plan form"
+            onClick={() => {
+              setShowGrowthPlan(false);
+              setGrowthPlanDismissed(true);
+            }}
+          >
+            ×
+          </button>
+          <div>
+            <span className="eyebrow">Your next step</span>
+            <h2 id="growth-plan-title">
+              You have the model, now let&apos;s make the plan
+            </h2>
+            <p id="growth-plan-description">
+              Tell us where to send your personalized Growth Plan.
+            </p>
+          </div>
+          {growthPlanSubmitted ? (
+            <p className="growthPlanSuccess" role="status">
+              {growthPlanStatus}
+            </p>
+          ) : (
+            <form onSubmit={requestGrowthPlan}>
+              <label>
+                First name
+                <input
+                  name="firstName"
+                  type="text"
+                  autoComplete="given-name"
+                  required
+                />
+              </label>
+              <label>
+                Email
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <button className="primary" type="submit">
+                Get my Growth Plan
+              </button>
+            </form>
+          )}
+        </aside>
+      )}
       <footer>
         Made with Gratitude in Brooklyn, NY by{" "}
         <a

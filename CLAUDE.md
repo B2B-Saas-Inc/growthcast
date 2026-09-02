@@ -20,7 +20,7 @@ The primary activation action is changing an assumption or loading an assumption
 | Database/ORM | None; explicitly deferred |
 | Authentication/tenancy | None; local single-user app |
 | Email/payments/storage/jobs/cache/search | Not applicable |
-| Monitoring/analytics/flags/CMS | Not configured |
+| Product analytics | PostHog browser SDK through a first-party Vercel/nginx reverse proxy |
 | Persistence | Browser `localStorage` for reload-safe progress; JSON/CSV import/export |
 | Unit tests | Vitest |
 | E2E validation | Pi `playwright_validate` |
@@ -98,6 +98,10 @@ B2B closed-won customers equal `visitors × mqlRate × sqlRate × closeRate`. Ne
 
 The homepage tells the product story in three sections: Hero, Why it exists, and How to use. Preserve the first-person, practitioner-led voice, the coastline-paradox framing, the five baseline metrics, the marquee growth metrics, and the progression from Baseline to Forecast to Channels. Primary calls to action route to Baseline. Keep it white-labelled and responsive.
 
+### Growth Plan request
+
+A dismissible bottom slide-in appears after the first user-originated Forecast assumption or Channel setting change. It collects first name and email only after explicit submission, calls `posthog.identify(email, { email, first_name })` to create or update the PostHog person, and captures `growth_plan_requested`. Successful submission is stored locally under `growth-plan-requested-v1`. PostHog browser traffic uses the neutral same-origin `/gcast-io` reverse-proxy path; Vercel rewrites and nginx route US-region API, SDK asset, and remote-config requests to the appropriate PostHog hosts.
+
 ### Deep Dive analytics
 
 Deep Dive is forecast-driven and must stay synchronized with editable baseline, global assumptions, budget, and channels. It contains Budget breakdown, Churn overview, MRR overview, Growth rate, Customers overview, and Cash flow tabs. Cash flow accepts fee/refund percentages, monthly and annual plan shares, and optional one-time payments as a third plan-share input. The active shares must total 100%. Monthly subscription cash equals ending MRR × monthly share. Annual and one-time cash each equal new MRR × their share × 12. Fees and refunds are negative percentages of gross cash; net cash sums all five movements. Every view requires both a chart and monthly table; do not substitute static screenshots or historical-only values. Budget lines begin at each paid channel's go-live month. The Deep Dive budget headline edits the global budget and clears stale month-specific budget overrides. Dragging a budget line point creates a month/channel spend override, proportionally redistributes the remainder among other enabled paid channels to preserve the monthly total, converts all affected spend to visitors with each channel's CPC or CPM/CTR model, updates the table, and recomputes downstream months. An opt-in future-edit toggle applies budget or churn point edits to the selected and all later months. Budget planning also supports compounded monthly percentage growth, isolated monthly total overrides, step totals that compound from a selected month onward, and subchannel spend editing. Keep these controls inside a default-collapsed Advanced budget controls disclosure. Dragging the churn line creates a monthly total revenue-churn override and recomputes the MRR bridge. Preserve these overrides in local storage and assumption import/export. Churn views preserve voluntary/delinquent and revenue/customer distinctions.
@@ -164,7 +168,7 @@ Not currently applicable. If introduced, use schema-as-code, reviewed migrations
 
 ### Observability and analytics
 
-Not configured. Browser console errors must remain zero in validation. A future hosted version should add privacy-safe error reporting and consent-aware product analytics; never send names, email addresses, secrets, imported assumptions, or financial model contents without explicit consent.
+PostHog captures product interaction events through a same-origin reverse proxy. The Growth Plan form identifies a person with their submitted first name and email only after explicit submission; model assumptions and financial contents are not attached to that event. Browser console errors must remain zero in validation. Never send secrets, imported assumptions, or financial model contents to analytics.
 
 ### Security
 
@@ -212,7 +216,9 @@ Target WCAG 2.2 AA:
 
 ## Environment variables
 
-None are currently required. Do not create `.env` files unless a runtime integration is approved. If variables are introduced, add a secret-free `.env.example`, distinguish server-only from browser-safe values, validate them at startup, and document every variable here.
+- `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+
+Do not create secret-bearing `.env` files. If more variables are introduced, add a secret-free `.env.example`, distinguish server-only from browser-safe values, validate them at startup, and document every variable here.
 
 ## Terminology
 

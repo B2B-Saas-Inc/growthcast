@@ -2,7 +2,7 @@
 
 A white-labelled, local-first SaaS growth and recurring-revenue forecasting application. Configure acquisition channels, funnel conversion, customer and revenue churn, expansion, ARPU, margin, and LTV:CAC targets; then inspect the monthly effect on customers, MRR, ARR, and allowable acquisition cost.
 
-The application has no backend, accounts, credentials, or live API dependency. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup.
+The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides privacy-conscious product analytics and receives a first name and email only when a user explicitly requests a Growth Plan.
 
 ## Features
 
@@ -38,6 +38,10 @@ The application starts with zeroed metrics and contains no bundled private histo
 - Ten marquee metrics, including NRR (`1 + expansion − downgrade − revenue churn`) and SaaS Magic Number (`[latest ending ARR − ending ARR three months earlier] ÷ latest three months of Sales & Marketing Spend`). Spend includes paid media plus three months of salaries, commissions, and tools overhead; no additional annualization multiplier is applied
 - Forecast export as a model-named ZIP containing `forecast.csv`, `budget-breakdown.csv`, `churn-overview.csv`, `mrr-overview.csv`, `growth-rate.csv`, `customers-overview.csv`, and `cash-flow.csv`; B2B forecast rows use `mqls`, `sqls`, and `maxCostPerMql` instead of B2C-only signup fields. A shareable PDF report contains summary metrics, assumptions, the monthly forecast, all applicable main charts (including B2B pipeline), all six Deep Dive charts, and dedicated Deep Dive tables
 - One-click PNG export for every Forecast and Deep Dive chart at exactly 1230 × 600 pixels, with GrowthCast title/description typography and the current rendered chart fitted to the canvas; plus a designed 1200 × 1200 export containing all ten marquee metrics
+
+### Growth Plan request
+
+After a user changes a Forecast assumption or Channel setting, a dismissible panel offers a personalized Growth Plan. Submitting a first name and email identifies or creates the person in PostHog and captures the `growth_plan_requested` event. A successful request is remembered in local storage so the panel is not shown again in that browser.
 
 ### Methodology
 
