@@ -52,7 +52,6 @@ import {
   type CashFlowSettings,
 } from "./engine/metrics";
 import posthog, { isPostHogEnabled } from "./posthog";
-import "./styles.css";
 
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 const money = (n: number | null) =>

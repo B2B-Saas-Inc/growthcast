@@ -2,7 +2,7 @@
 
 GrowthCast is a GTM Engineering agency site for Series A and later companies with product-market fit. Its free, local-first Forecast tool models acquisition, recurring revenue, and unit economics.
 
-The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides privacy-conscious product analytics and receives a first name and email only when a user explicitly requests a Growth Plan.
+The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
 
 Astro owns the static routes, metadata, blog, RSS feed, and sitemap. The agency and Forecast experience is rendered as a React island so its existing local-first state and export workflows remain interactive without turning the blog into a client-side application.
 
@@ -164,13 +164,15 @@ At mobile widths, agency navigation remains fully available in a touch-sized gri
 
 ```text
 src/
-├── App.tsx                 React agency/Forecast island, state, and exports
+├── AgencyApp.tsx           Lightweight agency island and contact flow
+├── App.tsx                 Forecast island, state, and exports
 ├── components/             Astro shell and React island entry points
 ├── content/blog/           Typed Markdown/MDX blog posts
 ├── layouts/                Shared Astro metadata and document shell
 ├── pages/                  Static routes, blog pages, and RSS endpoint
 ├── styles.css              Forecast and agency visual system
 ├── blog.css                GrowthCast blog visual system
+├── posthog.ts              Deferred agency analytics configuration
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests
@@ -187,6 +189,10 @@ See [`AGENTS.md`](AGENTS.md) for concise contribution rules and [`CLAUDE.md`](CL
 ## Assumption JSON compatibility
 
 Exports use `schemaVersion: 3`; versions 1 and 2 remain import-compatible and migrate to B2C with default B2B pipeline fields available if the user switches models. Import and local-state loading share a version-aware validator. It rejects unsupported versions, malformed baselines, incomplete or out-of-range assumptions, duplicate/invalid channels, invalid override maps, invalid cash splits, negative values, and non-finite numbers before applying state.
+
+## Social image
+
+The 1200 × 630 Open Graph image is `public/growthcast-og.png`. Its editable p5.js source is `scripts/generate-og-image.html`; serve the repository root, open the generator, and press `S` to export a replacement PNG.
 
 ## Privacy and security
 

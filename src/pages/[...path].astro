@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AppIsland from "../components/AppIsland";
+import AgencyIsland from "../components/AgencyIsland";
 
 export function getStaticPaths() {
   return [
@@ -31,7 +32,10 @@ const metadataByPath: Record<string, { title: string; description: string }> = {
   "/privacy": { title: "Privacy Policy | GrowthCast", description: "How GrowthCast collects, uses, and protects information." },
 };
 const metadata = metadataByPath[path] || metadataByPath["/"];
+const isForecast = path.startsWith("/resources/tools/forecast");
 ---
 <BaseLayout {...metadata} canonical={path}>
-  <AppIsland initialPath={path} client:load />
+  {isForecast
+    ? <AppIsland initialPath={path} client:load />
+    : <AgencyIsland initialPath={path} client:load />}
 </BaseLayout>

@@ -32,7 +32,8 @@ The primary activation action is changing an assumption or loading an assumption
 ```text
 .
 ├── src/
-│   ├── App.tsx                 # React agency/Forecast island and local state
+│   ├── AgencyApp.tsx           # Lightweight agency island and contact flow
+│   ├── App.tsx                 # Forecast island, local state, and exports
 │   ├── components/             # Astro shell and React island entry
 │   ├── content/blog/           # Typed Markdown/MDX blog posts
 │   ├── layouts/                # Shared Astro document/SEO layout
@@ -53,7 +54,6 @@ The primary activation action is changing an assumption or loading an assumption
 ├── vercel.json                 # Astro build, proxy routing, and security headers
 ├── package.json
 ├── package-lock.json
-├── vite.config.ts
 ├── tsconfig*.json
 ├── eslint.config.js
 ├── README.md                   # User and contributor documentation
@@ -91,11 +91,11 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-Astro owns route generation, document metadata, the blog, RSS, and sitemap. `src/App.tsx` is the server-rendered and client-hydrated React island for the existing agency and Forecast routes; it owns UI state and local persistence orchestration. The default `/` route is the GrowthCast agency homepage. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Browser history distinguishes the agency route from the Forecast route without adding a router dependency. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; derived values and B2B rate calibration remain presentation orchestration, while forecast formulas stay in the engines. The Monthly Forecast table is a single-open-row accordion backed by `src/engine/channelBreakdown.ts`: each expanded month groups Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom, showing category subtotals and launched channel rows. Channel customers and MRR are cumulative retained cohorts using the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; category totals reconcile to the parent forecast. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+Astro owns route generation, document metadata, the blog, RSS, and sitemap. Public routes select one of two server-rendered, client-hydrated React islands: lightweight `src/AgencyApp.tsx` for agency pages and `src/App.tsx` for the Forecast product. This keeps charting and export libraries out of the agency page's initial dependency graph. Agency analytics load after the visitor's first interaction, with session replay, surveys, conversations, product tours, and feature flags disabled. The Forecast island owns UI state and local persistence orchestration. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; forecast formulas stay in the engines. The Monthly Forecast table is backed by `src/engine/channelBreakdown.ts`, while `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
 ### Blog architecture
 
-The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. `/blog` renders the featured/latest layout and server-built query/tag filters; `/blog/[id]` renders article content, table of contents, share links, BreadcrumbList, and BlogPosting schema. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the local Manrope/DM Mono fonts and GrowthCast colors from the existing visual system.
+The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. `/blog` renders featured/latest content with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` renders article content, table of contents, share links, BreadcrumbList, and BlogPosting schema. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the local Manrope/DM Mono fonts and GrowthCast colors from the existing visual system.
 
 ### B2C and B2B model contracts
 
