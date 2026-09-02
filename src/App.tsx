@@ -4462,16 +4462,12 @@ export default function App() {
     if (!firstName || !email) return;
     if (isPostHogEnabled) {
       const modelMetadata = { baseline, assumptions: a };
-      posthog.identify(email, {
-        email,
-        first_name: firstName,
-        ...modelMetadata,
-      });
+      posthog.identify(email, { email, first_name: firstName });
       posthog.capture(
         "growth_plan_requested",
         { source: "model_change_slide_in", ...modelMetadata },
         {
-          $set: { email, first_name: firstName, ...modelMetadata },
+          $set: { email, first_name: firstName },
           send_instantly: true,
           transport: "fetch",
         },
