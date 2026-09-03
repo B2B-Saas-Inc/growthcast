@@ -208,7 +208,7 @@ Blog artwork uses a two-stage p5.js workflow. `scripts/generate-blog-shape.html`
 
 ## Deployment
 
-[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Astro build, serve `dist`, preserve the PostHog proxy, and apply HSTS, frame, MIME, referrer, and permissions-policy security headers. Astro generates a per-page hash-based CSP that permits its hydration scripts without weakening script policy. The nginx image serves Astro's generated directory routes and mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
+[`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Astro build, serve `dist`, preserve the PostHog proxy, and apply HSTS, frame, MIME, referrer, and permissions-policy security headers. Astro generates a per-page hash-based CSP that permits its hydration scripts and the Vercel Toolbar's narrowly scoped origins without weakening the default script policy. The nginx image serves Astro's generated directory routes and mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
 
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes

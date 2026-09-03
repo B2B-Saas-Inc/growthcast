@@ -11,19 +11,20 @@ export default defineConfig({
     csp: {
       directives: [
         "default-src 'self'",
-        "font-src 'self'",
-        "img-src 'self' data: blob:",
-        "connect-src 'self' https://cloudflareinsights.com https://*.posthog.com",
+        "font-src 'self' https://vercel.live https://assets.vercel.com",
+        "img-src 'self' data: blob: https://vercel.live https://vercel.com",
+        "connect-src 'self' https://cloudflareinsights.com https://*.posthog.com https://vercel.live wss://ws-us3.pusher.com",
+        "frame-src https://vercel.live",
         "worker-src 'self' blob: data:",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
       ],
       scriptDirective: {
-        resources: ["'self'", "https://static.cloudflareinsights.com", "https://*.posthog.com"],
+        resources: ["'self'", "https://static.cloudflareinsights.com", "https://*.posthog.com", "https://vercel.live"],
       },
       styleDirective: {
-        resources: ["'self'", "'unsafe-inline'"],
+        resources: ["'self'", "'unsafe-inline'", "https://vercel.live"],
       },
     },
   },

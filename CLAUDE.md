@@ -190,7 +190,7 @@ The app is static and local-first. Baseline and assumption progress is persisted
 - Do not execute or inject imported content as HTML or code.
 - Keep dependencies pinned through `package-lock.json` and review additions.
 - Bind local container examples to `127.0.0.1`.
-- Preserve Astro's generated per-page hash-based CSP plus the deployed HSTS, frame, MIME, referrer, and permissions-policy headers. Keep nginx aligned for all applicable non-TLS protections; do not add a second static CSP header that blocks Astro hydration hashes.
+- Preserve Astro's generated per-page hash-based CSP, including the narrowly scoped Vercel Toolbar origins, plus the deployed HSTS, frame, MIME, referrer, and permissions-policy headers. Keep nginx aligned for all applicable non-TLS protections; do not add a second static CSP header that blocks Astro hydration hashes.
 - Never log imported financial assumptions unnecessarily.
 
 ### Marketing, SEO, legal, internationalization, notifications, and admin
