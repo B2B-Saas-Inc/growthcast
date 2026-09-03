@@ -39,6 +39,7 @@ Read the full draft aloud. Rewrite any section that sounds like a presentation o
 - The piece includes a concrete observed detail, a conversational moment, and a genuinely unexpected sentence.
 - Technical terms use a plain definition when readers need one.
 - The ending fits the idea instead of repeating a generic summary.
+- The last paragraph gives the reader a natural reason to connect with GrowthCast and decide whether our services fit the reader's situation.
 - The final read-aloud pass sounds like a person, not a corporate memo.
 
 Run `node scripts/check-blog-writing.mjs` before approving or scheduling a post. The automated check enforces only rules that software can test reliably. The editor still owns voice, structure, agency, specificity, and the read-aloud review.

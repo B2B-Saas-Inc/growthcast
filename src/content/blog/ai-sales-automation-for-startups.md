@@ -120,4 +120,4 @@ GrowthCast’s [GTM Engineering approach](/how-it-works) connects planning and i
 
 Start with one repeated task that has clear inputs, a reviewable output, and a named owner. Set legal, deliverability, data, and security controls before the workflow touches a buyer or production record. Then use a small pilot to decide whether the result deserves more access and investment.
 
-If you want help selecting and building an accountable first workflow, [talk with GrowthCast about your sales constraint](/?contact=1).
+If your team wants to automate sales work without losing control of the customer experience, [connect with GrowthCast](/?contact=1). We can look at the first workflow, the risks, and the expected return with you, then decide whether our services fit.

@@ -19,7 +19,7 @@
 
 - Iteration: 2
 - Count method: Markdown body and headings; frontmatter excluded
-- Article word count: 1411
+- Article word count: 1424
 - Score: 92/100
 - Hard gates: PASS
 - Checks: search intent, title promise, length, links, evidence, human-first agency, AI-signature, rhythm, specificity, read-aloud review, CTA, and scheduled metadata

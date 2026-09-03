@@ -44,6 +44,8 @@ for (const file of await readdir(directory)) {
   for (const match of body.matchAll(agencyPattern)) errors.push(`${file}: abstract subject performs an action near “${match[0].trim()}”`);
   if (!/\b(?:you|your|you’re|you’ll|you’ve)\b/i.test(body)) errors.push(`${file}: never addresses the reader directly`);
   if (!/[A-Za-z]+[’'][a-z]+/.test(body)) errors.push(`${file}: contains no natural contraction`);
+  const finalParagraph = body.trim().split(/\n\s*\n/).at(-1) ?? "";
+  if (!/\[connect with GrowthCast\]\(\/\?contact=1\)/.test(finalParagraph)) errors.push(`${file}: final paragraph lacks the GrowthCast fit-check invitation`);
 }
 
 if (errors.length) {

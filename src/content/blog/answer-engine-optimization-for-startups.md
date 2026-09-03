@@ -115,4 +115,4 @@ GrowthCast uses [GTM Engineering](/why-growthcast) to connect these cross-functi
 
 At the pilot review, choose one action: stop, correct and repeat, maintain the current scope, or expand a specific boundary. Record the evidence and owner. One promising result doesn’t give your team a reason to automate unrelated work.
 
-If you want help defining the constraint and implementing the first accountable scope, [talk with GrowthCast](/?contact=1).
+If your company has real expertise but buyers struggle to find clear answers, [connect with GrowthCast](/?contact=1). We can look at the questions, evidence, and publishing work with you and see whether our services are a good fit.

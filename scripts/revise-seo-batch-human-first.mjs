@@ -53,6 +53,19 @@ const revisions = {
   ],
 };
 
+const closings = {
+  "b2b-saas-analytics-for-startups": "If your team has plenty of reports but still can’t agree on what happened, [connect with GrowthCast](/?contact=1). We’ll look at the decisions, data, and ownership gaps with you and see whether our services fit the problem.",
+  "b2b-saas-growth-consultant-for-startups": "If you’re deciding whether to hire a consultant, [connect with GrowthCast](/?contact=1). We can talk through the constraint and the work your team needs, then decide together whether GrowthCast is the right fit.",
+  "b2b-saas-lifecycle-marketing-for-startups": "If your lifecycle messages don’t match what customers are doing, [connect with GrowthCast](/?contact=1). We’ll help you find the operating problem first and see whether our services fit what your team needs next.",
+  "gtm-operating-model-for-startups": "If your teams have separate plans that don’t add up to one revenue plan, [connect with GrowthCast](/?contact=1). We can review where the numbers and ownership break down and see whether our services are right for your company.",
+  "linkedin-ads-for-saas-startups": "If you’re unsure whether LinkedIn belongs in your growth plan, [connect with GrowthCast](/?contact=1). We’ll pressure-test the audience, offer, economics, and follow-up with you, then see whether our services fit.",
+  "answer-engine-optimization-for-startups": "If your company has real expertise but buyers struggle to find clear answers, [connect with GrowthCast](/?contact=1). We can look at the questions, evidence, and publishing work with you and see whether our services are a good fit.",
+  "free-trial-conversion-optimization-for-startups": "If trial users arrive but too few qualified accounts become lasting customers, [connect with GrowthCast](/?contact=1). We’ll help you find where people get stuck and see whether our services fit the work required.",
+  "product-led-growth-consulting-for-startups": "If product use, sales action, and retained revenue don’t yet connect, [connect with GrowthCast](/?contact=1). We can examine the handoffs with your team and decide whether GrowthCast is the right partner for the work.",
+  "startup-crm-setup-for-startups": "If your team works around the CRM instead of through it, [connect with GrowthCast](/?contact=1). We’ll discuss the decisions and handoffs the system needs to support and see whether our services fit.",
+  "ai-sales-automation-cost": "If you’re pricing an AI sales workflow and want a second set of eyes on the real cost, [connect with GrowthCast](/?contact=1). We can review the assumptions, risks, and expected return with you and see whether our services are right for the project.",
+};
+
 const replacements = [
   [/The immediate constraint is often /g, "Many teams face the same problem: "],
   [/That statement is more useful than a broad goal because a team can inspect it\. It names where work stops, where definitions conflict, or where a customer cannot progress\./g, "Name the people involved and the point where their work stops. Skip broad goals that nobody can inspect or own."],
@@ -78,6 +91,7 @@ for (const [slug, [opening, detail, surprise]] of Object.entries(revisions)) {
   source = source.replace(/(Ask the people who perform and receive the work[\s\S]*?nobody documented\.)/, `$1\n\n${detail}`);
   source = source.replace(/(Revisit exclusions only after the first scope meets its agreed standard\.)/, `$1\n\n${surprise}`);
   for (const [pattern, replacement] of replacements) source = source.replace(pattern, replacement);
+  source = source.replace(/If you want help defining the constraint and implementing the first accountable scope, \[talk with GrowthCast\]\(\/\?contact=1\)\./, closings[slug]);
   await writeFile(articleUrl, source);
   const body = source.replace(/^---\n[\s\S]*?\n---\n/, "");
   const wordCount = body.match(/\b[\w’'-]+\b/g)?.length ?? 0;
