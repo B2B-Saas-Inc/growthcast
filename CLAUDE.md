@@ -195,7 +195,7 @@ The app is static and local-first. Baseline and assumption progress is persisted
 
 ### Marketing, SEO, legal, internationalization, notifications, and admin
 
-These systems do not exist in the local MVP. A public deployment must add appropriate metadata, canonical URLs, robots/sitemap policy, privacy and terms documents, consent handling, and deployment ownership. Localization is deferred; keep formatting centralized with `Intl` so future locale support remains possible. Do not add an admin panel or notifications without a backend and explicit requirements.
+Public routes include appropriate metadata, canonical URLs, robots/sitemap policy, privacy and terms documents, and automated production-only IndexNow submission from the generated sitemap. Preserve the root verification key and keep search-engine notification disabled for preview and local builds. Localization is deferred; keep formatting centralized with `Intl` so future locale support remains possible. Do not add an admin panel or notifications without a backend and explicit requirements.
 
 ### CI/CD and deployment
 

@@ -290,7 +290,7 @@
 .articleShare strong { display: block; margin-bottom: 17px; font-family: Manrope, sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .articleToc nav { display: grid; gap: 10px; }
 .articleToc a,
-.articleShare a { color: #66625b; font-family: "DM Mono", monospace; font-size: 13px; line-height: 1.45; text-decoration: none; }
+.articleShare a { color: #66625b; font-family: Manrope, sans-serif; font-size: 13px; line-height: 1.45; text-decoration: none; }
 .articleToc a:hover { color: #242426; text-decoration: underline; }
 .articleToc .depth-3 { padding-left: 16px; }
 .articleShare > div { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -314,9 +314,24 @@
 .articleShare .shareCopy { border-color: transparent; background: transparent; color: #242426; }
 .articleShare .shareButton:hover { background: #17483b; text-decoration: none; }
 .articleShare .shareCopy:hover { border-color: #cfc9be; }
+.articleRailCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 10px;
+  background: #215e4d;
+  color: #fffdf8;
+  font-family: Manrope, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.articleRailCta:hover { background: #17483b; }
 .shareCopy svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.copyStatus { display: block; min-height: 1.4em; margin-top: 9px; color: #55524c; font-family: "DM Mono", monospace; font-size: 12px; }
-.articleBody { min-width: 0; max-width: 920px; color: #30333a; font-family: "DM Mono", monospace; font-size: 18px; line-height: 1.75; }
+.copyStatus { display: block; min-height: 1.4em; margin-top: 9px; color: #55524c; font-family: Manrope, sans-serif; font-size: 12px; }
+.articleBody { min-width: 0; max-width: 920px; color: #30333a; font-family: Manrope, sans-serif; font-size: 18px; line-height: 1.75; }
 .articleBody > :first-child { margin-top: 0; }
 .articleBody h2 { margin: 2.2em 0 0.7em; color: #242426; font-family: Manrope, sans-serif; font-size: clamp(28px, 3vw, 38px); line-height: 1.12; letter-spacing: -0.035em; }
 .articleBody h3 { margin: 2em 0 0.6em; color: #242426; font-family: Manrope, sans-serif; font-size: 25px; letter-spacing: -0.025em; }

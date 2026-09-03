@@ -210,6 +210,8 @@ Blog artwork uses a two-stage p5.js workflow. `scripts/generate-blog-shape.html`
 
 [`vercel.json`](vercel.json) configures Vercel to install with `npm ci`, run the verified Astro build, serve `dist`, preserve the PostHog proxy, and apply HSTS, frame, MIME, referrer, and permissions-policy security headers. Astro generates a per-page hash-based CSP that permits its hydration scripts and the Vercel Toolbar's narrowly scoped origins without weakening the default script policy. The nginx image serves Astro's generated directory routes and mirrors all applicable non-TLS headers. The production project is `b2b-saas/growth-model` at <https://growthcast.app>.
 
+Production builds submit every canonical URL in Astro's generated sitemap to IndexNow after the static generation. Ownership is verified by the root-level public key file. Preview and local builds skip submission; use `INDEXNOW_SUBMIT=true npm run indexnow` for an intentional manual submission or add `INDEXNOW_DRY_RUN=true` to inspect it without contacting IndexNow. Submission service outages are reported without blocking an otherwise valid deployment.
+
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes
 vercel deploy --prod --yes

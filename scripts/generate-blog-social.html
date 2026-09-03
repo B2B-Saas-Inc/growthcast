@@ -15,11 +15,13 @@
       const manrope = 'ManropeCard';
       const mono = 'MonoCard';
       const params = new URLSearchParams(location.search);
-      const title = params.get('title') || 'Build a growth model before you build a growth plan';
+      const title = params.get('title') || 'Article title';
       const author = params.get('author') || 'EJ White';
-      const date = params.get('date') || 'September 2, 2026';
-      const art = params.get('art') || '/public/blog/build-a-growth-model-shape.png';
-      document.querySelector('.artwork').src = art;
+      const date = params.get('date') || 'Publication date';
+      const art = params.get('art');
+      const artwork = document.querySelector('.artwork');
+      if (art) artwork.src = art;
+      else artwork.hidden = true;
 
       function fittedTitle(value, x, y, maxWidth, maxHeight) {
         let size = 58;
@@ -44,14 +46,16 @@
         createCanvas(1200, 630);
         pixelDensity(1);
         noLoop();
-        document.fonts.ready.then(redraw);
+        Promise.all([
+          document.fonts.load('700 58px ManropeCard'),
+          document.fonts.load('500 13px MonoCard'),
+        ]).then(redraw);
       }
 
       function draw() {
         background('#f4f1e9');
 
-        // 48px platform trim zone; all text stays inside the 72px content safe zone.
-        noFill(); stroke('#cfc9be'); strokeWeight(2); rect(48, 48, 1104, 534, 34);
+        // Keep all content inside the platform-safe area without drawing a guide.
         noStroke();
         fill('#242426'); textFont(manrope); textSize(30); textAlign(LEFT, TOP); text('GrowthCast', 82, 78);
         fill('#9e321b'); textFont(mono); textSize(13); text('GTM ENGINEERING', 82, 137);

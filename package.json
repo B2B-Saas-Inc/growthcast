@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 4173",
-    "build": "astro check && astro build",
+    "build": "astro check && astro build && npm run indexnow",
+    "indexnow": "node scripts/submit-indexnow.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "astro preview --host 127.0.0.1"
