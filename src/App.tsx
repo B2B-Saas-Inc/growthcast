@@ -6717,9 +6717,10 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
             <a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a>
             <span title="Social profile coming soon">Follow GrowthCast</span>
           </nav>
-          <nav aria-label="Legal links">
+          <nav aria-label="Legal and site links">
             <button type="button" onClick={() => openLegalPage("terms")}>Terms</button>
             <button type="button" onClick={() => openLegalPage("privacy")}>Privacy</button>
+            <a href="/sitemap-index.xml">Sitemap</a>
           </nav>
         </footer>
       ) : (

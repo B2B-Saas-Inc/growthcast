@@ -35,6 +35,7 @@
   font-display: swap;
 }
 :root {
+  --site-gutter: clamp(20px, 7vw, 110px);
   font-family: Manrope, sans-serif;
   color: #242426;
   background: #f4f1e9;
@@ -483,7 +484,7 @@ aside {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: min(100% - 48px, 1500px);
+  width: calc(100% - (2 * var(--site-gutter)));
   margin: 0 auto;
   padding: 20px 0;
   border-bottom: 1px solid #cfc9be;
@@ -1164,7 +1165,7 @@ aside {
   margin-top: 20px;
 }
 .marketingHome footer {
-  padding: 28px;
+  padding: 28px var(--site-gutter);
   background: #f4f1e9;
 }
 .agencyFooter {
@@ -1393,12 +1394,13 @@ aside {
   }
 }
 @media (max-width: 620px) {
+  :root { --site-gutter: 20px; }
   .heroMetrics { grid-template-columns: 1fr; }
   .heroMetrics article { border-right: 0; border-bottom: 1px solid #505154; }
   .heroMetrics article:last-child { border-bottom: 0; }
   .siteHeader {
     align-items: flex-start;
-    width: min(100% - 28px, 1500px);
+    width: calc(100% - (2 * var(--site-gutter)));
   }
   .siteNav {
     justify-content: flex-end;

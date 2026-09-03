@@ -1,10 +1,10 @@
 .blogFooter,
 .blogMain,
 .articleMain {
-  width: min(100% - 76px, 1524px);
+  width: calc(100% - (2 * var(--site-gutter)));
   margin-inline: auto;
 }
-.blogSiteHeader { width: min(100% - 48px, 1500px); }
+.blogSiteHeader { width: calc(100% - (2 * var(--site-gutter))); }
 .blogSiteHeader .siteBrand { text-decoration: none; }
 .blogBrand {
   color: #242426;
@@ -339,8 +339,8 @@
 @media (max-width: 620px) {
   .blogFooter,
   .blogMain,
-  .articleMain { width: calc(100% - 40px); }
-  .blogSiteHeader { width: min(100% - 28px, 1500px); }
+  .articleMain { width: calc(100% - (2 * var(--site-gutter))); }
+  .blogSiteHeader { width: calc(100% - (2 * var(--site-gutter))); }
   .blogHero h1 { font-size: clamp(44px, 15vw, 68px); }
   .blogFilters > div { flex-direction: column; gap: 8px; }
   .blogFilters input { border-right: 1px solid #aaa398; }

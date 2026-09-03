@@ -622,7 +622,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
       <footer className="agencyFooter h-card">
         <div className="footerBrand"><a className="u-url p-name" href="/">GrowthCast</a></div>
         <nav aria-label="GrowthCast links"><a href="/blog">Read the Blog</a><span title="Email address coming soon">Email Our Founder</span><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><span title="Social profile coming soon">Follow GrowthCast</span></nav>
-        <nav aria-label="Legal links"><button type="button" onClick={() => navigate("terms", "/terms")}>Terms</button><button type="button" onClick={() => navigate("privacy", "/privacy")}>Privacy</button></nav>
+        <nav aria-label="Legal and site links"><button type="button" onClick={() => navigate("terms", "/terms")}>Terms</button><button type="button" onClick={() => navigate("privacy", "/privacy")}>Privacy</button><a href="/sitemap-index.xml">Sitemap</a></nav>
       </footer>
     </main>
   );
