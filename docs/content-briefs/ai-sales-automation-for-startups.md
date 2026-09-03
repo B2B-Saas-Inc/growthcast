@@ -63,7 +63,7 @@ Promise: By the end, the reader can identify a suitable first sales workflow, sp
 |---|---|---|---|---|
 | AI risk work should include governance, context mapping, measurement, and management | NIST AI RMF | Stable framework; checked 2026-09-03 | https://www.nist.gov/itl/ai-risk-management-framework | Verified live |
 | Commercial email senders must meet CAN-SPAM requirements | US House Office of the Law Revision Counsel | Current statute; checked 2026-09-03 | https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title15-section7704&num=0&edition=prelim | Verified live |
-| Email senders should follow authentication and sending-practice requirements | Google Email sender guidelines | Current product guidance; checked 2026-09-03 | https://support.google.com/mail/answer/81126 | Verified live |
+| Email senders should follow authentication and sending-practice requirements | Google Email sender guidelines | Current product guidance; checked 2026-09-03 | https://support.google.com/mail/answer/81126?hl=en | Verified live |
 | AI applications need controls for prompt injection and sensitive-information disclosure | OWASP GenAI Security Project | Current security guidance; checked 2026-09-03 | https://genai.owasp.org/llm-top-10/ | Verified publisher and topic |
 
 ## Link plan

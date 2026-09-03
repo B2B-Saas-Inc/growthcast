@@ -8,13 +8,16 @@
   </head>
   <body>
     <script>
-      const palette = ['#a63820', '#176c2c', '#2874a6', '#e2a83b'];
+      const params = new URLSearchParams(location.search);
+      const variant = Number(params.get('variant') || 0);
+      const basePalette = ['#a63820', '#176c2c', '#2874a6', '#e2a83b'];
+      const palette = basePalette.map((_, index) => basePalette[(index + variant) % basePalette.length]);
 
       function setup() {
         createCanvas(560, 420);
         pixelDensity(1);
-        randomSeed(260903);
-        noiseSeed(260903);
+        randomSeed(260903 + variant * 97);
+        noiseSeed(260903 + variant * 97);
         background('#f4f1e9');
 
         noFill();
@@ -32,8 +35,8 @@
             for (let step = 0; step <= 72; step += 1) {
               const t = step / 72;
               const x = 42 + t * 445;
-              const bend = sin(t * PI * 2 + lane * 0.7) * (10 - echo);
-              const merge = lerp(y, 210, pow(t, 1.8));
+              const bend = sin(t * PI * (2 + (variant % 3) * 0.35) + lane * 0.7 + variant) * (10 - echo);
+              const merge = lerp(y, 190 + (variant % 5) * 10, pow(t, 1.55 + (variant % 4) * 0.12));
               vertex(x, merge + bend + echo * 3 - 6);
             }
             endShape();
@@ -49,10 +52,11 @@
 
         // Control gates.
         noFill(); stroke('#242426'); strokeWeight(2);
-        rect(214, 52, 72, 316, 28);
-        rect(330, 76, 72, 268, 28);
-        line(250, 72, 250, 348);
-        line(366, 96, 366, 324);
+        const gateShift = (variant % 4) * 8;
+        rect(198 + gateShift, 52, 72, 316, 28);
+        rect(326 + gateShift, 76, 72, 268, 28);
+        line(234 + gateShift, 72, 234 + gateShift, 348);
+        line(362 + gateShift, 96, 362 + gateShift, 324);
 
         // Human approval point and released action.
         fill('#f4f1e9'); stroke('#242426'); strokeWeight(4); circle(486, 210, 76);

@@ -2,8 +2,9 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogShell from "../../components/BlogShell.astro";
+import { isPublishedPost } from "../../blog";
 
-const posts = (await getCollection("blog", ({ data }) => !data.draft))
+const posts = (await getCollection("blog", isPublishedPost))
   .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
 const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort();
 const title = "Growth Strategy and GTM Engineering Blog | GrowthCast";

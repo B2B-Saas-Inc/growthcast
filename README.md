@@ -212,6 +212,8 @@ Blog artwork uses a two-stage p5.js workflow. `scripts/generate-blog-shape.html`
 
 Production builds submit every canonical URL in Astro's generated sitemap to IndexNow after the static generation. Ownership is verified by the root-level public key file. Preview and local builds skip submission; use `INDEXNOW_SUBMIT=true npm run indexnow` for an intentional manual submission or add `INDEXNOW_DRY_RUN=true` to inspect it without contacting IndexNow. Submission service outages are reported without blocking an otherwise valid deployment.
 
+Future-dated blog posts remain absent from routes, RSS, and the sitemap until their `publishedAt` timestamp. `.github/workflows/publish-scheduled-blog.yml` checks for due posts every 15 minutes during the configured publishing windows and calls a Vercel deploy hook only when a due URL still returns 404. Configure the hook as the `VERCEL_DEPLOY_HOOK_URL` GitHub Actions secret.
+
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes
 vercel deploy --prod --yes

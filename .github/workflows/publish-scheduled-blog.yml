@@ -1,0 +1,27 @@
+name: Publish scheduled blog posts
+
+on:
+  schedule:
+    # Poll the requested Eastern-time windows. The script decides whether a post is due.
+    - cron: "*/15 13-20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-scheduled-blog
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Publish due posts
+        run: node scripts/publish-due-posts.mjs
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}

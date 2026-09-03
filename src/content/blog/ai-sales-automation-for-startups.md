@@ -68,7 +68,7 @@ Record failures as well as successful runs. If the system invents a company fact
 
 If the workflow sends commercial email, the business remains responsible for the message. [US Code, Title 15, Section 7704](https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title15-section7704&num=0&edition=prelim) sets requirements that include accurate header information, a valid postal address, and a working opt-out method. Have qualified counsel review your process when legal interpretation is necessary.
 
-Automation does not excuse poor sending practices. Google’s [email sender guidelines](https://support.google.com/mail/answer/81126) cover authentication, unsubscribe support, message formatting, and spam-rate expectations. Check the current requirements for every sending provider before a pilot begins.
+Automation does not excuse poor sending practices. Google’s [email sender guidelines](https://support.google.com/mail/answer/81126?hl=en) cover authentication, unsubscribe support, message formatting, and spam-rate expectations. Check the current requirements for every sending provider before a pilot begins.
 
 Limit volume while you verify targeting and message quality. A person should inspect representative messages, confirm the source data, and review replies. Stop the workflow when complaint, bounce, or error signals exceed the limit your team set in advance.
 
