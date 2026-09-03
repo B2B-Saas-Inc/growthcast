@@ -3117,7 +3117,7 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
   );
 }
 
-export default function App() {
+export default function App({ initialPath = "/" }: { initialPath?: string }) {
   const [saved] = useState(loadSavedModel);
   const fileInput = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState("");
@@ -3130,14 +3130,27 @@ export default function App() {
       : defaultForecastStartMonth,
   );
   const [pageView, setPageView] = useState<PageView>(() =>
-    pageFromPath(window.location.pathname),
+    pageFromPath(initialPath),
   );
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [contactStatus, setContactStatus] = useState("");
+  const contactDialog = useRef<HTMLElement>(null);
+  const contactTrigger = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const metadata = pageMetadata[pageView];
+    const isForecastPage = [
+      "baseline",
+      "forecast",
+      "deepdive",
+      "channels",
+      "methodology",
+    ].includes(pageView);
+    const pageTitle = isForecastPage
+      ? `${modelName || "GrowthCast"} Forecast`
+      : metadata.title;
     const canonicalUrl = `https://growthcast.app${metadata.path}`;
-    document.title = metadata.title;
+    document.title = pageTitle;
     const setMeta = (selector: string, attribute: "name" | "property", key: string, content: string) => {
       let element = document.head.querySelector<HTMLMetaElement>(selector);
       if (!element) {
@@ -3148,10 +3161,10 @@ export default function App() {
       element.content = content;
     };
     setMeta('meta[name="description"]', "name", "description", metadata.description);
-    setMeta('meta[property="og:title"]', "property", "og:title", metadata.title);
+    setMeta('meta[property="og:title"]', "property", "og:title", pageTitle);
     setMeta('meta[property="og:description"]', "property", "og:description", metadata.description);
     setMeta('meta[property="og:url"]', "property", "og:url", canonicalUrl);
-    setMeta('meta[name="twitter:title"]', "name", "twitter:title", metadata.title);
+    setMeta('meta[name="twitter:title"]', "name", "twitter:title", pageTitle);
     setMeta('meta[name="twitter:description"]', "name", "twitter:description", metadata.description);
     const canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (canonical) canonical.href = canonicalUrl;
@@ -3160,14 +3173,14 @@ export default function App() {
       structuredData.textContent = JSON.stringify({
         "@context": "https://schema.org",
         "@type": ["baseline", "forecast", "deepdive", "channels", "methodology"].includes(pageView) ? "SoftwareApplication" : "WebPage",
-        name: metadata.title,
+        name: pageTitle,
         description: metadata.description,
         url: canonicalUrl,
         isPartOf: { "@type": "WebSite", name: "GrowthCast", url: "https://growthcast.app/" },
         ...(pageView === "baseline" ? { applicationCategory: "BusinessApplication", operatingSystem: "Web" } : {}),
       });
     }
-  }, [pageView]);
+  }, [modelName, pageView]);
   const [channelTab, setChannelTab] = useState<ChannelModel | "general">(
     "general",
   );
@@ -3287,16 +3300,45 @@ export default function App() {
     observer.observe(prompt);
     return () => observer.disconnect();
   }, [showGrowthPlan]);
+  const openContactForm = useCallback(() => {
+    contactTrigger.current = document.activeElement as HTMLElement | null;
+    setContactStatus("");
+    setShowContactForm(true);
+  }, []);
+  const closeContactForm = useCallback(() => {
+    setShowContactForm(false);
+    window.requestAnimationFrame(() => contactTrigger.current?.focus());
+  }, []);
   useEffect(() => {
-    document.title =
-      pageView === "home"
-        ? "GrowthCast | GTM Engineering for Growth"
-        : pageView === "why"
-          ? "Why GrowthCast | GTM Engineering for Growth"
-          : pageView === "how"
-            ? "How We Work | GrowthCast"
-            : `${modelName || "GrowthCast"} Forecast`;
-  }, [modelName, pageView]);
+    if (!showContactForm || !contactDialog.current) return;
+    const dialog = contactDialog.current;
+    const focusableSelector =
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    dialog.querySelector<HTMLElement>(focusableSelector)?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeContactForm();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        dialog.querySelectorAll<HTMLElement>(focusableSelector),
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [closeContactForm, showContactForm]);
   useEffect(() => {
     const handleHistory = () =>
       setPageView(pageFromPath(window.location.pathname));
@@ -4975,16 +5017,31 @@ export default function App() {
     const email = String(data.get("email") || "").trim().toLowerCase();
     const title = String(data.get("title") || "").trim();
     if (!firstName || !lastName || !company || !email || !title) return;
-    if (isPostHogEnabled) {
-      const contact = { email, first_name: firstName, last_name: lastName, company, title };
+    if (!isPostHogEnabled || !navigator.onLine) {
+      setContactStatus(
+        "Contact submission is temporarily unavailable. Please connect with our founder instead.",
+      );
+      return;
+    }
+    try {
+      const contact = {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        company,
+        title,
+      };
       posthog.identify(email, contact);
       posthog.capture(
         "growth_conversation_requested",
         { source: "agency_contact_form", ...contact },
         { $set: contact, send_instantly: true, transport: "fetch" },
       );
+      setContactSubmitted(true);
+      setContactStatus("");
+    } catch {
+      setContactStatus("Your request could not be submitted. Please try again.");
     }
-    setContactSubmitted(true);
   };
   const requestGrowthPlan = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -5069,14 +5126,14 @@ export default function App() {
                 <button type="button" onClick={openForecastTool}>Forecast</button>
                 <span>Publishing</span>
                 <p>Newsletter <small>Coming soon</small></p>
-                <p>Blog <small>Coming soon</small></p>
+                <a href="/blog">Blog</a>
                 <p>Case Studies <small>Coming soon</small></p>
               </div>
             </details>
             <button
               className="siteNavCta"
               type="button"
-              onClick={() => setShowContactForm(true)}
+              onClick={openContactForm}
             >
               Let's Talk Growth
             </button>
@@ -5250,12 +5307,12 @@ export default function App() {
       {pageView === "home" ? (
         <AgencyHome
           onForecast={openForecastTool}
-          onContact={() => setShowContactForm(true)}
+          onContact={openContactForm}
         />
       ) : pageView === "why" ? (
-        <AgencyWhy onContact={() => setShowContactForm(true)} />
+        <AgencyWhy onContact={openContactForm} />
       ) : pageView === "how" ? (
-        <AgencyHow onContact={() => setShowContactForm(true)} />
+        <AgencyHow onContact={openContactForm} />
       ) : pageView === "terms" || pageView === "privacy" ? (
         <LegalPage type={pageView} />
       ) : pageView === "about" || pageView === "philosophy" || pageView === "careers" || pageView === "partners" ? (
@@ -6555,10 +6612,11 @@ export default function App() {
           className="contactModalBackdrop"
           role="presentation"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setShowContactForm(false);
+            if (event.target === event.currentTarget) closeContactForm();
           }}
         >
           <section
+            ref={contactDialog}
             className="contactModal"
             role="dialog"
             aria-modal="true"
@@ -6568,14 +6626,16 @@ export default function App() {
               className="contactModalClose"
               type="button"
               aria-label="Close contact form"
-              onClick={() => setShowContactForm(false)}
+              onClick={closeContactForm}
             >
               ×
             </button>
             <span className="sectionLabel">Growth conversation</span>
             <h2 id="contact-title">Let&apos;s talk growth.</h2>
             {contactSubmitted ? (
-              <p className="contactSuccess" role="status">Thanks. We will be in touch.</p>
+              <p className="contactSuccess" role="status">
+                Thanks. Your request has been queued.
+              </p>
             ) : (
               <form onSubmit={requestGrowthConversation}>
                 <label>First name<input name="firstName" autoComplete="given-name" required /></label>
@@ -6584,6 +6644,7 @@ export default function App() {
                 <label>Business email<input name="email" type="email" autoComplete="email" required /></label>
                 <label>Title<input name="title" autoComplete="organization-title" required /></label>
                 <button type="submit">Let&apos;s Talk Growth</button>
+                {contactStatus && <p className="contactError" role="alert">{contactStatus}</p>}
               </form>
             )}
           </section>
@@ -6651,6 +6712,7 @@ export default function App() {
             <a className="u-url p-name" href="/">GrowthCast</a>
           </div>
           <nav aria-label="GrowthCast links">
+            <a href="/blog">Read the Blog</a>
             <span title="Email address coming soon">Email Our Founder</span>
             <a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a>
             <span title="Social profile coming soon">Follow GrowthCast</span>

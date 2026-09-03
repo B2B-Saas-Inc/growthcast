@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GrowthCast article artwork generator</title>
+    <style>html,body{margin:0;width:560px;height:420px;overflow:hidden;background:#f4f1e9}canvas{display:block}</style>
+    <script src="https://cdn.jsdelivr.net/npm/p5@2.0.5/lib/p5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      const palette = ['#a63820', '#176c2c', '#2874a6', '#e2a83b', '#242426'];
+
+      function setup() {
+        createCanvas(560, 420);
+        pixelDensity(1);
+        randomSeed(240902);
+        noiseSeed(240902);
+        background('#f4f1e9');
+
+        translate(width / 2, height / 2);
+        noFill();
+        strokeCap(ROUND);
+        strokeJoin(ROUND);
+
+        // A deterministic field of growth paths: separate inputs becoming one system.
+        for (let band = 0; band < 5; band += 1) {
+          const color = palette[band];
+          for (let echo = 0; echo < 7; echo += 1) {
+            const radius = 66 + band * 25 + echo * 5;
+            const start = -PI * 0.92 + band * 0.14;
+            const end = PI * 0.72 - echo * 0.035;
+            stroke(color + (echo === 0 ? 'dc' : '32'));
+            strokeWeight(echo === 0 ? 5 : 1.4);
+            beginShape();
+            for (let step = 0; step <= 92; step += 1) {
+              const t = step / 92;
+              const angle = lerp(start, end, t);
+              const pulse = sin(t * PI) * (16 + band * 3);
+              const drift = map(noise(band * 2.1, t * 2.7), 0, 1, -11, 11);
+              const r = radius + pulse + drift + echo * 2;
+              vertex(cos(angle) * r * 1.28, sin(angle) * r * 0.78);
+            }
+            endShape();
+          }
+        }
+
+        noStroke();
+        fill('#a63820'); circle(192, 116, 18);
+        fill('#176c2c'); circle(-205, -72, 12);
+        fill('#2874a6'); circle(176, -98, 10);
+        fill('#e2a83b'); circle(-162, 128, 14);
+        fill('#242426'); circle(0, 0, 9);
+      }
+    </script>
+  </body>
+</html>

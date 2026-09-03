@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type PageView =
   | "home"
@@ -426,10 +426,13 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
 
 const loadAnalytics = () => import("./posthog");
 
-export default function AgencyApp() {
-  const [pageView, setPageView] = useState<PageView>(() => pageFromPath(window.location.pathname));
+export default function AgencyApp({ initialPath = "/" }: { initialPath?: string }) {
+  const [pageView, setPageView] = useState<PageView>(() => pageFromPath(initialPath));
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [contactStatus, setContactStatus] = useState("");
+  const contactDialog = useRef<HTMLElement>(null);
+  const contactTrigger = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const metadata = pageMetadata[pageView];
@@ -494,7 +497,50 @@ export default function AgencyApp() {
     setPageView(target);
     window.scrollTo({ top: 0 });
   };
-  const openContact = () => setShowContactForm(true);
+  const openContact = useCallback(() => {
+    contactTrigger.current = document.activeElement as HTMLElement | null;
+    setContactStatus("");
+    setShowContactForm(true);
+  }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("contact") !== "1") return;
+    url.searchParams.delete("contact");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    const frame = window.requestAnimationFrame(openContact);
+    return () => window.cancelAnimationFrame(frame);
+  }, [openContact]);
+  const closeContact = useCallback(() => {
+    setShowContactForm(false);
+    window.requestAnimationFrame(() => contactTrigger.current?.focus());
+  }, []);
+  useEffect(() => {
+    if (!showContactForm || !contactDialog.current) return;
+    const dialog = contactDialog.current;
+    const selector = 'button:not([disabled]), input:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+    dialog.querySelector<HTMLElement>(selector)?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeContact();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(selector));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [closeContact, showContactForm]);
   const requestGrowthConversation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -504,15 +550,26 @@ export default function AgencyApp() {
     const email = String(data.get("email") || "").trim().toLowerCase();
     const title = String(data.get("title") || "").trim();
     if (!firstName || !lastName || !company || !email || !title) return;
-    const { default: posthog, isPostHogEnabled } = await loadAnalytics();
-    if (isPostHogEnabled) {
+    if (!navigator.onLine) {
+      setContactStatus("Contact submission is temporarily unavailable. Please connect with our founder instead.");
+      return;
+    }
+    try {
+      const { default: posthog, isPostHogEnabled } = await loadAnalytics();
+      if (!isPostHogEnabled) {
+        setContactStatus("Contact submission is temporarily unavailable. Please connect with our founder instead.");
+        return;
+      }
       const contact = { email, first_name: firstName, last_name: lastName, company, title };
       posthog.identify(email, contact);
       posthog.capture("growth_conversation_requested", { source: "agency_contact_form", ...contact }, {
         $set: contact, send_instantly: true, transport: "fetch",
       });
+      setContactSubmitted(true);
+      setContactStatus("");
+    } catch {
+      setContactStatus("Your request could not be submitted. Please try again.");
     }
-    setContactSubmitted(true);
   };
 
   const content = pageView === "why" ? <AgencyWhy onContact={openContact} />
@@ -539,16 +596,16 @@ export default function AgencyApp() {
           <details className="resourceNav" onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }}>
             <summary>Resources</summary><div>
               <span>Tools</span><button type="button" onClick={() => window.location.assign("/resources/tools/forecast")}>Forecast</button>
-              <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><p>Blog <small>Coming soon</small></p><p>Case Studies <small>Coming soon</small></p>
+              <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog">Blog</a><p>Case Studies <small>Coming soon</small></p>
             </div>
           </details>
           <button className="siteNavCta" type="button" onClick={openContact}>Let's Talk Growth</button>
         </nav>
       </header>
       {content}
-      {showContactForm && <div className="contactModalBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowContactForm(false); }}>
-        <section className="contactModal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
-          <button className="contactModalClose" type="button" aria-label="Close contact form" onClick={() => setShowContactForm(false)}>×</button>
+      {showContactForm && <div className="contactModalBackdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeContact(); }}>
+        <section ref={contactDialog} className="contactModal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+          <button className="contactModalClose" type="button" aria-label="Close contact form" onClick={closeContact}>×</button>
           <h2 id="contact-title">Let&apos;s talk growth.</h2>
           {contactSubmitted ? <p className="contactSuccess" role="status">Thanks. We will be in touch.</p> :
             <form onSubmit={requestGrowthConversation}>
@@ -558,12 +615,13 @@ export default function AgencyApp() {
               <label>Business email<input name="email" type="email" autoComplete="email" required /></label>
               <label>Title<input name="title" autoComplete="organization-title" required /></label>
               <button type="submit">Let&apos;s Talk Growth</button>
+              {contactStatus && <p className="contactError" role="alert">{contactStatus}</p>}
             </form>}
         </section>
       </div>}
       <footer className="agencyFooter h-card">
         <div className="footerBrand"><a className="u-url p-name" href="/">GrowthCast</a></div>
-        <nav aria-label="GrowthCast links"><span title="Email address coming soon">Email Our Founder</span><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><span title="Social profile coming soon">Follow GrowthCast</span></nav>
+        <nav aria-label="GrowthCast links"><a href="/blog">Read the Blog</a><span title="Email address coming soon">Email Our Founder</span><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><span title="Social profile coming soon">Follow GrowthCast</span></nav>
         <nav aria-label="Legal links"><button type="button" onClick={() => navigate("terms", "/terms")}>Terms</button><button type="button" onClick={() => navigate("privacy", "/privacy")}>Privacy</button></nav>
       </footer>
     </main>

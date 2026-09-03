@@ -563,14 +563,21 @@ aside {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.resourceNav button {
+.resourceNav button,
+.resourceNav > div > a {
+  display: block;
   width: 100%;
   padding: 11px 9px;
   border: 0;
+  color: #242426;
   background: #f4f1e9;
+  font-size: 13px;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
+.resourceNav button:hover,
+.resourceNav > div > a:hover { background: #ddebd8; }
 .resourceNav p {
   display: flex;
   justify-content: space-between;
@@ -2768,6 +2775,13 @@ a:focus-visible,
   border: 1px solid #9abb8e;
   background: #e5f6df;
 }
+.contactError {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #9f2f1f;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
 @media (max-width: 540px) {
   .contactModal form { grid-template-columns: 1fr; }
   .contactModal label { grid-column: 1; }
@@ -2889,6 +2903,310 @@ a:focus-visible,
   .growthPlanPrompt form { grid-template-columns: 1fr; }
   .growthPlanPrompt form .primary { grid-column: auto; }
 }
+
+/* Mobile layout refinements */
+@media (max-width: 620px) {
+  .siteHeader {
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 0;
+  }
+  .siteBrand {
+    min-height: 44px;
+  }
+  .siteNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+  }
+  .siteNav > a,
+  .siteNav > button,
+  .resourceNav > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 9px 10px;
+    border: 1px solid #cfc9be;
+    text-align: center;
+  }
+  .siteNav .siteNavCta {
+    grid-column: 1 / -1;
+  }
+  .resourceNav,
+  .resourceNav > summary {
+    width: 100%;
+  }
+  .resourceNav > div {
+    right: auto;
+    left: 0;
+    width: min(280px, calc(100vw - 28px));
+  }
+  .companyNav > div {
+    right: 0;
+    left: auto;
+  }
+
+  .agencyHeroCopy,
+  .subpageHero,
+  .agencyProblem,
+  .agencyDefinition,
+  .agencyMethod,
+  .homeSystemIntro,
+  .deliverySection,
+  .demandSection,
+  .agencyResults,
+  .forecastResource,
+  .leadStory,
+  .transformationSection,
+  .companyNarrative,
+  .peopleFramework,
+  .aboutJourney,
+  .frameworkSection,
+  .futureDemandFramework,
+  .partnersShowcase,
+  .agencyClose {
+    padding: 52px 20px;
+  }
+  .agencyHero h1,
+  .subpageHero h1 {
+    margin: 16px 0 22px;
+    font-size: clamp(38px, 12vw, 56px);
+    line-height: 0.94;
+  }
+  .agencyHeroCopy > p,
+  .subpageHero p {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .sectionIntro h2,
+  .agencyDefinition h2,
+  .agencyFit h2,
+  .forecastResource h2,
+  .agencyClose h2,
+  .leadStory h2,
+  .transformationSection h2,
+  .companyNarrative h2,
+  .frameworkSection h2,
+  .peopleFramework h2,
+  .futureDemandFramework h2,
+  .aboutJourney h2,
+  .partnersShowcase > h2 {
+    font-size: clamp(32px, 10vw, 46px);
+    line-height: 1.02;
+  }
+  .heroMetrics article {
+    padding: 26px 20px;
+  }
+  .heroMetrics strong {
+    font-size: clamp(34px, 12vw, 48px);
+  }
+  .investorProof {
+    padding: 28px 20px;
+  }
+  .investorProof > div {
+    justify-content: flex-start;
+    gap: 14px 22px;
+    text-align: left;
+  }
+  .problemBody,
+  .resultGrid,
+  .demandGrid,
+  .deliveryGrid,
+  .transformationGrid,
+  .frameworkGrid,
+  .aboutJourneyGrid {
+    margin-top: 36px;
+  }
+  .problemGrid article {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 0;
+  }
+  .leadStoryStats article {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .transformationGrid article,
+  .resultGrid article,
+  .demandGrid article,
+  .deliveryGrid article,
+  .frameworkGrid li,
+  .aboutJourneyGrid article,
+  .partnerGrid article {
+    min-height: 0;
+    padding: 28px 22px;
+  }
+  .methodSteps {
+    margin-top: 36px;
+  }
+  .methodSteps > li {
+    min-height: 0;
+    padding: 32px 22px;
+  }
+  .methodSteps h3 {
+    font-size: clamp(30px, 10vw, 42px);
+  }
+  .legalBody {
+    width: calc(100% - 40px);
+    padding: 48px 0 72px;
+  }
+  .agencyFooter {
+    gap: 28px;
+    padding-top: 24px;
+  }
+  .agencyFooter a,
+  .agencyFooter button {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .pageNav button,
+  .navActions > summary,
+  .deepTabs button,
+  .channelTabs button,
+  .headerActions button,
+  .headerActions .uploadControl {
+    min-height: 44px;
+  }
+  .pageNav > button,
+  .pageNav > details {
+    flex: 1 1 calc(50% - 5px);
+  }
+  .navActions > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .navActionsMenu {
+    right: 0;
+    width: min(300px, calc(100vw - 28px));
+  }
+  .deepTabs button {
+    flex: 1 1 calc(50% - 6px);
+  }
+  .deepTabs .imageExport {
+    flex: 0 0 44px;
+    min-height: 44px;
+  }
+  .budgetPlanner,
+  .churnPlanner,
+  .cashSummary,
+  .secondaryCards {
+    grid-template-columns: 1fr;
+  }
+  .chartTitle {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .chartTools {
+    flex: 0 0 auto;
+  }
+  .chartCard,
+  .deepCard {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+  .chartCard .imageChart,
+  .deepCard .deepChart {
+    min-width: 520px;
+  }
+  .tableWrap {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .channelTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .channelTabs button {
+    flex: 0 0 auto;
+  }
+  .channelTabs .showHidden {
+    margin-left: 0;
+  }
+  .channel > summary {
+    min-width: 720px;
+  }
+  .channelAdvanced {
+    grid-template-columns: 1fr;
+  }
+
+  .contactModalBackdrop {
+    align-items: end;
+    padding: 10px;
+  }
+  .contactModal {
+    width: 100%;
+    max-height: calc(100dvh - 20px);
+    padding: 38px 20px 24px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -6px 24px rgb(0 0 0 / 24%);
+  }
+  .contactModal h2 {
+    margin-bottom: 22px;
+    font-size: clamp(32px, 11vw, 46px);
+  }
+  .contactModal input,
+  .contactModal form > button {
+    min-height: 48px;
+  }
+  .growthPlanPrompt {
+    max-height: 75dvh;
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    padding-left: max(20px, env(safe-area-inset-left));
+  }
+}
+
+@media (max-width: 380px) {
+  .siteNav {
+    grid-template-columns: 1fr;
+  }
+  .siteNav .siteNavCta {
+    grid-column: auto;
+  }
+  .agencyHeroCopy,
+  .subpageHero,
+  .agencyProblem,
+  .agencyDefinition,
+  .agencyMethod,
+  .deliverySection,
+  .demandSection,
+  .agencyResults,
+  .forecastResource,
+  .leadStory,
+  .transformationSection,
+  .companyNarrative,
+  .peopleFramework,
+  .aboutJourney,
+  .frameworkSection,
+  .futureDemandFramework,
+  .partnersShowcase,
+  .agencyClose {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+  .pageNav > button,
+  .pageNav > details,
+  .deepTabs button {
+    flex-basis: 100%;
+  }
+  .modelName {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .modelName input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   main { transition: none; }
   .growthPlanPrompt { animation: none; }

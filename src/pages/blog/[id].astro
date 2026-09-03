@@ -1,0 +1,106 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogShell from "../../components/BlogShell.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const canonical = `/blog/${post.id}`;
+const image = post.data.image || "/growthcast-og.png";
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BlogPosting",
+      headline: post.data.title,
+      description: post.data.description,
+      image: new URL(image, Astro.site).href,
+      datePublished: post.data.publishedAt.toISOString(),
+      dateModified: (post.data.updatedAt || post.data.publishedAt).toISOString(),
+      author: { "@type": "Person", name: post.data.author },
+      publisher: { "@type": "Organization", name: "GrowthCast", url: "https://growthcast.app" },
+      mainEntityOfPage: new URL(canonical, Astro.site).href,
+      keywords: post.data.tags.join(", "),
+      isAccessibleForFree: true,
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://growthcast.app/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://growthcast.app/blog" },
+        { "@type": "ListItem", position: 3, name: post.data.title, item: new URL(canonical, Astro.site).href },
+      ],
+    },
+  ],
+};
+const formatDate = (date: Date) => new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(date);
+const readingMinutes = Math.max(1, Math.ceil((post.body || "").trim().split(/\s+/).filter(Boolean).length / 200));
+---
+<BaseLayout
+  title={`${post.data.title} | GrowthCast`}
+  description={post.data.description}
+  canonical={canonical}
+  image={image}
+  type="article"
+  publishedTime={post.data.publishedAt}
+  tags={post.data.tags}
+  schema={articleSchema}
+>
+  <BlogShell current="blog">
+    <main class="articleMain">
+      <nav class="blogBreadcrumb articleBreadcrumb" aria-label="Breadcrumb">
+        <a href="/" aria-label="Home"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z" /></svg><span>Home</span></a>
+        <span aria-hidden="true">›</span><a href="/blog">Blog</a><span aria-hidden="true">›</span><span aria-current="page">{post.data.title}</span>
+      </nav>
+      <header class="articleHero">
+        <div class="articleHeroCopy">
+          <a class="articleBack" href="/blog"><span aria-hidden="true">←</span> Go Back</a>
+          <h1>{post.data.title}</h1>
+          <p>{post.data.description}</p>
+          <p class="articleAuthor">{post.data.author}</p>
+          <div class="articleMeta">
+            <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+            <span aria-hidden="true">•</span><span>{readingMinutes} min read</span>
+            {post.data.updatedAt && <span>Updated {formatDate(post.data.updatedAt)}</span>}
+          </div>
+        </div>
+        {post.data.artwork && <figure class="articleArtwork"><img src={post.data.artwork} alt="Abstract growth paths converging into a shared system" width="560" height="420" /></figure>}
+      </header>
+      <div class="articleLayout">
+        <aside class="articleRail">
+          {headings.length > 0 && <div class="articleToc"><strong>Table of contents</strong><nav aria-label="Table of contents">{headings.filter((heading) => heading.depth <= 3).map((heading) => <a class={`depth-${heading.depth}`} href={`#${heading.slug}`}>{heading.text}</a>)}</nav></div>}
+          <div class="articleShare">
+            <strong>Share</strong>
+            <div>
+              <a class="shareButton" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.data.title)}&url=${encodeURIComponent(new URL(canonical, Astro.site).href)}`} target="_blank" rel="noreferrer" aria-label="Share on X">X</a>
+              <a class="shareButton" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(new URL(canonical, Astro.site).href)}`} target="_blank" rel="noreferrer" aria-label="Share on LinkedIn">in</a>
+              <a class="shareButton" href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(new URL(canonical, Astro.site).href)}`} target="_blank" rel="noreferrer" aria-label="Share on Facebook">f</a>
+              <button class="shareCopy" type="button" data-copy-url={new URL(canonical, Astro.site).href} aria-label="Copy article link" title="Copy article link"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg></button>
+            </div>
+            <span class="copyStatus" role="status" aria-live="polite"></span>
+          </div>
+        </aside>
+        <article class="articleBody"><Content /></article>
+      </div>
+      <aside class="blogCta articleCta">
+        <span class="sectionLabel">From idea to operating plan</span>
+        <h2>Model your next stage of growth.</h2>
+        <p>Use GrowthCast Forecast to test the assumptions behind traffic, conversion, retention, and revenue.</p>
+        <a href="/resources/tools/forecast">Build a free forecast</a>
+      </aside>
+      <a class="backToBlog" href="/blog">← Back to all articles</a>
+    </main>
+  </BlogShell>
+  <script>
+    document.querySelectorAll<HTMLButtonElement>("[data-copy-url]").forEach((button) => button.addEventListener("click", async () => {
+      const status = button.closest(".articleShare")?.querySelector<HTMLElement>(".copyStatus");
+      try { await navigator.clipboard.writeText(button.dataset.copyUrl || window.location.href); if (status) status.textContent = "Link copied"; }
+      catch { if (status) status.textContent = "Copy failed"; }
+    }));
+  </script>
+</BaseLayout>

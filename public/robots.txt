@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://growthcast.app/sitemap.xml
+Sitemap: https://growthcast.app/sitemap-index.xml

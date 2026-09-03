@@ -12,7 +12,7 @@ The primary activation action is changing an assumption or loading an assumption
 
 | Layer | Choice |
 |---|---|
-| Frontend | React, TypeScript, Vite |
+| Frontend | Astro static routes + React islands + TypeScript |
 | Charts | Recharts |
 | Documents/archives | jsPDF, JSZip, html2canvas, html-to-image |
 | Icons | Lucide React |
@@ -24,7 +24,7 @@ The primary activation action is changing an assumption or loading an assumption
 | Persistence | Browser `localStorage` for reload-safe progress; JSON/CSV import/export |
 | Unit tests | Vitest |
 | E2E validation | Pi `playwright_validate` |
-| Production runtime | Static Vite output on Vercel; nginx container remains the portable local runtime |
+| Production runtime | Static Astro output on Vercel; nginx container remains the portable local runtime |
 | CI/CD and public hosting | Vercel production deployment at `growthcast.app`; no repository CI workflow yet |
 
 ## Directory structure
@@ -32,10 +32,14 @@ The primary activation action is changing an assumption or loading an assumption
 ```text
 .
 ├── src/
-│   ├── AgencyApp.tsx           # Lightweight agency routes, navigation, contact form
-│   ├── App.tsx                 # Forecast UI, local state, import/export
-│   ├── styles.css              # Responsive visual system
-│   ├── main.tsx                # React entry point
+│   ├── AgencyApp.tsx           # Lightweight agency island and contact flow
+│   ├── App.tsx                 # Forecast island, local state, and exports
+│   ├── components/             # Astro shell and React island entry
+│   ├── content/blog/           # Typed Markdown/MDX blog posts
+│   ├── layouts/                # Shared Astro document/SEO layout
+│   ├── pages/                  # Static routes, blog pages, RSS
+│   ├── styles.css              # Agency/Forecast visual system
+│   ├── blog.css                # Blog visual system
 │   └── engine/
 │       ├── forecast.ts                 # Pure deterministic forecasting engine
 │       ├── forecast.test.ts            # Forecast invariants and regressions
@@ -45,11 +49,11 @@ The primary activation action is changing an assumption or loading an assumption
 │       └── metrics.test.ts             # SaaS metric and cash-flow regressions
 ├── artifacts/                  # Local screenshots; ignored
 ├── Dockerfile                  # Test/build stage and nginx runtime
-├── nginx.conf                  # SPA fallback and portable container server
-├── vercel.json                 # Production build, SPA routing, and security headers
+├── astro.config.mjs            # Astro, React, and sitemap configuration
+├── nginx.conf                  # Static directory routing and portable server
+├── vercel.json                 # Astro build, proxy routing, and security headers
 ├── package.json
 ├── package-lock.json
-├── vite.config.ts
 ├── tsconfig*.json
 ├── eslint.config.js
 ├── README.md                   # User and contributor documentation
@@ -87,7 +91,11 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 ### Application shell
 
-`src/main.tsx` route-splits the lightweight `src/AgencyApp.tsx` marketing site from the heavy Forecast application so charting and export libraries never enter the agency page's initial dependency graph. PostHog is loaded after the visitor's first interaction, with session replay, surveys, conversations, product tours, and feature flags disabled. `src/App.tsx` owns Forecast UI state and local persistence orchestration. The default `/` route is the GrowthCast agency homepage. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Browser history distinguishes the agency route from the Forecast route without adding a router dependency. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology in the primary navigation. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; derived values and B2B rate calibration remain presentation orchestration, while forecast formulas stay in the engines. The Monthly Forecast table is a single-open-row accordion backed by `src/engine/channelBreakdown.ts`: each expanded month groups Baseline / Existing Business, Direct Response, Demand Gen, and Owned / Partner / Custom, showing category subtotals and launched channel rows. Channel customers and MRR are cumulative retained cohorts using the same monthly logo churn, revenue churn, expansion, and downgrade assumptions; category totals reconcile to the parent forecast. `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+Astro owns route generation, document metadata, the blog, RSS, and sitemap. Public routes select one of two server-rendered, client-hydrated React islands: lightweight `src/AgencyApp.tsx` for agency pages and `src/App.tsx` for the Forecast product. This keeps charting and export libraries out of the agency page's initial dependency graph. Agency analytics load after the visitor's first interaction, with session replay, surveys, conversations, product tours, and feature flags disabled. The Forecast island owns UI state and local persistence orchestration. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; forecast formulas stay in the engines. The Monthly Forecast table is backed by `src/engine/channelBreakdown.ts`, while `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
+
+### Blog architecture
+
+The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. `/blog` renders image-led article cards with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` preserves the MediaMixModel reference UX with breadcrumb and back navigation, author/read-time metadata, a boxed sticky table-of-contents/share rail that stacks on mobile, BreadcrumbList, and BlogPosting schema. Generate each post's standalone abstract artwork with `scripts/generate-blog-shape.html` and assign it to `artwork` for the article hero. Compose that artwork with article title, author, and publication date using `scripts/generate-blog-social.html`, then assign only the finished card to `image` for Open Graph metadata and `/blog` listings; never render the composed social card inside the article. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the agency site's complete Company/Resources navigation and contact entry point, local Manrope/DM Mono fonts, and GrowthCast colors from the existing visual system.
 
 ### B2C and B2B model contracts
 
@@ -171,6 +179,8 @@ Not currently applicable. If introduced, use schema-as-code, reviewed migrations
 
 PostHog captures product interaction events through a same-origin reverse proxy. The Growth Plan form identifies a person with their submitted first name and email only after explicit submission. The `growth_plan_requested` event includes the current `baseline` and `assumptions` JSON objects, but those objects are not person properties. Browser console errors must remain zero in validation. Never send secrets or imported files to analytics.
 
+The agency contact form also uses PostHog as its delivery path. It must not show a success state when PostHog is disabled or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
+
 ### Security
 
 The app is static and local-first. Baseline and assumption progress is persisted under versioned local-storage key `growth-model-state-v1`; malformed or unavailable storage must fall back safely. Maintain these controls:
@@ -180,7 +190,7 @@ The app is static and local-first. Baseline and assumption progress is persisted
 - Do not execute or inject imported content as HTML or code.
 - Keep dependencies pinned through `package-lock.json` and review additions.
 - Bind local container examples to `127.0.0.1`.
-- Preserve the deployed CSP, HSTS, frame, MIME, referrer, and permissions-policy headers. Keep nginx aligned for all applicable non-TLS protections.
+- Preserve Astro's generated per-page hash-based CSP plus the deployed HSTS, frame, MIME, referrer, and permissions-policy headers. Keep nginx aligned for all applicable non-TLS protections; do not add a second static CSP header that blocks Astro hydration hashes.
 - Never log imported financial assumptions unnecessarily.
 
 ### Marketing, SEO, legal, internationalization, notifications, and admin
@@ -214,6 +224,7 @@ Target WCAG 2.2 AA:
 - Announce import success and errors with an appropriate status region.
 - Respect reduced-motion preferences if motion is added.
 - Validate desktop and mobile layouts before release.
+- Keep all agency navigation reachable on mobile, use at least 44px touch targets for primary controls, and preserve readable chart axes with contained horizontal scrolling rather than compressing them beyond legibility.
 
 ## Environment variables
 

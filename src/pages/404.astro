@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BlogShell from "../components/BlogShell.astro";
+---
+<BaseLayout title="Page Not Found | GrowthCast" description="The requested GrowthCast page could not be found." canonical="/404" noIndex>
+  <BlogShell>
+    <main class="notFoundPage">
+      <span class="sectionLabel">404</span>
+      <h1>This page does not add up.</h1>
+      <p>The address may have changed, or the page may no longer exist.</p>
+      <div>
+        <a href="/">Return home</a>
+        <a href="/blog">Read the blog</a>
+      </div>
+    </main>
+  </BlogShell>
+</BaseLayout>

@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AppIsland from "../components/AppIsland";
+import AgencyIsland from "../components/AgencyIsland";
+
+export function getStaticPaths() {
+  return [
+    undefined,
+    "why-growthcast",
+    "how-it-works",
+    "company/about",
+    "company/philosophy",
+    "company/partners",
+    "company/careers",
+    "resources/tools/forecast",
+    "terms",
+    "privacy",
+  ].map((path) => ({ params: { path } }));
+}
+
+const path = Astro.url.pathname;
+const metadataByPath: Record<string, { title: string; description: string }> = {
+  "/": { title: "GrowthCast | GTM Engineering for Growth", description: "One growth plan across marketing, product, sales, and data." },
+  "/why-growthcast": { title: "Why GrowthCast | One Plan for Revenue", description: "Why growth requires one operating plan across the whole customer path." },
+  "/how-it-works": { title: "How We Work | GrowthCast", description: "See how GrowthCast finds the revenue constraint, builds the model, and works beside your team." },
+  "/company/about": { title: "About GrowthCast | Operator-Led Growth", description: "Meet the operator behind GrowthCast and review the experience that shaped the work." },
+  "/company/philosophy": { title: "GrowthCast Philosophy | AAARRR and Future Demand", description: "How GrowthCast connects the full customer journey with current and future demand." },
+  "/company/partners": { title: "Partners | GrowthCast", description: "The technology partners GrowthCast uses to build modern growth systems." },
+  "/company/careers": { title: "Careers | GrowthCast", description: "Future opportunities to work with GrowthCast." },
+  "/resources/tools/forecast": { title: "GrowthCast Forecast | Build Your Growth Model", description: "Model traffic, conversion, customers, revenue, churn, and channel spend." },
+  "/terms": { title: "Terms of Use | GrowthCast", description: "Terms for using GrowthCast and the Forecast tool." },
+  "/privacy": { title: "Privacy Policy | GrowthCast", description: "How GrowthCast collects, uses, and protects information." },
+};
+const metadata = metadataByPath[path] || metadataByPath["/"];
+const isForecast = path.startsWith("/resources/tools/forecast");
+---
+<BaseLayout {...metadata} canonical={path}>
+  {isForecast
+    ? <AppIsland initialPath={path} client:load />
+    : <AgencyIsland initialPath={path} client:load />}
+</BaseLayout>
