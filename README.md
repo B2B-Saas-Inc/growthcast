@@ -56,6 +56,8 @@ A dedicated Methodology page documents the monthly calculation sequence, channel
 
 The Astro-native blog lives at `/blog`. Posts are typed Markdown or MDX files in `src/content/blog`, with validated title, description, publication dates, author, tags, draft state, featured state, and optional social image. Astro generates static article routes, search/filter views, article metadata and JSON-LD, an RSS feed at `/rss.xml`, and a sitemap index at `/sitemap-index.xml`. Blog pages share the agency site's full Company/Resources navigation and contact entry point, use GrowthCast's local Manrope and DM Mono fonts, and retain its neutral, green, blue, and coral design language. Article pages preserve the MediaMixModel reference UX: a title-and-cover hero, breadcrumb and back navigation, author/read-time metadata, and a boxed sticky table-of-contents/share rail that stacks on mobile.
 
+Writers must follow `docs/editorial/human-first-writing.md` for every draft and edit. The container production build runs `node scripts/check-blog-writing.mjs` to reject machine-testable violations such as em dashes, double hyphens, banned stock transitions, missing reader address, and common abstract-subject constructions.
+
 ### Deep Dive
 
 A dedicated tab immediately after Forecast provides six forecast-driven analytical views, each with a chart and monthly breakdown table:

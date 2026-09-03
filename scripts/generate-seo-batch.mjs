@@ -283,4 +283,5 @@ for (const post of posts) {
   await writeFile(new URL(`../docs/content-briefs/${post.slug}.md`, import.meta.url), brief(post, wordCount));
 }
 
-console.log(`Generated ${posts.length} articles and briefs.`);
+await import("./revise-seo-batch-human-first.mjs");
+console.log(`Generated ${posts.length} articles and briefs, then applied the human-first revision pass.`);
