@@ -101,7 +101,7 @@ th {
   letter-spacing: 0.06em;
 }
 .eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   border: 1px solid #242426;
   border-radius: 20px;
   padding: 6px 9px;
@@ -111,7 +111,7 @@ th {
   align-items: center;
   gap: 8px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -133,7 +133,7 @@ th {
   background: transparent;
   padding: 7px 14px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
 }
 .pageNav button.active {
@@ -149,7 +149,7 @@ th {
   background: transparent;
   padding: 7px 14px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
 }
 .navActions > summary::-webkit-details-marker {
@@ -186,7 +186,7 @@ th {
   padding: 10px;
   border: 1px solid #c8c2b8;
   background: #fff;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 .navActionsMenu button.primary {
@@ -200,14 +200,14 @@ th {
   gap: 8px;
   padding: 8px 10px;
   border: 1px solid #c8c2b8;
-  font-size: 10px;
+  font-size: 12px;
 }
 .menuSelect select {
   border: 0;
   background: #f4f1e9;
   padding: 5px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
 }
 .headerActions {
   display: flex;
@@ -240,7 +240,7 @@ th {
   padding: 10px 12px;
   background: #e5f6df;
   border: 1px solid #9abb8e;
-  font-size: 11px;
+  font-size: 12px;
   font-family: "DM Mono";
 }
 .headerActions button {
@@ -259,13 +259,13 @@ th {
   border: 1px solid #242426;
   padding: 0 9px;
   font-family: "DM Mono";
-  font-size: 8px;
+  font-size: 12px;
 }
 .formatSelect select {
   border: 0;
   background: transparent;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   outline: none;
 }
 .headerActions .primary {
@@ -292,7 +292,7 @@ th {
 }
 .notice code {
   font-family: "DM Mono";
-  font-size: 11px;
+  font-size: 12px;
 }
 .layout {
   display: grid;
@@ -330,7 +330,7 @@ aside {
 }
 .panelHead span {
   font-family: "DM Mono";
-  font-size: 10px;
+  font-size: 12px;
   background: #ebe7dd;
   padding: 5px 7px;
 }
@@ -349,7 +349,7 @@ aside {
   font-weight: 600;
 }
 .field small {
-  font-size: 8px;
+  font-size: 12px;
   color: #98938a;
   margin-top: 3px;
 }
@@ -368,10 +368,10 @@ aside {
   text-align: right;
   outline: none;
   font-family: "DM Mono";
-  font-size: 11px;
+  font-size: 12px;
 }
 .input b {
-  font-size: 10px;
+  font-size: 12px;
   padding-right: 7px;
   color: #7d786f;
 }
@@ -381,7 +381,7 @@ aside {
   padding: 7px;
   width: 100%;
   font-family: "DM Mono";
-  font-size: 10px;
+  font-size: 12px;
   outline: none;
 }
 .scenarioTabs {
@@ -395,7 +395,7 @@ aside {
   background: #faf9f5;
   padding: 7px 2px;
   font-family: "DM Mono";
-  font-size: 8px;
+  font-size: 12px;
   cursor: pointer;
 }
 .scenarioTabs button.active {
@@ -450,7 +450,7 @@ aside {
   padding: 18px;
 }
 .cards small {
-  font-size: 9px;
+  font-size: 12px;
   color: #78746c;
 }
 .cards strong {
@@ -461,7 +461,7 @@ aside {
 }
 .cards em {
   font-style: normal;
-  font-size: 10px;
+  font-size: 12px;
   color: #7b61ff;
 }
 .homeCard {
@@ -513,7 +513,7 @@ aside {
   border: 0;
   color: #4f4b45;
   background: transparent;
-  font: 10px "DM Mono";
+  font: 12px "DM Mono";
   text-decoration: none;
   cursor: pointer;
 }
@@ -559,7 +559,7 @@ aside {
   display: block;
   padding: 7px 9px;
   color: #908a80;
-  font: 8px "DM Mono";
+  font: 12px "DM Mono";
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -585,11 +585,11 @@ aside {
   margin: 0;
   padding: 10px 9px;
   color: #625e57;
-  font-size: 11px;
+  font-size: 12px;
 }
 .resourceNav p small {
   color: #625e57;
-  font: 8px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   text-transform: uppercase;
 }
 .companyNav > div { width: 180px; }
@@ -601,7 +601,7 @@ aside {
 .sectionLabel {
   display: none;
   color: #9e321b;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -681,7 +681,7 @@ aside {
   display: block;
   margin-bottom: 12px;
   color: #ff9a82;
-  font-size: 9px;
+  font-size: 12px;
   text-transform: uppercase;
 }
 .systemCore strong {
@@ -707,7 +707,7 @@ aside {
 }
 .agencySystem li b {
   color: #ff8064;
-  font: 10px "DM Mono";
+  font: 12px "DM Mono";
 }
 .agencySystem li span {
   font-size: 14px;
@@ -725,7 +725,7 @@ aside {
 }
 .agencyProof span {
   color: #625e57;
-  font: 8px "DM Mono";
+  font: 12px "DM Mono";
   text-transform: uppercase;
 }
 .agencyProof strong {
@@ -734,7 +734,7 @@ aside {
 }
 .heroReassurance {
   margin-top: 14px !important;
-  font: 10px "DM Mono", monospace !important;
+  font: 12px "DM Mono", monospace !important;
 }
 .heroMetrics {
   display: grid;
@@ -757,7 +757,7 @@ aside {
 .heroMetrics span {
   margin-top: 8px;
   color: #d3d0ca;
-  font-size: 11px;
+  font-size: 12px;
 }
 .investorProof {
   padding: 28px clamp(28px, 7vw, 110px);
@@ -771,7 +771,7 @@ aside {
 }
 .investorProof > span {
   color: #625e57;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -835,7 +835,7 @@ aside {
 .beforeState { color: #fff; background: #27282a; }
 .afterState { background: #fff; }
 .transformationGrid article > span {
-  font: 10px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1021,7 +1021,7 @@ aside {
 }
 .demandGrid span {
   color: #ff6b4a;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   text-transform: uppercase;
 }
 .demandGrid h3 {
@@ -1047,7 +1047,7 @@ aside {
 .resultGrid strong {
   display: block;
   margin-bottom: 25px;
-  color: #ff6b4a;
+  color: #b63f25;
   font-size: clamp(44px, 5vw, 76px);
   line-height: 1;
   letter-spacing: -0.06em;
@@ -1198,7 +1198,7 @@ aside {
   border: 0;
   color: #4f4b45;
   background: transparent;
-  font: 10px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   text-align: left;
   text-decoration: none;
 }
@@ -1288,7 +1288,7 @@ aside {
   background: #cfc9bd;
 }
 .frameworkGrid li { padding: clamp(28px, 4vw, 55px); background: #fff; }
-.frameworkGrid b { color: #9e321b; font: 11px "DM Mono", monospace; }
+.frameworkGrid b { color: #9e321b; font: 12px "DM Mono", monospace; }
 .frameworkGrid h3 { margin: 24px 0 14px; font-size: 26px; }
 .frameworkGrid p { margin: 0; font-size: 14px; }
 .futureDemandFramework {
@@ -1324,7 +1324,7 @@ aside {
 .partnerGrid h3 {
   margin: 0 0 30px;
   color: #9e321b;
-  font: 11px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1468,7 +1468,7 @@ aside {
   background: transparent;
   padding: 10px 14px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
 }
 .deepTabs button.active {
@@ -1514,7 +1514,7 @@ aside {
   justify-content: flex-end;
   gap: 10px;
   margin: 0 0 7px;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   text-transform: uppercase;
   color: #777;
 }
@@ -1546,7 +1546,7 @@ aside {
   border-bottom: 1px solid #cbc6bb;
 }
 .exportStage > header span {
-  font: 500 10px "DM Mono";
+  font: 500 12px "DM Mono";
   letter-spacing: 0.08em;
   color: #ff6b4a;
 }
@@ -1613,7 +1613,7 @@ aside {
   font-size: 31px;
 }
 .exportStageSquare .cards em {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.35;
 }
 .deepTitle {
@@ -1624,7 +1624,7 @@ aside {
 }
 .deepTitle span {
   font-family: "DM Mono";
-  font-size: 8px;
+  font-size: 12px;
   color: #ff6b4a;
   text-transform: uppercase;
 }
@@ -1633,7 +1633,7 @@ aside {
   margin: 7px 0;
 }
 .deepTitle p {
-  font-size: 11px;
+  font-size: 12px;
   color: #767169;
   margin: 0;
 }
@@ -1653,7 +1653,7 @@ aside {
   border: 1px solid #aaa49a;
   padding: 7px 10px;
   font-family: "DM Mono";
-  font-size: 8px;
+  font-size: 12px;
   cursor: pointer;
 }
 .deepEditable {
@@ -1662,7 +1662,7 @@ aside {
   align-items: flex-end;
   gap: 7px;
   font-family: "Manrope";
-  font-size: 10px;
+  font-size: 12px;
   color: #777;
 }
 .deepEditable span {
@@ -1686,7 +1686,7 @@ aside {
   flex-direction: row !important;
   align-items: center !important;
   gap: 7px;
-  font: 10px "Manrope";
+  font: 12px "Manrope";
   color: #555 !important;
   cursor: pointer;
 }
@@ -1702,7 +1702,7 @@ aside {
 .budgetAdvanced summary {
   padding: 12px 14px;
   cursor: pointer;
-  font: 600 11px "Manrope";
+  font: 600 12px "Manrope";
   color: #454545;
 }
 .budgetAdvanced[open] summary {
@@ -1729,7 +1729,7 @@ aside {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 9px;
+  font-size: 12px;
   font-family: "DM Mono";
 }
 .budgetPlanner input,
@@ -1742,7 +1742,7 @@ aside {
   border: 1px solid #bbb6ac;
   background: #fff;
   padding: 8px;
-  font: 11px "DM Mono";
+  font: 12px "DM Mono";
 }
 .budgetPlanner button,
 .churnPlanner button {
@@ -1750,7 +1750,7 @@ aside {
   border: 1px solid #27282a;
   background: #fff;
   padding: 8px 12px;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   cursor: pointer;
 }
 .budgetPlanner button:disabled {
@@ -1781,14 +1781,14 @@ aside {
   flex-direction: column;
   gap: 6px;
   min-width: 130px;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
 }
 .cashInputs input[type="number"] {
   min-height: 38px;
   border: 1px solid #bbb6ac;
   background: #fff;
   padding: 8px;
-  font: 11px "DM Mono";
+  font: 12px "DM Mono";
 }
 .cashInputs .oneTimeToggle {
   flex-direction: row;
@@ -1798,7 +1798,7 @@ aside {
 .splitValid,
 .splitWarning {
   padding: 10px;
-  font: 10px "DM Mono";
+  font: 12px "DM Mono";
 }
 .splitValid {
   color: #257f70;
@@ -1820,7 +1820,7 @@ aside {
 }
 .cashSummary small {
   display: block;
-  font-size: 7px;
+  font-size: 12px;
   color: #777;
 }
 .cashSummary strong {
@@ -1869,7 +1869,7 @@ aside {
   font-size: 12px;
 }
 .baselineWarning span {
-  font-size: 11px;
+  font-size: 12px;
   color: #645b42;
 }
 .baselineHead {
@@ -1883,7 +1883,7 @@ aside {
 }
 .baselineHead > div > span {
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   color: #ff6b4a;
   text-transform: uppercase;
 }
@@ -1920,7 +1920,7 @@ aside {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 .baselineGrid input,
@@ -1938,7 +1938,7 @@ aside {
   position: absolute;
   right: 8px;
   top: 0;
-  font-size: 7px;
+  font-size: 12px;
   color: #888;
 }
 .baselineGrid output {
@@ -1954,7 +1954,7 @@ aside {
 }
 .baselineFoot p {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
 }
 .secondaryCards article {
   background: #27282a;
@@ -1995,7 +1995,7 @@ aside {
 }
 .methodGrid article > span {
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   color: #ff6b4a;
 }
 .methodGrid h3 {
@@ -2012,7 +2012,7 @@ aside {
   background: #f4f1e9;
   padding: 10px;
   font-family: "DM Mono";
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.7;
 }
 .methodNotes {
@@ -2031,7 +2031,7 @@ aside {
   column-gap: 50px;
 }
 .methodNotes li {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin-bottom: 8px;
   break-inside: avoid;
@@ -2046,7 +2046,7 @@ aside {
 .chartTitle p {
   margin: 5px 0 0;
   color: #8a867e;
-  font-size: 11px;
+  font-size: 12px;
 }
 .wide {
   margin-bottom: 12px;
@@ -2075,7 +2075,7 @@ aside {
 .advanced summary {
   cursor: pointer;
   padding: 10px 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 .budgetBar {
@@ -2086,7 +2086,7 @@ aside {
   margin-bottom: 12px;
 }
 .budgetBar label {
-  font-size: 10px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2129,7 +2129,7 @@ aside {
   color: #ddd;
   padding: 11px 16px;
   font-family: "DM Mono";
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 .channelTabs button.active {
@@ -2144,7 +2144,7 @@ aside {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #aaa;
-  font-size: 9px;
+  font-size: 12px;
   margin: 18px 0 7px;
 }
 .channel {
@@ -2166,7 +2166,7 @@ aside {
   font-size: 14px;
 }
 .channel label {
-  font-size: 11px;
+  font-size: 12px;
   color: #aaa;
   display: flex;
   flex-direction: column;
@@ -2184,7 +2184,7 @@ aside {
 }
 .traffic {
   text-align: right;
-  font-size: 10px;
+  font-size: 12px;
   color: #bbb;
 }
 .traffic b {
@@ -2215,7 +2215,7 @@ aside {
 }
 .affiliateSummary span,
 .affiliateSummary small {
-  font-size: 8px;
+  font-size: 12px;
   color: #aaa;
 }
 .affiliateSummary b {
@@ -2229,7 +2229,7 @@ aside {
   background: transparent;
   color: #ccc;
   padding: 7px;
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer;
 }
 .channel[open] > summary {
@@ -2246,7 +2246,7 @@ aside {
 }
 .generalChannels > div span {
   font-family: "DM Mono";
-  font-size: 10px;
+  font-size: 12px;
   color: #ff8a6e;
   text-transform: uppercase;
 }
@@ -2292,12 +2292,12 @@ aside {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 th {
   text-align: right;
-  font-size: 8px;
+  font-size: 12px;
   color: #817d75;
   padding: 10px;
   border-bottom: 1px solid #d5d1c8;
@@ -2311,7 +2311,7 @@ td {
   padding: 11px 10px;
   border-bottom: 1px solid #efebe3;
   font-family: "DM Mono";
-  font-size: 10px;
+  font-size: 12px;
 }
 .monthlyRow {
   cursor: pointer;
@@ -2331,7 +2331,7 @@ td {
   padding: 11px 10px;
   border: 0;
   background: transparent;
-  font: 10px "DM Mono";
+  font: 12px "DM Mono";
   cursor: pointer;
   text-align: left;
 }
@@ -2372,7 +2372,7 @@ td {
 }
 .forecastDetail .categoryRow em {
   font-family: Manrope, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
 }
 .forecastDetail .channelBreakdownRow td:first-child {
   padding-left: 28px;
@@ -2385,7 +2385,7 @@ footer {
   margin-top: auto;
   text-align: center;
   color: #8f8a82;
-  font-size: 10px;
+  font-size: 12px;
   padding: 24px 0 12px;
 }
 footer a {
@@ -2393,14 +2393,14 @@ footer a {
   text-underline-offset: 2px;
 }
 .recharts-cartesian-axis-tick-value {
-  font-size: 9px;
+  font-size: 12px;
   font-family: "DM Mono";
 }
 .recharts-legend-item-text {
-  font-size: 10px !important;
+  font-size: 12px !important;
 }
 .recharts-tooltip-wrapper {
-  font-size: 11px;
+  font-size: 12px;
 }
 @media (max-width: 1000px) {
   .baselineGrid {
@@ -2602,7 +2602,7 @@ a:focus-visible,
     line-height: 1.5;
   }
   .recharts-legend-wrapper {
-    font-size: 8px;
+    font-size: 12px;
   }
 }
 .churnDiagnostics {
@@ -2621,7 +2621,7 @@ a:focus-visible,
 }
 .churnDiagnostics p {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
   color: #666;
 }
@@ -2631,7 +2631,7 @@ a:focus-visible,
 }
 .churnDiagnostics small {
   display: block;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   color: #666;
 }
 .churnDiagnostics strong {
@@ -2641,7 +2641,7 @@ a:focus-visible,
 }
 .churnDiagnostics em {
   font-style: normal;
-  font-size: 10px;
+  font-size: 12px;
   color: #257f70;
 }
 @media (max-width: 700px) {
@@ -2664,7 +2664,7 @@ a:focus-visible,
 }
 .modelTypeSelector legend {
   margin-bottom: 8px;
-  font: 9px "DM Mono";
+  font: 12px "DM Mono";
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #777;
@@ -2687,7 +2687,7 @@ a:focus-visible,
   color: #fff;
 }
 .modelTypeSelector strong { font-size: 16px; }
-.modelTypeSelector span { font-size: 10px; color: #777; }
+.modelTypeSelector span { font-size: 12px; color: #777; }
 .modelTypeSelector button.active span { color: #d3d0ca; }
 .generalChannels {
   grid-template-columns: minmax(260px, 1.4fr) repeat(4, minmax(130px, 1fr));
@@ -2736,7 +2736,7 @@ a:focus-visible,
   display: grid;
   gap: 7px;
   color: #5d5952;
-  font: 9px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -2834,7 +2834,7 @@ a:focus-visible,
 .growthPlanPrompt p {
   margin: 0;
   color: #d3d0ca;
-  font-size: 11px;
+  font-size: 12px;
 }
 .growthPlanPrompt .eyebrow {
   display: inline-block;
@@ -2850,7 +2850,7 @@ a:focus-visible,
 .growthPlanPrompt label {
   display: grid;
   gap: 6px;
-  font: 9px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -2878,7 +2878,7 @@ a:focus-visible,
   color: #242426;
   background: #e5f6df;
   border: 1px solid #9abb8e;
-  font: 11px "DM Mono", monospace;
+  font: 12px "DM Mono", monospace;
 }
 @keyframes growthPlanRiseFromBottom {
   from { transform: translate3d(0, 100%, 0); }
