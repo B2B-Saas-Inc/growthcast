@@ -4,7 +4,7 @@ const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
 
 export const isPostHogEnabled = Boolean(posthogKey);
 
-if (posthogKey) {
+if (posthogKey && typeof window !== 'undefined') {
   posthog.init(posthogKey, {
     api_host: '/gcast-io',
     ui_host: 'https://us.posthog.com',
