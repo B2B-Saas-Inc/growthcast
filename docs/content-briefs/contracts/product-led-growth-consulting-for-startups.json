@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "content_id": "product-led-growth-consulting-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "product-led growth consulting for startups",
+    "direct_answer": "Give the reader a method to create a consulting scope that improves one product-led growth constraint and leaves the team with an operating system."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a consulting scope that improves one product-led growth constraint and leaves the team with an operating system.",
+    "non_obvious_point": "Give the reader a method to create a consulting scope that improves one product-led growth constraint and leaves the team with an operating system.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "product, marketing, sales, and customer success each own part of adoption, but nobody owns the full commercial path"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "product-led-growth-consulting-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-06T09:15:00-04:00"
+  },
+  "approval": null
+}

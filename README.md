@@ -56,7 +56,7 @@ A dedicated Methodology page documents the monthly calculation sequence, channel
 
 The Astro-native blog lives at `/blog`. Posts are typed Markdown or MDX files in `src/content/blog`, with validated title, description, publication dates, author, tags, draft state, featured state, and optional social image. Astro generates static article routes, search/filter views, article metadata and JSON-LD, an RSS feed at `/rss.xml`, and a sitemap index at `/sitemap-index.xml`. Blog pages share the agency site's full Company/Resources navigation and contact entry point, use GrowthCast's local Manrope and DM Mono fonts, and retain its neutral, green, blue, and coral design language. Article pages preserve the MediaMixModel reference UX: a title-and-cover hero, breadcrumb and back navigation, author/read-time metadata, and a boxed sticky table-of-contents/share rail that stacks on mobile.
 
-Writers must follow `docs/editorial/human-first-writing.md` for every draft and edit. The container production build runs `node scripts/check-blog-writing.mjs` to reject machine-testable violations such as em dashes, double hyphens, banned stock transitions, missing reader address, and common abstract-subject constructions.
+Writers must follow `docs/editorial/human-first-writing.md` for every draft and edit. The pinned shared content engine validates article contracts and the GrowthCast profile without requiring superficial token patterns. The production build also validates each rendered, publishable article’s title, description, canonical URL, author, publication and modification dates, indexability, and `BlogPosting` JSON-LD.
 
 ### Deep Dive
 
@@ -156,7 +156,36 @@ npm run lint
 npm test
 npm run build
 npm run preview
+npm run content:drift
+npm run content:briefs:check
+npm run content:inventory
+npm run content:validate
+npm run content:draft -- <approved-brief-id>
+npm run content:generate -- <approved-brief-id> [--shadow] [--run-id <id>]
+npm run content:preflight -- <slug>
+npm run content:rendered
+npm run content:schedule:dry-run
 ```
+
+### Research-to-draft generation
+
+The operator-only shared generation pipeline reads an approved brief contract, researches through OpenRouter with retrievable URL citations, runs draft and edit stages, applies deterministic QA, and writes resumable checkpoints plus review artifacts under ignored `artifacts/content-generation/`. Configure only `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`; optional endpoint and retry settings are documented in `.env.example`. The CLI does not load dotenv files.
+
+```bash
+# Review mode (safe default)
+npm run content:generate -- <approved-brief-id> --run-id <stable-run-id>
+
+# Isolated shadow review artifacts; never writes src
+npm run content:generate -- <approved-brief-id> --shadow --run-id <stable-run-id>
+
+# Deliberately create a new, non-publishable Astro draft
+npm run content:generate -- <approved-brief-id> --write-to-src --run-id <stable-run-id>
+
+# Validate a separately supplied human approval for the exact generated hash
+npm run content:generate -- <approved-brief-id> --approval-file <approval.json> --run-id <stable-run-id>
+```
+
+Default and shadow modes write no source content. `--write-to-src` uses exclusive creation, refuses to overwrite, and always emits `draft: true`. An approval file must satisfy the shared article-approval contract and match the generated canonical SHA-256 exactly; the command never creates approval or human observations. Generation never publishes, calls a deploy hook, schedules content, or performs any remote write other than OpenRouter generation requests. Reuse the same run ID to resume matching checkpoints; use a new run ID when the approved brief changes.
 
 For UI changes, validate the running production image with Playwright at desktop and mobile widths. The responsive layout stacks forecast cards, wraps navigation/actions, adapts Deep Dive controls, and keeps large tables horizontally scrollable on narrow screens.
 
@@ -214,7 +243,7 @@ Blog artwork uses a two-stage p5.js workflow. `scripts/generate-blog-shape.html`
 
 Production builds submit every canonical URL in Astro's generated sitemap to IndexNow after the static generation. Ownership is verified by the root-level public key file. Preview and local builds skip submission; use `INDEXNOW_SUBMIT=true npm run indexnow` for an intentional manual submission or add `INDEXNOW_DRY_RUN=true` to inspect it without contacting IndexNow. Submission service outages are reported without blocking an otherwise valid deployment.
 
-Future-dated blog posts remain absent from routes, RSS, and the sitemap until their `publishedAt` timestamp. `.github/workflows/publish-scheduled-blog.yml` checks for due posts every 15 minutes during the configured publishing windows and calls a Vercel deploy hook only when a due URL still returns 404. Configure the hook as the `VERCEL_DEPLOY_HOOK_URL` GitHub Actions secret.
+Future-dated blog posts remain absent from routes, RSS, and the sitemap until their `publishedAt` timestamp. `.github/workflows/publish-scheduled-blog.yml` checks for due posts every 15 minutes during the configured publishing windows. For each due URL that still returns 404, repository-owned preflight regenerates shared QA and requires a human approval record at `docs/content-approvals/<slug>.json` whose `content_sha256` exactly matches the canonical article hash. Any QA, GrowthCast-profile, missing-approval, or hash failure stops the job before hook invocation. Configure the hook only as the `VERCEL_DEPLOY_HOOK_URL` GitHub Actions secret; it is never passed to the shared engine. Use `npm run content:schedule:dry-run` to exercise scheduling without invoking it.
 
 ```bash
 vercel link --project growth-model --scope b2b-saas --yes

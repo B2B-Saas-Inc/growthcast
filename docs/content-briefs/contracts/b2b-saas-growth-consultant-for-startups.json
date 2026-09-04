@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "content_id": "b2b-saas-growth-consultant-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "how to choose a b2b saas growth consultant",
+    "direct_answer": "Give the reader a method to create a clear consultant selection process tied to one company-level growth constraint."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a clear consultant selection process tied to one company-level growth constraint.",
+    "non_obvious_point": "Give the reader a method to create a clear consultant selection process tied to one company-level growth constraint.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "important growth work crosses teams, but nobody owns the complete path from demand to retained revenue"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "b2b-saas-growth-consultant-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-04T09:30:00-04:00"
+  },
+  "approval": null
+}

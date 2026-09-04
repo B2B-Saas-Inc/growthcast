@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "content_id": "ai-sales-automation-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads at startups with early traction and a small go-to-market team",
+    "task": "The team wants to reduce repetitive sales work but does not know which workflow to automate, what controls it needs, or whether to build internally or hire help."
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "AI sales automation for startups",
+    "direct_answer": "By the end, the reader can identify a suitable first sales workflow, specify its guardrails, and choose an implementation path."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "By the end, the reader can identify a suitable first sales workflow, specify its guardrails, and choose an implementation path.",
+    "non_obvious_point": "By the end, the reader can identify a suitable first sales workflow, specify its guardrails, and choose an implementation path.",
+    "boundaries": [
+      "Do not make unsupported performance, ranking, pricing, or product claims."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "Introduction",
+      "questions": [
+        "Give the decision frame within 120 words"
+      ]
+    },
+    {
+      "heading": "Define the category",
+      "questions": [
+        "Set a precise meaning and examples"
+      ]
+    },
+    {
+      "heading": "Start with a constraint",
+      "questions": [
+        "Help the reader choose a business problem"
+      ]
+    },
+    {
+      "heading": "Choose a first workflow",
+      "questions": [
+        "Give suitability criteria and examples"
+      ]
+    },
+    {
+      "heading": "Set controls",
+      "questions": [
+        "Cover governance, email rules, deliverability, and security"
+      ]
+    },
+    {
+      "heading": "Run a pilot",
+      "questions": [
+        "Provide a staged implementation method"
+      ]
+    },
+    {
+      "heading": "Measure results",
+      "questions": [
+        "Define operational and business measures"
+      ]
+    },
+    {
+      "heading": "Build or hire",
+      "questions": [
+        "Provide selection criteria"
+      ]
+    },
+    {
+      "heading": "CTA",
+      "questions": [
+        "Connect the decision to GrowthCast"
+      ]
+    },
+    {
+      "heading": "Claim",
+      "questions": [
+        "Ideal source"
+      ]
+    },
+    {
+      "heading": "AI risk work should include governance, context mapping, measurement, and management",
+      "questions": [
+        "NIST AI RMF"
+      ]
+    },
+    {
+      "heading": "Commercial email senders must meet CAN-SPAM requirements",
+      "questions": [
+        "US House Office of the Law Revision Counsel"
+      ]
+    },
+    {
+      "heading": "Email senders should follow authentication and sending-practice requirements",
+      "questions": [
+        "Google Email sender guidelines"
+      ]
+    },
+    {
+      "heading": "AI applications need controls for prompt injection and sensitive-information disclosure",
+      "questions": [
+        "OWASP GenAI Security Project"
+      ]
+    },
+    {
+      "heading": "URL",
+      "questions": [
+        "Destination"
+      ]
+    },
+    {
+      "heading": "`/why-growthcast`",
+      "questions": [
+        "GrowthCast point of view"
+      ]
+    },
+    {
+      "heading": "`/how-it-works`",
+      "questions": [
+        "Engagement method"
+      ]
+    },
+    {
+      "heading": "`/company/partners`",
+      "questions": [
+        "Approved technology partners"
+      ]
+    },
+    {
+      "heading": "`/resources/tools/forecast`",
+      "questions": [
+        "Local-first forecast tool"
+      ]
+    },
+    {
+      "heading": "`/?contact=1`",
+      "questions": [
+        "Contact flow"
+      ]
+    },
+    {
+      "heading": "Category",
+      "questions": [
+        "Score"
+      ]
+    },
+    {
+      "heading": "Audience and intent fit",
+      "questions": [
+        "15/15"
+      ]
+    },
+    {
+      "heading": "Accuracy and evidence",
+      "questions": [
+        "18/20"
+      ]
+    },
+    {
+      "heading": "Usefulness and depth",
+      "questions": [
+        "15/15"
+      ]
+    },
+    {
+      "heading": "Structure and completeness",
+      "questions": [
+        "10/10"
+      ]
+    },
+    {
+      "heading": "Keyword and topical relevance",
+      "questions": [
+        "9/10"
+      ]
+    },
+    {
+      "heading": "Plain English, active voice, human actors",
+      "questions": [
+        "9/10"
+      ]
+    },
+    {
+      "heading": "Links and citations",
+      "questions": [
+        "8/8"
+      ]
+    },
+    {
+      "heading": "Metadata, FAQ, and schema notes",
+      "questions": [
+        "5/5"
+      ]
+    },
+    {
+      "heading": "Brand fit and CTA",
+      "questions": [
+        "4/5"
+      ]
+    },
+    {
+      "heading": "Mechanics and compliance",
+      "questions": [
+        "1/2"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://www.nist.gov/itl/ai-risk-management-framework",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title15-section7704&num=0&edition=prelim",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-3",
+      "source_type": "authoritative-web-source:https://support.google.com/mail/answer/81126?hl=en",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-4",
+      "source_type": "authoritative-web-source:https://genai.owasp.org/llm-top-10/",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "ai-sales-automation-for-startups",
+    "indexable": false
+  },
+  "approval": null
+}

@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "content_id": "b2b-saas-analytics-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "b2b saas analytics for startups",
+    "direct_answer": "Give the reader a method to create a small measurement system that connects acquisition, product use, sales progress, retention, and recurring revenue."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a small measurement system that connects acquisition, product use, sales progress, retention, and recurring revenue.",
+    "non_obvious_point": "Give the reader a method to create a small measurement system that connects acquisition, product use, sales progress, retention, and recurring revenue.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "unclear funnel performance and inconsistent definitions across marketing, product, and sales"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://posthog.com/docs/product-analytics",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://developers.google.com/analytics/devguides/collection/ga4/events",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "b2b-saas-analytics-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-03T15:45:00-04:00"
+  },
+  "approval": null
+}

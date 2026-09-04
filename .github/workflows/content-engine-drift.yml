@@ -1,0 +1,26 @@
+name: Content engine compatibility
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify pinned engine and policy compatibility
+        run: npm run content:drift
+      - name: Verify migrated brief contracts have not drifted
+        run: npm run content:briefs:check
+      - name: Validate Astro articles with the shared GrowthCast profile
+        run: npm run content:validate

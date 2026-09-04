@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "content_id": "gtm-operating-model-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "a gtm operating model for startups",
+    "direct_answer": "Give the reader a method to create one operating model that turns a revenue target into coordinated weekly and monthly decisions."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create one operating model that turns a revenue target into coordinated weekly and monthly decisions.",
+    "non_obvious_point": "Give the reader a method to create one operating model that turns a revenue target into coordinated weekly and monthly decisions.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "functional plans look reasonable on their own but do not reconcile across the complete customer path"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "gtm-operating-model-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-04T15:15:00-04:00"
+  },
+  "approval": null
+}

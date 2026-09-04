@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "content_id": "startup-crm-setup-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "startup crm setup",
+    "direct_answer": "Give the reader a method to create a minimum useful CRM that supports daily selling, clean handoffs, pipeline review, and dependable reporting."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a minimum useful CRM that supports daily selling, clean handoffs, pipeline review, and dependable reporting.",
+    "non_obvious_point": "Give the reader a method to create a minimum useful CRM that supports daily selling, clean handoffs, pipeline review, and dependable reporting.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "customer information exists in several tools and people cannot see the owner, stage, next action, or source of truth"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://attio.com/help",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://www.nist.gov/privacy-framework",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "startup-crm-setup-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-06T12:45:00-04:00"
+  },
+  "approval": null
+}

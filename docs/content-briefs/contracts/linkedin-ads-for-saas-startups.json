@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "content_id": "linkedin-ads-for-saas-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "linkedin ads for saas startups",
+    "direct_answer": "Give the reader a method to create a bounded LinkedIn Ads test with an explicit audience, offer, conversion path, and stopping rule."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a bounded LinkedIn Ads test with an explicit audience, offer, conversion path, and stopping rule.",
+    "non_obvious_point": "Give the reader a method to create a bounded LinkedIn Ads test with an explicit audience, offer, conversion path, and stopping rule.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "the company needs access to a narrow professional audience but has not connected media activity to qualified pipeline"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://www.linkedin.com/help/lms/answer/a424570",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://www.linkedin.com/help/lms/answer/a427660",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "linkedin-ads-for-saas-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-05T09:45:00-04:00"
+  },
+  "approval": null
+}

@@ -83,6 +83,15 @@ npm run lint
 npm test
 npm run build
 npm run preview
+npm run content:drift
+npm run content:briefs:check
+npm run content:inventory
+npm run content:validate
+npm run content:draft -- <approved-brief-id>
+npm run content:generate -- <approved-brief-id> [--shadow] [--run-id <id>]
+npm run content:preflight -- <slug>
+npm run content:rendered
+npm run content:schedule:dry-run
 ```
 
 Formatting, database, email-preview, and worker commands are not configured. Mark new commands in this file when those systems are introduced.
@@ -97,7 +106,7 @@ Astro owns route generation, document metadata, the blog, RSS, and sitemap. Publ
 
 The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. Future-dated posts are excluded from routes, RSS, and the sitemap until a scheduled GitHub Action detects that they are due and calls the configured Vercel deploy hook. `/blog` renders image-led article cards with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` preserves the MediaMixModel reference UX with breadcrumb and back navigation, author/read-time metadata, a boxed sticky table-of-contents/share rail that stacks on mobile, BreadcrumbList, and BlogPosting schema. Generate each post's standalone abstract artwork with `scripts/generate-blog-shape.html` and assign it to `artwork` for the article hero. Compose that artwork with article title, author, and publication date using `scripts/generate-blog-social.html`, then assign only the finished card to `image` for Open Graph metadata and `/blog` listings; never render the composed social card inside the article. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the agency site's complete Company/Resources navigation and contact entry point, local Manrope/DM Mono fonts, and GrowthCast colors from the existing visual system.
 
-Every article draft and edit must follow `docs/editorial/human-first-writing.md`. Run the human-first agency, AI-signature, rhythm, specificity, and read-aloud passes before approval. `node scripts/check-blog-writing.mjs` enforces the machine-testable hard rules during every container production build.
+Every article draft and edit must follow `docs/editorial/human-first-writing.md`. Run the human-first agency, AI-signature, rhythm, specificity, and read-aloud passes before approval. The reproducibly vendored `@ejwhite/content-engine` contract and GrowthCast profile enforce hard rules during every container build. `content:preflight` requires passing QA and an approval for the exact canonical article hash; `content:rendered` checks built metadata, indexability, and `BlogPosting` JSON-LD.
 
 ### B2C and B2B model contracts
 
@@ -231,6 +240,10 @@ Target WCAG 2.2 AA:
 ## Environment variables
 
 - `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+- `OPENROUTER_API_KEY`: required server/operator-only credential for `content:generate`. Never expose it through a `VITE_` variable.
+- `OPENROUTER_MODEL`: required OpenRouter model identifier for research and generation.
+- `OPENROUTER_BASE_URL`: optional OpenRouter-compatible API root; defaults to `https://openrouter.ai/api/v1`.
+- `OPENROUTER_MAX_ATTEMPTS`: optional bounded HTTP attempt count from 1 to 10; defaults to 3.
 
 Do not create secret-bearing `.env` files. If more variables are introduced, add a secret-free `.env.example`, distinguish server-only from browser-safe values, validate them at startup, and document every variable here.
 
