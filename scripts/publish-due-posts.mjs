@@ -1,7 +1,24 @@
 import { readdir, readFile } from "node:fs/promises";
-import { publicationReadiness } from "./content-astro-adapter.mjs";
+import { loadPersistedBundleReadiness } from "./growthcast-content-store.mjs";
 
 const contentDirectory = new URL("../src/content/blog/", import.meta.url);
+const SHA256 = /^[a-f0-9]{64}$/u;
+
+export function assessScheduledBundleReadiness(readiness, expectedSlug) {
+  const reasons = [...(Array.isArray(readiness?.reasons) ? readiness.reasons : [])];
+  if (readiness?.ready !== true) {
+    if (reasons.length === 0) reasons.push("publication-bundle preflight did not pass");
+    return { ready: false, reasons };
+  }
+  if (readiness.qaPassed !== true) reasons.push("publication bundle QA does not pass");
+  if (readiness.articleSlug !== expectedSlug) reasons.push("publication bundle does not match scheduled slug");
+  if (readiness.brand !== "growthcast") reasons.push("publication bundle does not match GrowthCast");
+  for (const field of ["articleSha256", "assetManifestSha256", "publicationBundleSha256"]) {
+    if (!SHA256.test(readiness[field] ?? "")) reasons.push(`exact publication bundle is missing ${field}`);
+  }
+  if (typeof readiness.approvedBy !== "string" || readiness.approvedBy.trim() === "") reasons.push("accountable publication-bundle approval is missing");
+  return { ready: reasons.length === 0, reasons, publicationBundleSha256: readiness.publicationBundleSha256 };
+}
 
 export async function findDuePosts({ now = Date.now(), directory = contentDirectory } = {}) {
   const duePosts = [];
@@ -19,7 +36,7 @@ export async function findDuePosts({ now = Date.now(), directory = contentDirect
 export async function runScheduledPublishing({
   fetchImpl = fetch,
   getDuePosts = findDuePosts,
-  getReadiness = publicationReadiness,
+  getReadiness = loadPersistedBundleReadiness,
   getDeployHook = () => process.env.VERCEL_DEPLOY_HOOK_URL,
   dryRun = process.env.PUBLISH_DRY_RUN === "true",
   log = console.log,
@@ -39,7 +56,7 @@ export async function runScheduledPublishing({
 
   const blocked = [];
   for (const slug of missingPosts) {
-    const readiness = await getReadiness(slug);
+    const readiness = assessScheduledBundleReadiness(await getReadiness(slug), slug);
     if (!readiness.ready) blocked.push({ slug, reasons: readiness.reasons });
   }
   if (blocked.length > 0) {
@@ -48,7 +65,7 @@ export async function runScheduledPublishing({
   }
 
   if (dryRun) {
-    log(`Scheduled publishing dry run: QA and exact-hash approval passed; would rebuild for ${missingPosts.join(", ")}.`);
+    log(`Scheduled publishing dry run: QA and exact publication-bundle approval passed; would rebuild for ${missingPosts.join(", ")}.`);
     return { action: "dry-run", slugs: missingPosts };
   }
 

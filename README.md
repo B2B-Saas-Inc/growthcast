@@ -167,6 +167,10 @@ npm run content:rendered
 npm run content:schedule:dry-run
 ```
 
+### Durable local content state
+
+Operator content automation uses the shared `AtomicFileQueueRepository` at ignored `.content-runs/queue/queue-v1.json`. Atomic lock-and-rename persistence makes queue commits durable and process-safe on one shared filesystem. Scheduled publishing loads only `.content-runs/publication-bundles/<slug>.json` records, then independently validates passing QA, accountable exact article-plus-assets approval, and artifact hashes before a deploy hook can be accessed. Missing or malformed local state fails closed.
+
 ### Research-to-draft generation
 
 The operator-only shared generation pipeline reads an approved brief contract, researches through OpenRouter with retrievable URL citations, runs draft and edit stages, applies deterministic QA, and writes resumable checkpoints plus review artifacts under ignored `artifacts/content-generation/`. Configure only `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`; optional endpoint and retry settings are documented in `.env.example`. The CLI does not load dotenv files.

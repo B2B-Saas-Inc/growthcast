@@ -50,6 +50,8 @@ export class OpenRouterProvider {
     this.baseUrl = (env.OPENROUTER_BASE_URL?.trim() || DEFAULT_BASE_URL).replace(/\/$/u, "");
     this.fetchImpl = fetchImpl;
     this.sleep = sleep;
+    this.siteUrl = env.OPENROUTER_SITE_URL?.trim() || "";
+    this.appName = env.OPENROUTER_APP_NAME?.trim() || "";
     this.maximumAttempts = Number(env.OPENROUTER_MAX_ATTEMPTS || DEFAULT_ATTEMPTS);
     if (!Number.isInteger(this.maximumAttempts) || this.maximumAttempts < 1 || this.maximumAttempts > 10) {
       throw new Error("OPENROUTER_MAX_ATTEMPTS must be an integer from 1 to 10");
@@ -62,7 +64,12 @@ export class OpenRouterProvider {
       try {
         const response = await this.fetchImpl(`${this.baseUrl}/chat/completions`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            ...(this.siteUrl ? { "HTTP-Referer": this.siteUrl } : {}),
+            ...(this.appName ? { "X-Title": this.appName } : {}),
+          },
           body: JSON.stringify(body),
           signal,
         });

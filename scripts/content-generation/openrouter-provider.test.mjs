@@ -28,6 +28,30 @@ describe("OpenRouterProvider", () => {
     expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe("Bearer test-only");
   });
 
+  it("uses the standardized endpoint, attribution, and bounded-attempt configuration", async () => {
+    const fetchImpl = vi.fn(async () => response(200, { choices: [{ message: { content: "ok" } }] }));
+    const provider = new OpenRouterProvider({
+      env: {
+        ...env,
+        OPENROUTER_BASE_URL: "http://localhost:43123/v1/",
+        OPENROUTER_MAX_ATTEMPTS: "4",
+        OPENROUTER_SITE_URL: "https://growthcast.app",
+        OPENROUTER_APP_NAME: "GrowthCast content generation",
+      },
+      fetchImpl,
+    });
+    await provider.generate({ system: "s", prompt: "p", input: null, maximumOutputTokens: 10 });
+    expect(fetchImpl.mock.calls[0][0]).toBe("http://localhost:43123/v1/chat/completions");
+    expect(fetchImpl.mock.calls[0][1].headers).toMatchObject({
+      "HTTP-Referer": "https://growthcast.app",
+      "X-Title": "GrowthCast content generation",
+    });
+    expect(provider.maximumAttempts).toBe(4);
+    expect(() => new OpenRouterProvider({ env: { ...env, OPENROUTER_MAX_ATTEMPTS: "0" } })).toThrow(
+      "OPENROUTER_MAX_ATTEMPTS must be an integer from 1 to 10",
+    );
+  });
+
   it("returns deduplicated retrievable citation evidence", async () => {
     const fetchImpl = vi.fn(async () => response(200, { choices: [{ message: {
       content: "Research synthesis",
