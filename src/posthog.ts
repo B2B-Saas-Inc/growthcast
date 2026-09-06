@@ -6,7 +6,7 @@ export const isPostHogEnabled = Boolean(posthogKey);
 
 if (posthogKey && typeof window !== 'undefined') {
   posthog.init(posthogKey, {
-    api_host: '/gcast-io',
+    api_host: '/ingest',
     ui_host: 'https://us.posthog.com',
     defaults: '2026-05-30',
     disable_session_recording: true,
