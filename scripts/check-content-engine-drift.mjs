@@ -3,13 +3,13 @@ import { access, readFile } from "node:fs/promises";
 import { loadConfiguration } from "@ejwhite/content-engine";
 
 const expected = Object.freeze({
-  dependency: "file:vendor/content-engine/ejwhite-content-engine-0.1.0-473d26fdc3ee.tgz",
+  dependency: "file:vendor/content-engine/ejwhite-content-engine-0.1.0-f8499258bd6e.tgz",
   packageVersion: "0.1.0",
-  sha256: "473d26fdc3eecdf2f811ec16e94a3ea6198c068fdbbdccb5173136e8fb331f76",
+  sha256: "f8499258bd6e3ac101f99a625b6759f26634879e5a44821269c69628e9ccc55c",
   profileVersion: "1.0.0",
   policyVersion: "1.0.0",
 });
-const artifact = new URL("../vendor/content-engine/ejwhite-content-engine-0.1.0-473d26fdc3ee.tgz", import.meta.url);
+const artifact = new URL("../vendor/content-engine/ejwhite-content-engine-0.1.0-f8499258bd6e.tgz", import.meta.url);
 const failures = [];
 const parseJson = async (path) => JSON.parse(await readFile(new URL(path, import.meta.url), "utf8"));
 
