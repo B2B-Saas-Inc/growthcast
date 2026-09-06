@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "content_id": "b2b-saas-lifecycle-marketing-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "b2b saas lifecycle marketing for startups",
+    "direct_answer": "Give the reader a method to create a lifecycle program that helps accounts reach meaningful product and commercial milestones."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a lifecycle program that helps accounts reach meaningful product and commercial milestones.",
+    "non_obvious_point": "Give the reader a method to create a lifecycle program that helps accounts reach meaningful product and commercial milestones.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "customers receive messages based on elapsed time rather than their actual progress, role, or need"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://docs.customer.io/journeys/create-a-campaign/",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://support.google.com/mail/answer/81126?hl=en",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "b2b-saas-lifecycle-marketing-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-04T12:15:00-04:00"
+  },
+  "approval": null
+}

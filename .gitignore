@@ -7,6 +7,7 @@ coverage/
 
 # Local validation artifacts
 artifacts/
+.content-runs/
 playwright-report/
 test-results/
 

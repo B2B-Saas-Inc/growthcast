@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "content_id": "answer-engine-optimization-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "answer engine optimization for startups",
+    "direct_answer": "Give the reader a method to create an evidence-led publishing system built around buyer questions, direct answers, source quality, and maintainable pages."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create an evidence-led publishing system built around buyer questions, direct answers, source quality, and maintainable pages.",
+    "non_obvious_point": "Give the reader a method to create an evidence-led publishing system built around buyer questions, direct answers, source quality, and maintainable pages.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "important expertise exists inside the company but public pages are vague, unsupported, or difficult to retrieve"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data",
+      "required": true
+    },
+    {
+      "claim_id": "planned-source-2",
+      "source_type": "authoritative-web-source:https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "answer-engine-optimization-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-05T12:30:00-04:00"
+  },
+  "approval": null
+}

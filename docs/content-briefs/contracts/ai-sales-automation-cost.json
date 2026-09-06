@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "content_id": "ai-sales-automation-cost",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "ai sales automation cost",
+    "direct_answer": "Give the reader a method to create a complete cost model tied to one sales workflow and a measurable operating result."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a complete cost model tied to one sales workflow and a measurable operating result.",
+    "non_obvious_point": "Give the reader a method to create a complete cost model tied to one sales workflow and a measurable operating result.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "the budget includes a tool subscription but omits data, integration, review, correction, and ongoing ownership"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "planned-source-1",
+      "source_type": "authoritative-web-source:https://www.nist.gov/itl/ai-risk-management-framework",
+      "required": true
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "ai-sales-automation-cost",
+    "indexable": false,
+    "scheduled_at": "2026-09-06T15:30:00-04:00"
+  },
+  "approval": null
+}

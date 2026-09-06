@@ -626,8 +626,8 @@ aside {
   max-width: 1420px;
   margin: 20px 0 28px;
   font-size: clamp(52px, 7.2vw, 112px);
-  line-height: 0.89;
-  letter-spacing: -0.07em;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
 }
 .agencyHeroCopy > p {
   max-width: 720px;
@@ -2745,15 +2745,38 @@ a:focus-visible,
 .contactModal label:nth-of-type(3),
 .contactModal label:nth-of-type(4),
 .contactModal label:nth-of-type(5),
+.contactModal .contactChallenge,
+.contactModal .contactConsent,
 .contactModal form > button {
   grid-column: 1 / -1;
 }
-.contactModal input {
+.contactModal input:not([type="checkbox"]),
+.contactModal select,
+.contactModal textarea {
   min-width: 0;
-  height: 46px;
   padding: 10px 12px;
   border: 1px solid #aaa49a;
   background: #faf9f5;
+}
+.contactModal input:not([type="checkbox"]),
+.contactModal select {
+  height: 46px;
+}
+.contactModal textarea {
+  resize: vertical;
+}
+.contactModal .contactConsent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.contactModal .contactConsent input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #6550b9;
 }
 .contactModal form > button {
   min-height: 48px;
@@ -2975,7 +2998,7 @@ a:focus-visible,
   .subpageHero h1 {
     margin: 16px 0 22px;
     font-size: clamp(38px, 12vw, 56px);
-    line-height: 0.94;
+    line-height: 1.08;
   }
   .agencyHeroCopy > p,
   .subpageHero p {

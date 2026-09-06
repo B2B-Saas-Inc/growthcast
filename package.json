@@ -5,16 +5,28 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 127.0.0.1 --port 4173",
-    "build": "astro check && astro build && npm run indexnow",
+    "build": "astro check && astro build && npm run content:rendered && npm run indexnow",
     "indexnow": "node scripts/submit-indexnow.mjs",
     "lint": "eslint .",
     "test": "vitest run",
-    "preview": "astro preview --host 127.0.0.1"
+    "preview": "astro preview --host 127.0.0.1",
+    "content:drift": "node scripts/check-content-engine-drift.mjs",
+    "content:briefs:migrate": "node scripts/migrate-content-briefs.mjs",
+    "content:briefs:check": "node scripts/migrate-content-briefs.mjs --check",
+    "content:inventory": "node scripts/content-astro-adapter.mjs inventory",
+    "content:validate": "node scripts/content-astro-adapter.mjs validate",
+    "content:draft": "node scripts/content-astro-adapter.mjs draft",
+    "content:preflight": "node scripts/content-astro-adapter.mjs preflight",
+    "content:schedule:dry-run": "PUBLISH_DRY_RUN=true node scripts/publish-due-posts.mjs",
+    "content:rendered": "node scripts/check-rendered-blog.mjs",
+    "content:generate": "node scripts/content-generation/cli.mjs"
   },
   "dependencies": {
     "@astrojs/react": "6.0.4",
     "@astrojs/rss": "4.0.19",
     "@astrojs/sitemap": "3.7.4",
+    "@ejwhite/content-engine": "file:vendor/content-engine/ejwhite-content-engine-0.1.0-835eb9f7c72a.tgz",
+    "astro": "7.2.9",
     "html-to-image": "1.11.13",
     "html2canvas": "1.4.1",
     "jspdf": "4.2.1",
@@ -24,7 +36,6 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "3.10.1",
-    "astro": "7.2.9",
     "typescript": "6.0.3"
   },
   "devDependencies": {

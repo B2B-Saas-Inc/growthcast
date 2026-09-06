@@ -83,6 +83,15 @@ npm run lint
 npm test
 npm run build
 npm run preview
+npm run content:drift
+npm run content:briefs:check
+npm run content:inventory
+npm run content:validate
+npm run content:draft -- <approved-brief-id>
+npm run content:generate -- <approved-brief-id> [--shadow] [--run-id <id>]
+npm run content:preflight -- <slug>
+npm run content:rendered
+npm run content:schedule:dry-run
 ```
 
 Formatting, database, email-preview, and worker commands are not configured. Mark new commands in this file when those systems are introduced.
@@ -93,11 +102,15 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 Astro owns route generation, document metadata, the blog, RSS, and sitemap. Public routes select one of two server-rendered, client-hydrated React islands: lightweight `src/AgencyApp.tsx` for agency pages and `src/App.tsx` for the Forecast product. This keeps charting and export libraries out of the agency page's initial dependency graph. Agency analytics load after the visitor's first interaction, with session replay, surveys, conversations, product tours, and feature flags disabled. The Forecast island owns UI state and local persistence orchestration. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; forecast formulas stay in the engines. The Monthly Forecast table is backed by `src/engine/channelBreakdown.ts`, while `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
+### Operator content persistence
+
+The public application remains static. Operator-only content automation uses the shared atomic filesystem queue under ignored `.content-runs/queue/` and exact publication-bundle records under `.content-runs/publication-bundles/`. The scheduler reads these records without creating approvals and fails closed unless shared artifact hashes, QA, and accountable bundle approval independently pass. This local queue is suitable for single-host operation; unattended production scheduling still requires a database-backed queue.
+
 ### Blog architecture
 
 The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. Future-dated posts are excluded from routes, RSS, and the sitemap until a scheduled GitHub Action detects that they are due and calls the configured Vercel deploy hook. `/blog` renders image-led article cards with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` preserves the MediaMixModel reference UX with breadcrumb and back navigation, author/read-time metadata, a boxed sticky table-of-contents/share rail that stacks on mobile, BreadcrumbList, and BlogPosting schema. Generate each post's standalone abstract artwork with `scripts/generate-blog-shape.html` and assign it to `artwork` for the article hero. Compose that artwork with article title, author, and publication date using `scripts/generate-blog-social.html`, then assign only the finished card to `image` for Open Graph metadata and `/blog` listings; never render the composed social card inside the article. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the agency site's complete Company/Resources navigation and contact entry point, local Manrope/DM Mono fonts, and GrowthCast colors from the existing visual system.
 
-Every article draft and edit must follow `docs/editorial/human-first-writing.md`. Run the human-first agency, AI-signature, rhythm, specificity, and read-aloud passes before approval. `node scripts/check-blog-writing.mjs` enforces the machine-testable hard rules during every container production build.
+Every article draft and edit must follow `docs/editorial/human-first-writing.md`. Run the human-first agency, AI-signature, rhythm, specificity, and read-aloud passes before approval. The reproducibly vendored `@ejwhite/content-engine` contract and GrowthCast profile enforce hard rules during every container build. `content:preflight` requires passing QA and an approval for the exact canonical article hash; `content:rendered` checks built metadata, indexability, and `BlogPosting` JSON-LD.
 
 ### B2C and B2B model contracts
 
@@ -181,7 +194,7 @@ Not currently applicable. If introduced, use schema-as-code, reviewed migrations
 
 PostHog captures product interaction events through a same-origin reverse proxy. The Growth Plan form identifies a person with their submitted first name and email only after explicit submission. The `growth_plan_requested` event includes the current `baseline` and `assumptions` JSON objects, but those objects are not person properties. Browser console errors must remain zero in validation. Never send secrets or imported files to analytics.
 
-The agency contact form also uses PostHog as its delivery path. It must not show a success state when PostHog is disabled or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
+The agency contact form posts only the governed lead fields to the same-origin `/api/lead` serverless endpoint. That endpoint validates the payload and consent, assigns a UUID-based submission ID, and captures one `lead_form_submitted` event in PostHog. Browser code must never call Attio directly or receive server-only PostHog configuration. The form must not show success when delivery fails or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
 
 ### Security
 
@@ -230,7 +243,13 @@ Target WCAG 2.2 AA:
 
 ## Environment variables
 
-- `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+- `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Browser analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+- `POSTHOG_PROJECT_TOKEN`: server-only project token used by `/api/lead`; never expose through a `VITE_` name.
+- `POSTHOG_CAPTURE_HOST`: optional server capture origin; defaults to `https://us.i.posthog.com`.
+- `OPENROUTER_API_KEY`: required server/operator-only credential for `content:generate`. Never expose it through a `VITE_` variable.
+- `OPENROUTER_MODEL`: required OpenRouter model identifier for research and generation.
+- `OPENROUTER_BASE_URL`: optional OpenRouter-compatible API root; defaults to `https://openrouter.ai/api/v1`.
+- `OPENROUTER_MAX_ATTEMPTS`: optional bounded HTTP attempt count from 1 to 10; defaults to 3.
 
 Do not create secret-bearing `.env` files. If more variables are introduced, add a secret-free `.env.example`, distinguish server-only from browser-safe values, validate them at startup, and document every variable here.
 

@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "content_id": "free-trial-conversion-optimization-for-startups",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "proposed",
+  "reader": {
+    "role": "US B2B SaaS founders and growth leads",
+    "task": "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+  },
+  "intent": {
+    "type": "compare",
+    "primary_query": "free trial conversion optimization for startups",
+    "direct_answer": "Give the reader a method to create a conversion program that connects acquisition fit, product progress, commercial intent, and upgrade timing."
+  },
+  "supporting_queries": [],
+  "angle": {
+    "thesis": "Give the reader a method to create a conversion program that connects acquisition fit, product progress, commercial intent, and upgrade timing.",
+    "non_obvious_point": "Give the reader a method to create a conversion program that connects acquisition fit, product progress, commercial intent, and upgrade timing.",
+    "boundaries": [
+      "No supplied search-volume data; do not claim rankings, typical outcomes, or guaranteed performance."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "problem definition",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "bounded use case",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "information contract",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "workflow",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "risks",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "pilot",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "measurement",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "cost",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "implementation choice",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    },
+    {
+      "heading": "next action",
+      "questions": [
+        "the team treats the final upgrade rate as one problem even though several earlier customer decisions shape it"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "Imported source requires human-input review before drafting.",
+      "approved_by": "migration-tool",
+      "approved_at": "2026-09-04T00:00:00.000Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [],
+  "prohibited_claims": [
+    "Unverified product, pricing, performance, or comparative claims"
+  ],
+  "source_plan": [],
+  "internal_link_targets": [
+    {
+      "url": "/why-growthcast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/company/partners",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Relevant GrowthCast context"
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "GrowthCast contact conversion"
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "free-trial-conversion-optimization-for-startups",
+    "indexable": false,
+    "scheduled_at": "2026-09-05T15:45:00-04:00"
+  },
+  "approval": null
+}
