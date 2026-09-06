@@ -1,6 +1,7 @@
 import posthog from 'posthog-js';
+import { DEFAULT_POSTHOG_PROJECT_KEY } from './posthog-project';
 
-const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
+const posthogKey = import.meta.env.VITE_POSTHOG_KEY || DEFAULT_POSTHOG_PROJECT_KEY;
 
 export const isPostHogEnabled = Boolean(posthogKey);
 

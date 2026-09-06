@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { DEFAULT_POSTHOG_PROJECT_KEY } from "../src/posthog-project.js";
 import { validateLead } from "../src/server/lead.js";
 
 type Request = { method?: string; headers: Record<string, string | string[] | undefined>; body?: unknown };
@@ -14,10 +15,8 @@ export default async function handler(req: Request, res: Response) {
   const size = Buffer.byteLength(JSON.stringify(req.body ?? null));
   if (size > MAX_BODY_BYTES) return res.status(413).json({ error: "payload_too_large" });
 
-  const token = process.env.POSTHOG_PROJECT_TOKEN;
+  const token = process.env.POSTHOG_PROJECT_TOKEN || DEFAULT_POSTHOG_PROJECT_KEY;
   const host = (process.env.POSTHOG_CAPTURE_HOST || "https://us.i.posthog.com").replace(/\/$/, "");
-  if (!token) return res.status(503).json({ error: "lead_service_unavailable" });
-
   const submissionId = `lead_${randomUUID()}`;
   let envelope;
   try { envelope = validateLead(req.body, submissionId); }
