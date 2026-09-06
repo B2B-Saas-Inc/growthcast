@@ -2751,12 +2751,8 @@ function AgencyHome({
     <article className="homeCard agencyHome">
       <section className="agencyHero conversionHero">
         <div className="agencyHeroCopy">
-          <span className="sectionLabel">GTM Engineering for Growth</span>
-          <h1>You gave the board a growth target. Here&apos;s how you&apos;re going to crush it.</h1>
-          <p>
-            GrowthCast executes at the nexus of marketing, product, sales, and
-            data to identify, prioritize, and build the Golden Path.
-          </p>
+          <h1>The GTM Engineering Agency for Turning Starups into Scale-ups.</h1>
+          <p>You gave the board a growth target. We&apos;ll make sure you crush it.</p>
           <div className="agencyActions">
             <button className="agencyPrimary" type="button" onClick={onContact}>
               Let's Talk Growth

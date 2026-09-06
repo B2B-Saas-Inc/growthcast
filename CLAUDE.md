@@ -194,7 +194,7 @@ Not currently applicable. If introduced, use schema-as-code, reviewed migrations
 
 PostHog captures product interaction events through a same-origin reverse proxy. The Growth Plan form identifies a person with their submitted first name and email only after explicit submission. The `growth_plan_requested` event includes the current `baseline` and `assumptions` JSON objects, but those objects are not person properties. Browser console errors must remain zero in validation. Never send secrets or imported files to analytics.
 
-The agency contact form also uses PostHog as its delivery path. It must not show a success state when PostHog is disabled or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
+The agency contact form posts only the governed lead fields to the same-origin `/api/lead` serverless endpoint. That endpoint validates the payload and consent, assigns a UUID-based submission ID, and captures one `lead_form_submitted` event in PostHog. Browser code must never call Attio directly or receive server-only PostHog configuration. The form must not show success when delivery fails or the browser is offline; preserve its explicit error state and keyboard-modal focus behavior.
 
 ### Security
 
@@ -243,7 +243,9 @@ Target WCAG 2.2 AA:
 
 ## Environment variables
 
-- `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+- `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Browser analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
+- `POSTHOG_PROJECT_TOKEN`: server-only project token used by `/api/lead`; never expose through a `VITE_` name.
+- `POSTHOG_CAPTURE_HOST`: optional server capture origin; defaults to `https://us.i.posthog.com`.
 - `OPENROUTER_API_KEY`: required server/operator-only credential for `content:generate`. Never expose it through a `VITE_` variable.
 - `OPENROUTER_MODEL`: required OpenRouter model identifier for research and generation.
 - `OPENROUTER_BASE_URL`: optional OpenRouter-compatible API root; defaults to `https://openrouter.ai/api/v1`.

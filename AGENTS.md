@@ -12,7 +12,7 @@ Instructions for coding agents working in this repository.
 ## Architecture
 
 - Astro + TypeScript static site with React islands. Astro owns public routes, SEO, the Markdown blog, RSS, and sitemap generation; `src/App.tsx` remains the interactive local-first agency/Forecast island. Forecast, Deep Dive, and Channels accept zero-valued baselines for pre-revenue modeling.
-- No backend, authentication, database, cookies, or live analytics connection.
+- No authentication, application database, or first-party cookies. The static site has one bounded Vercel `/api/lead` endpoint that validates agency leads, assigns a submission ID, and captures `lead_form_submitted` server-side in PostHog. It must never call Attio directly or expose server configuration through `VITE_` variables.
 - Private historical source data is not bundled or tracked. The editable runtime opening state is the Baseline page; any local `baseline.csv` is private and Git/Docker-ignored.
 - Forecast calculations belong in `src/engine/forecast.ts`, cumulative channel cohort attribution in `src/engine/channelBreakdown.ts`, and cash-flow/SaaS metrics in `src/engine/metrics.ts`; do not duplicate them in React components.
 - Reload-safe progress is local-only under versioned key `growth-model-state-v1`; assumption-set JSON/CSV is independently versioned with `schemaVersion`.

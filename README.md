@@ -2,7 +2,7 @@
 
 GrowthCast is a GTM Engineering agency site for Series A and later companies with product-market fit. Its free, local-first Forecast tool models acquisition, recurring revenue, and unit economics.
 
-The application has no backend or accounts. It runs as a static site and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
+The application has no accounts or application database. It runs primarily as a static site, with one bounded `/api/lead` serverless endpoint for validated agency lead capture, and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
 
 Astro owns the static routes, metadata, blog, RSS feed, and sitemap. The agency and Forecast experience is rendered as a React island so its existing local-first state and export workflows remain interactive without turning the blog into a client-side application.
 
@@ -12,7 +12,7 @@ Astro owns the static routes, metadata, blog, RSS feed, and sitemap. The agency 
 
 The default route presents GrowthCast as **GTM Engineering for Growth**. It targets founders, CEOs, VC partners, and private-equity partners at Series A and later companies that have traction but need a repeatable growth system. Its full-width hero leads into the AAARRR operating view, Current Demand / Future Demand, anonymized directional proof, fit, and the Forecast resource. Proof language must be checked for scope, attribution, evidence, and publication permission before final copy.
 
-Agency contact requests use the configured PostHog delivery path. The contact dialog reports an actionable error instead of claiming success when analytics is unavailable or the browser is offline, and it supports focus containment, Escape dismissal, and focus restoration.
+Agency contact requests POST an allowlisted lead payload to `/api/lead`. The server validates controlled values, consent, email, website, and start date; assigns a UUID-based submission ID; and captures one `lead_form_submitted` event in PostHog. Browser code never calls Attio or receives the PostHog server configuration. The dialog reports an actionable error instead of claiming success when delivery is unavailable or the browser is offline, and it supports focus containment, Escape dismissal, and focus restoration.
 
 **Why GrowthCast** at `/why-growthcast` explains the cross-functional growth problem and GTM Engineering point of view. **How We Work** at `/how-it-works` focuses on the four engagement stages and client operating changes rather than repeating the homepage. The agency header has no Services tab. It links to both pages and **Resources > Tools > Forecast**. The Forecast tool is available at `/resources/tools/forecast`; direct visits and browser history preserve the agency/tool boundary. Inside the tool, Reset, assumption import/export, forecast format, and forecast export controls live in the **Tools** dropdown beside Methodology.
 
@@ -199,7 +199,7 @@ At mobile widths, agency navigation remains fully available in a touch-sized gri
 
 ```text
 src/
-├── AgencyApp.tsx           Lightweight agency island and contact flow
+├── AgencyApp.tsx           Lightweight agency island and server-routed contact flow
 ├── App.tsx                 Forecast island, state, and exports
 ├── components/             Astro shell and React island entry points
 ├── content/blog/           Typed Markdown/MDX blog posts
@@ -207,7 +207,9 @@ src/
 ├── pages/                  Static routes, blog pages, and RSS endpoint
 ├── styles.css              Forecast and agency visual system
 ├── blog.css                GrowthCast blog visual system
-├── posthog.ts              Deferred agency analytics configuration
+├── posthog.ts              Browser analytics configuration
+├── server/lead.ts          Governed lead validation and envelope contract
+api/lead.ts                 Vercel serverless PostHog lead-capture endpoint
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests

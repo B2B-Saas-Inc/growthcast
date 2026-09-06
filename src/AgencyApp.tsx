@@ -57,12 +57,8 @@ function AgencyHome({
     <article className="homeCard agencyHome">
       <section className="agencyHero conversionHero">
         <div className="agencyHeroCopy">
-          <span className="sectionLabel">GTM Engineering for Growth</span>
-          <h1>You gave the board a growth target. Here&apos;s how you&apos;re going to crush it.</h1>
-          <p>
-            GrowthCast executes at the nexus of marketing, product, sales, and
-            data to identify, prioritize, and build the Golden Path.
-          </p>
+          <h1>The GTM Engineering Agency for Turning Starups into Scale-ups.</h1>
+          <p>You gave the board a growth target. We&apos;ll make sure you crush it.</p>
           <div className="agencyActions">
             <button className="agencyPrimary" type="button" onClick={onContact}>
               Let's Talk Growth
@@ -429,7 +425,6 @@ const loadAnalytics = () => import("./posthog");
 export default function AgencyApp({ initialPath = "/" }: { initialPath?: string }) {
   const [pageView, setPageView] = useState<PageView>(() => pageFromPath(initialPath));
   const [showContactForm, setShowContactForm] = useState(false);
-  const [contactSubmitted, setContactSubmitted] = useState(false);
   const [contactStatus, setContactStatus] = useState("");
   const contactDialog = useRef<HTMLElement>(null);
   const contactTrigger = useRef<HTMLElement | null>(null);
@@ -546,27 +541,27 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
     const data = new FormData(event.currentTarget);
     const firstName = String(data.get("firstName") || "").trim();
     const lastName = String(data.get("lastName") || "").trim();
-    const company = String(data.get("company") || "").trim();
+    const website = String(data.get("website") || "").trim();
     const email = String(data.get("email") || "").trim().toLowerCase();
     const title = String(data.get("title") || "").trim();
-    if (!firstName || !lastName || !company || !email || !title) return;
+    const primaryChallenge = String(data.get("primaryChallenge") || "").trim();
+    const consent = data.get("consent") === "on";
+    if (!firstName || !lastName || !website || !email || !title || !primaryChallenge || !consent) return;
     if (!navigator.onLine) {
       setContactStatus("Contact submission is temporarily unavailable. Please connect with our founder instead.");
       return;
     }
     try {
-      const { default: posthog, isPostHogEnabled } = await loadAnalytics();
-      if (!isPostHogEnabled) {
-        setContactStatus("Contact submission is temporarily unavailable. Please connect with our founder instead.");
-        return;
-      }
-      const contact = { email, first_name: firstName, last_name: lastName, company, title };
-      posthog.identify(email, contact);
-      posthog.capture("growth_conversation_requested", { source: "agency_contact_form", ...contact }, {
-        $set: contact, send_instantly: true, transport: "fetch",
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName, last_name: lastName, work_email: email, company_website: website,
+          job_title: title, primary_challenge: primaryChallenge, consent,
+        }),
       });
-      setContactSubmitted(true);
-      setContactStatus("");
+      if (!response.ok) throw new Error("lead_submission_failed");
+      window.location.assign("https://cal.com/growthcast/discovery");
     } catch {
       setContactStatus("Your request could not be submitted. Please try again.");
     }
@@ -607,16 +602,17 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
         <section ref={contactDialog} className="contactModal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
           <button className="contactModalClose" type="button" aria-label="Close contact form" onClick={closeContact}>×</button>
           <h2 id="contact-title">Let&apos;s talk growth.</h2>
-          {contactSubmitted ? <p className="contactSuccess" role="status">Thanks. We will be in touch.</p> :
-            <form onSubmit={requestGrowthConversation}>
+          <form onSubmit={requestGrowthConversation}>
               <label>First name<input name="firstName" autoComplete="given-name" required /></label>
               <label>Last name<input name="lastName" autoComplete="family-name" required /></label>
-              <label>Company<input name="company" autoComplete="organization" required /></label>
+              <label>Company website<input name="website" type="url" autoComplete="url" placeholder="https://example.com" required /></label>
               <label>Business email<input name="email" type="email" autoComplete="email" required /></label>
               <label>Title<input name="title" autoComplete="organization-title" required /></label>
+              <label className="contactChallenge">Primary Business Challenge(s)<textarea name="primaryChallenge" rows={4} required /></label>
+              <label className="contactConsent"><input name="consent" type="checkbox" required /> <span>I agree that GrowthCast may contact me about this request.</span></label>
               <button type="submit">Let&apos;s Talk Growth</button>
               {contactStatus && <p className="contactError" role="alert">{contactStatus}</p>}
-            </form>}
+          </form>
         </section>
       </div>}
       <footer className="agencyFooter h-card">
