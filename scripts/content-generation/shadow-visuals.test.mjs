@@ -50,6 +50,39 @@ describe("GrowthCast shadow visual stages", () => {
     deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
     await expect(runShadowVisualStages({ ...options, artifactDirectory: path.join(directory, "rejected") })).rejects.toThrow("prohibited factual chart");
   });
+  it("invalidates cached plans and assets when the final profile changes", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const initial = article();
+    const first = await runShadowVisualStages({ article: initial, artifactDirectory: directory, ...deps });
+    const changed = { ...initial, profile_version: "1.0.1", content_sha256: "" };
+    changed.content_sha256 = canonicalArticleHash(changed);
+    const rerun = await runShadowVisualStages({ article: changed, artifactDirectory: directory, ...deps });
+
+    expect(rerun.reused_asset_ids).toEqual([]);
+    expect(rerun.visual_plan_sha256).not.toBe(first.visual_plan_sha256);
+    expect(deps.proseProvider.generate).toHaveBeenCalledTimes(2);
+    expect(deps.imageProvider.generate).toHaveBeenCalledTimes(2);
+    expect(deps.renderer.render).toHaveBeenCalledTimes(6);
+    expect(rerun.manifest.assets.every(({ request }) => request.brand_profile_version === "1.0.1")).toBe(true);
+    expect(rerun.manifest.assets.every(({ request }) => request.article_sha256 === changed.content_sha256)).toBe(true);
+  });
+
+  it("fails before image or renderer effects for model drift and malformed plans", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
+    const wrongModel = dependencies();
+    wrongModel.imageProvider.model = "other-image-model";
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "model"), ...wrongModel })).rejects.toThrow("gemini-3-pro-image");
+    expect(wrongModel.imageProvider.generate).not.toHaveBeenCalled();
+    expect(wrongModel.renderer.render).not.toHaveBeenCalled();
+
+    const malformed = dependencies();
+    malformed.proseProvider.generate.mockResolvedValueOnce({ text: "not json" });
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "malformed"), ...malformed })).rejects.toThrow("invalid JSON");
+    expect(malformed.imageProvider.generate).not.toHaveBeenCalled();
+    expect(malformed.renderer.render).not.toHaveBeenCalled();
+  });
+
   it("resumes completed stages after a renderer failure and rejects a changed article", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
     const deps = dependencies();
