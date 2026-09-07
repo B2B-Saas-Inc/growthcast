@@ -91,31 +91,26 @@ function advanceSegment(
     isB2b && pendingCustomerCount
       ? newCustomers * (state.pendingMrr[monthIndex] / pendingCustomerCount)
       : state.pendingMrr[monthIndex];
+  const logoChurn =
+    assumptions.voluntaryCustomerChurn + assumptions.delinquentCustomerChurn;
+  const annualB2bChurnEvent = isB2b && (monthIndex + 1) % 12 === 0;
   const churnedCustomers = Math.min(
     state.customers,
-    Math.round(
-      state.customers *
-        (assumptions.voluntaryCustomerChurn +
-          assumptions.delinquentCustomerChurn),
-    ),
+    annualB2bChurnEvent || !isB2b
+      ? Math.round(state.customers * logoChurn)
+      : 0,
   );
   const churnMrr = isB2b
-    ? Math.min(
-        state.mrr,
-        newCustomerArpu
-          ? Math.round((state.mrr * revenueChurn) / newCustomerArpu) *
-              newCustomerArpu
-          : 0,
-      )
+    ? Math.min(state.mrr, churnedCustomers * newCustomerArpu)
     : state.mrr * revenueChurn;
   state.customers = Math.max(0, state.customers + newCustomers - churnedCustomers);
+  const expansionMrr =
+    !isB2b || annualB2bChurnEvent ? state.mrr * assumptions.expansionRate : 0;
+  const retractionMrr =
+    !isB2b || annualB2bChurnEvent ? state.mrr * assumptions.retractionRate : 0;
   state.mrr = Math.max(
     0,
-    state.mrr +
-      newMrr +
-      state.mrr * assumptions.expansionRate -
-      state.mrr * assumptions.retractionRate -
-      churnMrr,
+    state.mrr + newMrr + expansionMrr - retractionMrr - churnMrr,
   );
   const arpu = state.customers ? state.mrr / state.customers : 0;
   const acquisitionArpu = newCustomers ? newMrr / newCustomers : null;
@@ -247,8 +242,12 @@ export function calculateChannelBreakdown(
   return Array.from({ length: assumptions.months }, (_, index) => {
     const month = addMonths(start.month, index + 1);
     const revenueChurn =
-      overrides.revenueChurn?.[month] ??
-      assumptions.voluntaryRevenueChurn + assumptions.delinquentRevenueChurn;
+      assumptions.businessModel === "b2b"
+        ? (assumptions.voluntaryCustomerChurn +
+            assumptions.delinquentCustomerChurn) /
+          12
+        : overrides.revenueChurn?.[month] ??
+          assumptions.voluntaryRevenueChurn + assumptions.delinquentRevenueChurn;
     baselineVisitors =
       baselineVisitors * (1 + assumptions.monthlyTrafficGrowth) +
       assumptions.monthlyIncrementalVisitors;

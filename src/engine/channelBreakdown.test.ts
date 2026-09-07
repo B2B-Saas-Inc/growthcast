@@ -175,7 +175,7 @@ describe("channel breakdown", () => {
     )!;
     expect(branded.newCustomers).toBe(0);
     expect(branded.maxCostPerMql).toBeNull();
-    expect(projection[0].maxCostPerMql).toBeNull();
+    expect(projection[0].maxCostPerMql).toBeCloseTo(9933.33, 2);
     const realizedBranded = breakdown[1].categories
       .flatMap((category) => category.channels)
       .find((channel) => channel.name === "Branded Search")!;
