@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -46,6 +46,13 @@ describe("GrowthCast shadow visual stages", () => {
     expect(repaired.reused_asset_ids).toHaveLength(3);
     expect(deps.imageProvider.generate).toHaveBeenCalledTimes(2);
     expect(deps.renderer.render).toHaveBeenCalledTimes(3);
+
+    const missing = repaired.manifest.assets.find(({ request }) => request.kind === "hero");
+    await unlink(path.join(directory, missing.artifact_path));
+    const restored = await runShadowVisualStages(options);
+    expect(restored.reused_asset_ids).toHaveLength(3);
+    expect(deps.imageProvider.generate).toHaveBeenCalledTimes(2);
+    expect(deps.renderer.render).toHaveBeenCalledTimes(4);
 
     deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
     await expect(runShadowVisualStages({ ...options, artifactDirectory: path.join(directory, "rejected") })).rejects.toThrow("prohibited factual chart");
