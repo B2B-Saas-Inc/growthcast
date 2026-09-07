@@ -10,6 +10,7 @@ if (posthogKey && typeof window !== 'undefined') {
     api_host: '/ingest',
     ui_host: 'https://us.posthog.com',
     defaults: '2026-05-30',
+    capture_pageview: false,
     disable_session_recording: true,
     disable_surveys: true,
     disable_conversations: true,
@@ -21,6 +22,7 @@ if (posthogKey && typeof window !== 'undefined') {
       capture_console_errors: false,
     },
   });
+  posthog.capture('$pageview');
 }
 
 export default posthog;

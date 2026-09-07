@@ -1,5 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import "./posthog";
+import posthog, { isPostHogEnabled } from "./posthog";
 
 type PageView =
   | "home"
@@ -490,6 +490,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
   const navigate = (target: PageView, path: string) => {
     closeSiteMenus();
     window.history.pushState({}, "", path);
+    if (isPostHogEnabled) posthog.capture("$pageview", { navigation_type: "pushState" });
     setPageView(target);
     window.scrollTo({ top: 0 });
   };
