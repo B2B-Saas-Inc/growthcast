@@ -48,6 +48,28 @@ describe("GrowthCast shadow visual stages", () => {
     expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
   });
 
+  it("finds one strictly valid inline array under unknown provider wrappers", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-recursive-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const original = deps.proseProvider.generate.getMockImplementation();
+    deps.proseProvider.generate.mockImplementation(async (...args) => {
+      const result = await original(...args);
+      return { ...result, text: JSON.stringify({ response: { editorial_assets: { illustrations: JSON.parse(result.text).inline } } }) };
+    });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
+  });
+
+  it("fails closed when provider output contains multiple valid inline arrays", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const item = JSON.parse((await deps.proseProvider.generate()).text).inline;
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ first: item, second: item }) });
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps })).rejects.toThrow("exactly one structurally valid inline array; found 2");
+    expect(deps.imageProvider.generate).not.toHaveBeenCalled();
+    expect(deps.renderer.render).not.toHaveBeenCalled();
+  });
+
   it("invalidates a tampered binary without repeating other provider calls and rejects invented factual visuals", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
     const deps = dependencies();

@@ -75,10 +75,20 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
       maximumOutputTokens: 2000,
     });
     const raw = parsePlan(generated);
-    const wrapped = raw.visual_plan ?? raw.plan ?? raw;
-    const inline = wrapped.inline ?? wrapped.inline_visuals ?? wrapped.visuals;
-    if (!Array.isArray(inline)) throw new Error("visual-plan response must contain an inline array");
-    plan = createVisualPlan(article, inline);
+    const candidates = [];
+    const required = ["body_locator", "purpose", "concept", "alt", "caption"];
+    const visit = (value) => {
+      if (Array.isArray(value)) {
+        if (value.length > 0 && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && required.every((key) => typeof item[key] === "string"))) candidates.push(value);
+        return;
+      }
+      if (value && typeof value === "object") Object.values(value).forEach(visit);
+    };
+    visit(raw);
+    if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
+    plan = createVisualPlan(article, candidates[0]);
+    const findings = validateVisualPlan(article, plan);
+    if (findings.length > 0) throw new Error(findings.map((finding) => finding.message).join("; "));
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);
   }
   const assetDirectory = path.join(path.resolve(artifactDirectory), "assets");
