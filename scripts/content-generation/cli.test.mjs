@@ -63,6 +63,9 @@ describe("generation operator CLI", () => {
     expect(() => parseArguments(["approved-brief", "--shadow", "--approval-file", "approval.json"])).toThrow("approval must remain null");
     expect(() => parseArguments(["approved-brief", "--shadow", "--upload"])).toThrow("Unknown argument");
     expect(() => parseArguments(["approved-brief", "--shadow", "--publish"])).toThrow("Unknown argument");
+    for (const forbidden of ["--sanity", "--deploy", "--index", "--database", "--materialize"]) {
+      expect(() => parseArguments(["approved-brief", "--shadow", forbidden])).toThrow("Unknown argument");
+    }
   });
 
   it("fails before HTTP when credentials are missing", async () => {
@@ -83,7 +86,18 @@ describe("generation operator CLI", () => {
     expect(fetchImpl).toHaveBeenCalledTimes(8);
     expect(visuals.imageProvider.generate).toHaveBeenCalledTimes(1);
     expect(visuals.renderer.render).toHaveBeenCalledTimes(3);
-    expect(first).toMatchObject({ mode: "shadow", source_written: null, publication_requested: false, deploy_hook_invoked: false, publication_approval: null });
+    expect(first).toMatchObject({
+      mode: "shadow",
+      source_written: null,
+      source_materialization_requested: false,
+      storage_upload_requested: false,
+      sanity_requested: false,
+      database_write_requested: false,
+      deploy_hook_invoked: false,
+      indexing_requested: false,
+      publication_requested: false,
+      publication_approval: null,
+    });
     expect(first.asset_manifest_sha256).toMatch(/^[a-f0-9]{64}$/u);
     expect(first.publication_bundle_sha256).toMatch(/^[a-f0-9]{64}$/u);
     await expect(readFile(path.join(root, "src/content/blog/approved-brief.md"), "utf8")).rejects.toMatchObject({ code: "ENOENT" });
