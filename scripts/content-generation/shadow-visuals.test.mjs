@@ -57,6 +57,22 @@ describe("GrowthCast shadow visual stages", () => {
     deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
     await expect(runShadowVisualStages({ ...options, artifactDirectory: path.join(directory, "rejected") })).rejects.toThrow("prohibited factual chart");
   });
+  it("recovers from malformed generated PNG output without repeating successful work", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const render = deps.renderer.render.getMockImplementation();
+    deps.renderer.render.mockResolvedValueOnce({ bytes: Buffer.from("not a png"), mime_type: "image/png", renderer: { name: "mock-production-compositor", version: "1.0.0", library_versions: { mock: "1.0.0" } }, prompt_sha256: canonicalSha256("malformed") });
+    const options = { article: article(), artifactDirectory: directory, ...deps };
+    await expect(runShadowVisualStages(options)).rejects.toThrow("failed PNG validation");
+    expect(deps.imageProvider.generate).toHaveBeenCalledTimes(1);
+
+    deps.renderer.render.mockImplementation(render);
+    const resumed = await runShadowVisualStages(options);
+    expect(resumed.reused_asset_ids).toEqual([expect.stringMatching(/^inline-/u)]);
+    expect(deps.imageProvider.generate).toHaveBeenCalledTimes(1);
+    expect(deps.renderer.render).toHaveBeenCalledTimes(4);
+  });
+
   it("invalidates cached plans and assets when the final profile changes", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
     const deps = dependencies();
