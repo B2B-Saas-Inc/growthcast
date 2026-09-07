@@ -50,6 +50,24 @@ export class FilesystemShadowAssetStore {
   }
 }
 
+function normalizeHeadingLocator(value, locators) {
+  const requested = value.trim();
+  if (locators.includes(requested)) return requested;
+  const headingText = requested.replace(/^#{1,6}\s+/u, "").trim();
+  const matches = locators.filter((locator) => locator.replace(/^#{2,6}\s+/u, "").trim() === headingText);
+  return matches.length === 1 ? matches[0] : requested;
+}
+
+function normalizeInlineConcepts(items, locators) {
+  return items.map((item) => ({
+    body_locator: normalizeHeadingLocator(item.body_locator, locators),
+    purpose: item.purpose.trim(),
+    concept: item.concept.trim(),
+    alt: item.alt.trim(),
+    caption: item.caption.trim(),
+  }));
+}
+
 function parsePlan(result) {
   const source = result.text.trim().replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, "");
   try { return JSON.parse(source); }
@@ -69,8 +87,19 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
   }
   if (!plan) {
     const generated = await proseProvider.generate({
-      system: "Return only JSON. Plan contextual editorial illustrations; never charts, UI, dashboards, screenshots, metrics, benchmarks, or claimed results.",
-      prompt: "Return an object with an inline array. Each item requires body_locator, purpose, concept, accessible alt, and caption.",
+      system: [
+        "Return only JSON for contextual editorial illustrations that materially improve comprehension.",
+        "Use conceptual, non-factual scenes: relationships, sequences, boundaries, or decision flow without numbers or purported observations.",
+        "Never request or depict charts, graphs, UI, dashboards, screenshots, reports, metrics, benchmarks, customer outcomes, or claimed results.",
+        "Do not introduce facts, labels inside the image, logos, trademarks, or photorealistic people.",
+      ].join(" "),
+      prompt: [
+        "Return exactly {\"inline\":[...]}; do not add another candidate array.",
+        "Each item must contain only string fields body_locator, purpose, concept, alt, and caption.",
+        "Copy body_locator exactly from valid_body_locators (a unique heading text without Markdown marks is normalized back to that final heading).",
+        "Purpose must explain the comprehension gain; concept must describe a clearly non-factual illustration.",
+        "Alt must independently describe the meaningful visual relationship for a screen-reader user, not say image/graphic; caption must explain the takeaway without asserting results.",
+      ].join(" "),
       input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators },
       maximumOutputTokens: 2000,
     });
@@ -86,7 +115,7 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
     };
     visit(raw);
     if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
-    plan = createVisualPlan(article, candidates[0]);
+    plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators));
     const findings = validateVisualPlan(article, plan);
     if (findings.length > 0) throw new Error(findings.map((finding) => finding.message).join("; "));
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);

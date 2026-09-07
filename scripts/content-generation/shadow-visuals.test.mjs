@@ -60,6 +60,32 @@ describe("GrowthCast shadow visual stages", () => {
     expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
   });
 
+  it("normalizes a unique heading text to the exact final locator and prompts for accessible non-factual concepts", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-normalized-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", purpose: "  Explain how evidence review leads to a decision  ", concept: "  Abstract source cards passing through review gates  ", alt: "  Source cards pass through review gates toward a decision  ", caption: "  Evidence is reviewed before a decision is made.  " }] }) });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets[0].request.body_locator).toBe("## Review the evidence");
+    expect(result.manifest.assets[0].request.alt).toBe("Source cards pass through review gates toward a decision");
+    const call = deps.proseProvider.generate.mock.calls[0][0];
+    expect(call.system).toContain("conceptual, non-factual");
+    expect(call.system).toContain("Never request or depict charts");
+    expect(call.prompt).toContain("screen-reader user");
+    expect(call.prompt).toContain("Copy body_locator exactly");
+  });
+
+  it("does not guess an ambiguous final heading locator", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-heading-")); directories.push(directory);
+    const deps = dependencies();
+    const duplicateHeadingArticle = article();
+    duplicateHeadingArticle.body = "## Review the evidence\n\nFirst.\n\n### Review the evidence\n\nSecond.";
+    duplicateHeadingArticle.content_sha256 = canonicalArticleHash({ ...duplicateHeadingArticle, content_sha256: "" });
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", purpose: "Explain the evidence review sequence", concept: "Abstract sources moving through a decision gate", alt: "Sources move through a review gate before a decision", caption: "Evidence passes through a review gate." }] }) });
+    await expect(runShadowVisualStages({ article: duplicateHeadingArticle, artifactDirectory: directory, ...deps })).rejects.toThrow("locator is not present in final article");
+    expect(deps.imageProvider.generate).not.toHaveBeenCalled();
+    expect(deps.renderer.render).not.toHaveBeenCalled();
+  });
+
   it("fails closed when provider output contains multiple valid inline arrays", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-visuals-")); directories.push(directory);
     const deps = dependencies();
