@@ -95,6 +95,8 @@ export class OpenRouterProvider {
         { role: "user", content: `${request.prompt}\n\nInput JSON:\n${JSON.stringify(request.input)}` },
       ],
       max_tokens: request.maximumOutputTokens,
+      reasoning: { effort: "low", exclude: true },
+      response_format: { type: "json_object" },
       temperature: 0,
     }, signal);
     const text = result?.choices?.[0]?.message?.content;

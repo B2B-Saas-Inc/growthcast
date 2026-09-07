@@ -26,6 +26,9 @@ describe("OpenRouterProvider", () => {
     });
     expect(fetchImpl.mock.calls[0][1].body).not.toContain("test-only");
     expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe("Bearer test-only");
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body)).toMatchObject({
+      reasoning: { effort: "low", exclude: true }, response_format: { type: "json_object" },
+    });
   });
 
   it("uses the standardized endpoint, attribution, and bounded-attempt configuration", async () => {

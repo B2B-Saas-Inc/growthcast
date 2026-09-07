@@ -36,6 +36,18 @@ describe("GrowthCast shadow visual stages", () => {
     expect(JSON.parse(await readFile(path.join(directory, "publication-bundle.json"), "utf8")).publication_bundle_sha256).toBe(first.bundle.publication_bundle_sha256);
   });
 
+  it("accepts a provider visual-plan wrapper without weakening validation", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-wrapped-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const original = deps.proseProvider.generate.getMockImplementation();
+    deps.proseProvider.generate.mockImplementation(async (...args) => {
+      const result = await original(...args);
+      return { ...result, text: JSON.stringify({ visual_plan: { inline_visuals: JSON.parse(result.text).inline } }) };
+    });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
+  });
+
   it("invalidates a tampered binary without repeating other provider calls and rejects invented factual visuals", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
     const deps = dependencies();

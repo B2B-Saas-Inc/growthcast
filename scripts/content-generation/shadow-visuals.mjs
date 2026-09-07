@@ -75,7 +75,10 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
       maximumOutputTokens: 2000,
     });
     const raw = parsePlan(generated);
-    plan = createVisualPlan(article, raw.inline);
+    const wrapped = raw.visual_plan ?? raw.plan ?? raw;
+    const inline = wrapped.inline ?? wrapped.inline_visuals ?? wrapped.visuals;
+    if (!Array.isArray(inline)) throw new Error("visual-plan response must contain an inline array");
+    plan = createVisualPlan(article, inline);
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);
   }
   const assetDirectory = path.join(path.resolve(artifactDirectory), "assets");

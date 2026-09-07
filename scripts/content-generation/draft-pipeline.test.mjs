@@ -73,6 +73,28 @@ describe("runDraftPipeline", () => {
     await expect(readFile(dirs.source, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("normalizes an article wrapper returned by the human-first stage", async () => {
+    const dirs = await locations();
+    const mock = provider();
+    const generate = mock.generate;
+    mock.generate = vi.fn(async (request) => {
+      const result = await generate(request);
+      return request.prompt.includes("complete corrected article JSON object") && generate.mock.calls.length === 6
+        ? { ...result, text: JSON.stringify({ article: {
+          ...JSON.parse(result.text),
+          claims: [{ claim_id: "claim-1", claim: "NIST publishes an AI risk framework.", evidence_urls: ["https://www.nist.gov/itl/ai-risk-management-framework"] }],
+          internal_links: [{ url: "/why-growthcast", anchor_text: "why GrowthCast", purpose: "Context" }],
+        } }) }
+        : result;
+    });
+
+    const result = await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "wrapped-human-first", ...dirs });
+    expect(result.article).toMatchObject({ title: "A measured growth workflow", approval: null });
+    expect(result.article.body).toContain("https://www.nist.gov/");
+    expect(result.article.claims[0]).toMatchObject({ text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"] });
+    expect(result.article.internal_links[0]).toEqual({ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true });
+  });
+
   it("records a failed stage and resumes it without replaying completed stages", async () => {
     const dirs = await locations();
     const mock = provider();
