@@ -43,6 +43,7 @@ async function fixture() {
   const specs = [
     ["inline-1", "inline-illustration", "## First section", "inline"],
     ["hero-1", "hero", undefined, "hero"],
+    ["thumbnail-1", "thumbnail", undefined, "thumbnail"],
     ["og-1", "og", undefined, "og"],
   ];
   const assets = [];

@@ -2,9 +2,11 @@
 import { constants } from "node:fs";
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { createQaReport, loadConfiguration, parseContract } from "@ejwhite/content-engine";
+import { GoogleImageGenerationProvider, createQaReport, googleImageOptionsFromEnvironment, loadConfiguration, parseContract } from "@ejwhite/content-engine";
 import { runDraftPipeline } from "./draft-pipeline.mjs";
 import { OpenRouterProvider } from "./openrouter-provider.mjs";
+import { createGrowthCastProductionRenderer } from "./production-renderer.mjs";
+import { runShadowVisualStages } from "./shadow-visuals.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
@@ -28,6 +30,7 @@ export function parseArguments(argv) {
   }
   if (!options.briefId) throw new Error(usage());
   if (options.shadow && options.writeToSrc) throw new Error("--shadow cannot be combined with --write-to-src");
+  if (options.shadow && options.approvalFile) throw new Error("--shadow cannot be combined with --approval-file; generated bundle approval must remain null");
   return options;
 }
 
@@ -63,7 +66,7 @@ async function writeSourceDraft(article, root) {
   return target;
 }
 
-export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl = globalThis.fetch } = {}) {
+export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl = globalThis.fetch, imageProvider, renderer, now } = {}) {
   const options = parseArguments(argv);
   const briefFile = path.join(root, "docs/content-briefs/contracts", `${options.briefId}.json`);
   await access(briefFile, constants.R_OK);
@@ -74,6 +77,12 @@ export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl =
   const provider = new OpenRouterProvider({ env, fetchImpl });
   let result = await runDraftPipeline({ brief, provider, runId, artifactDirectory: artifactRoot, checkpointDirectory: checkpointRoot });
   result = await applyApproval(result, options.approvalFile);
+  let visuals = null;
+  if (options.shadow) {
+    const resolvedRenderer = renderer || createGrowthCastProductionRenderer();
+    const resolvedImageProvider = imageProvider || new GoogleImageGenerationProvider({ ...googleImageOptionsFromEnvironment(env), fetch: fetchImpl });
+    visuals = await runShadowVisualStages({ article: result.article, proseProvider: provider, imageProvider: resolvedImageProvider, renderer: resolvedRenderer, artifactDirectory: result.artifactDirectory, now });
+  }
   const sourcePath = options.writeToSrc ? await writeSourceDraft(result.article, root) : null;
   return {
     mode: options.shadow ? "shadow" : "review",
@@ -84,6 +93,9 @@ export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl =
     source_written: sourcePath ? path.relative(root, sourcePath) : null,
     publication_requested: false,
     deploy_hook_invoked: false,
+    asset_manifest_sha256: visuals?.manifest.asset_manifest_sha256 ?? null,
+    publication_bundle_sha256: visuals?.bundle.publication_bundle_sha256 ?? null,
+    publication_approval: visuals?.bundle.approval ?? null,
   };
 }
 

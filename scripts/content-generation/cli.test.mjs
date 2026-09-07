@@ -2,7 +2,9 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { canonicalSha256, renderFixtureOg, renderHero } from "@ejwhite/content-engine";
 import { parseArguments, runCli } from "./cli.mjs";
+import { createGrowthCastProductionRenderer } from "./production-renderer.mjs";
 
 const directories = [];
 afterEach(async () => Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true }))));
@@ -21,13 +23,31 @@ async function workspace() {
 }
 
 function mockedHttp() {
-  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body: "Use a bounded workflow backed by [NIST](https://www.nist.gov/itl/ai-risk-management-framework).\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)", claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "paragraph-1" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
+  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body: "## Choose a workflow\n\nUse a bounded workflow backed by [NIST](https://www.nist.gov/itl/ai-risk-management-framework).\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)", claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "paragraph-1" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
   return vi.fn(async (_url, init) => {
     const body = JSON.parse(init.body);
     const research = body.plugins?.[0]?.id === "web";
-    const message = research ? { content: "NIST framework", annotations: [{ url_citation: { url: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", content: "NIST publishes an AI risk management framework." } }] } : { content: JSON.stringify(body.messages[1]?.content.includes("outline array") ? { outline: [{ heading: "Choose a workflow" }] } : article) };
+    const userMessage = body.messages?.[1]?.content || "";
+    const generated = userMessage.includes("valid_body_locators")
+      ? { inline: [{ body_locator: "## Choose a workflow", purpose: "Clarify the bounded workflow sequence", concept: "Abstract connected steps with a review gate", alt: "Connected workflow steps ending at a review gate", caption: "A bounded workflow pauses for review." }] }
+      : (userMessage.includes("outline array") ? { outline: [{ heading: "Choose a workflow" }] } : article);
+    const message = research ? { content: "NIST framework", annotations: [{ url_citation: { url: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", content: "NIST publishes an AI risk management framework." } }] } : { content: JSON.stringify(generated) };
     return { ok: true, json: async () => ({ model: "mock-model", choices: [{ message }] }) };
   });
+}
+
+
+function mockedVisuals() {
+  const imageProvider = { provider: "google", model: "gemini-3-pro-image", generate: vi.fn(async (request, prompt) => {
+    const image = renderHero({ brand: "verdant", contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: "inline" });
+    return { bytes: image.bytes, mime_type: "image/png", provider: "google", model: "gemini-3-pro-image", prompt_sha256: canonicalSha256(prompt), retry_count: 0 };
+  }) };
+  const renderer = { render: vi.fn(async (request, article) => {
+    const input = { brand: request.brand, contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: article.title };
+    const image = request.kind === "og" ? renderFixtureOg(input) : renderHero(input, request.kind === "thumbnail");
+    return { bytes: image.bytes, mime_type: "image/png", renderer: { name: "mock-certified-production-renderer", version: "1.0.0", library_versions: { mock: "1.0.0" } }, prompt_sha256: canonicalSha256(request) };
+  }) };
+  return { imageProvider, renderer };
 }
 
 const env = { OPENROUTER_API_KEY: "test-only", OPENROUTER_MODEL: "mock-model", OPENROUTER_BASE_URL: "https://mock.invalid" };
@@ -37,6 +57,12 @@ describe("generation operator CLI", () => {
     expect(() => parseArguments(["approved-brief", "--shadow", "--write-to-src"])).toThrow(
       "--shadow cannot be combined with --write-to-src",
     );
+  });
+
+  it("rejects approvals and every source-write path in shadow mode", () => {
+    expect(() => parseArguments(["approved-brief", "--shadow", "--approval-file", "approval.json"])).toThrow("approval must remain null");
+    expect(() => parseArguments(["approved-brief", "--shadow", "--upload"])).toThrow("Unknown argument");
+    expect(() => parseArguments(["approved-brief", "--shadow", "--publish"])).toThrow("Unknown argument");
   });
 
   it("fails before HTTP when credentials are missing", async () => {
@@ -49,11 +75,17 @@ describe("generation operator CLI", () => {
   it("creates resumable shadow artifacts and never writes source by default", async () => {
     const root = await workspace();
     const fetchImpl = mockedHttp();
-    const first = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], { root, env, fetchImpl });
-    const resumed = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], { root, env, fetchImpl });
+    const visuals = mockedVisuals();
+    const dependencies = { root, env, fetchImpl, ...visuals, now: () => "2026-09-05T00:00:00.000Z" };
+    const first = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
+    const resumed = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
     expect(resumed).toEqual(first);
-    expect(fetchImpl).toHaveBeenCalledTimes(7);
-    expect(first).toMatchObject({ mode: "shadow", source_written: null, publication_requested: false, deploy_hook_invoked: false });
+    expect(fetchImpl).toHaveBeenCalledTimes(8);
+    expect(visuals.imageProvider.generate).toHaveBeenCalledTimes(1);
+    expect(visuals.renderer.render).toHaveBeenCalledTimes(3);
+    expect(first).toMatchObject({ mode: "shadow", source_written: null, publication_requested: false, deploy_hook_invoked: false, publication_approval: null });
+    expect(first.asset_manifest_sha256).toMatch(/^[a-f0-9]{64}$/u);
+    expect(first.publication_bundle_sha256).toMatch(/^[a-f0-9]{64}$/u);
     await expect(readFile(path.join(root, "src/content/blog/approved-brief.md"), "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
@@ -70,4 +102,22 @@ describe("generation operator CLI", () => {
     await writeFile(approvalFile, JSON.stringify({ status: "approved", approved_by: "human editor", approved_at: "2026-09-04T00:00:00.000Z", content_sha256: "f".repeat(64) }));
     await expect(runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile], { root, env, fetchImpl })).rejects.toThrow("approval content hash does not match");
   });
+  it("uses a deterministic certified GrowthCast renderer with exact-title Manrope/logo OG", async () => {
+    const renderer = createGrowthCastProductionRenderer();
+    const article = { content_id: "renderer-proof", content_sha256: "b".repeat(64), brand: "growthcast", profile_version: "1.0.0", title: "An exact title for a measured growth workflow" };
+    const request = (kind) => ({ content_id: article.content_id, article_sha256: article.content_sha256, brand: article.brand, kind, brand_profile_version: article.profile_version });
+    const hero = await renderer.render(request("hero"), article);
+    const heroAgain = await renderer.render(request("hero"), article);
+    const thumbnail = await renderer.render(request("thumbnail"), article);
+    const og = await renderer.render(request("og"), article);
+    const ogAgain = await renderer.render(request("og"), article);
+    expect(hero.bytes).toEqual(heroAgain.bytes);
+    expect(og.bytes).toEqual(ogAgain.bytes);
+    expect(hero.bytes).not.toEqual(thumbnail.bytes);
+    expect(og.renderer).toMatchObject({ name: "certified-growthcast-compositor", library_versions: { opentype: "1.3.4" } });
+    const changed = await renderer.render(request("og"), { ...article, title: `${article.title} revised` });
+    expect(changed.bytes).not.toEqual(og.bytes);
+    await expect(renderer.render({ ...request("hero"), brand: "verdant" }, article)).rejects.toThrow("foreign brands");
+  });
+
 });

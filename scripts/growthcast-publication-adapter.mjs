@@ -72,7 +72,7 @@ async function writeReceipt(root, bundle, published, articleFileSha256) {
 
 function exactAssets(bundle) {
   const assets = bundle.asset_manifest.assets;
-  for (const kind of ["inline-illustration", "hero", "og"])
+  for (const kind of ["inline-illustration", "hero", "thumbnail", "og"])
     if (!assets.some((asset) => asset.request.kind === kind)) throw new Error(`missing required ${kind} asset`);
   const locators = new Set();
   for (const asset of assets.filter((item) => item.request.kind === "inline-illustration")) {
@@ -143,8 +143,9 @@ export class GrowthcastPublicationAdapter {
       }
     }
     const hero = exactAssets(bundle).find((asset) => asset.request.kind === "hero");
+    const thumbnail = exactAssets(bundle).find((asset) => asset.request.kind === "thumbnail");
     const og = exactAssets(bundle).find((asset) => asset.request.kind === "og");
-    const frontmatter = ["---", `title: ${JSON.stringify(bundle.article.title)}`, `description: ${JSON.stringify(bundle.article.description)}`, `publishedAt: ${JSON.stringify(bundle.article.published_at)}`, `author: ${JSON.stringify(bundle.article.author)}`, "tags: []", "featured: false", "draft: false", `image: ${JSON.stringify(references[og.request.asset_id].path)}`, `artwork: ${JSON.stringify(references[hero.request.asset_id].path)}`, `contentSha256: ${JSON.stringify(bundle.article.content_sha256)}`, `publicationBundleSha256: ${JSON.stringify(bundle.publication_bundle_sha256)}`, "---", ""].join("\n");
+    const frontmatter = ["---", `title: ${JSON.stringify(bundle.article.title)}`, `description: ${JSON.stringify(bundle.article.description)}`, `publishedAt: ${JSON.stringify(bundle.article.published_at)}`, `author: ${JSON.stringify(bundle.article.author)}`, "tags: []", "featured: false", "draft: false", `image: ${JSON.stringify(references[og.request.asset_id].path)}`, `artwork: ${JSON.stringify(references[hero.request.asset_id].path)}`, `thumbnail: ${JSON.stringify(references[thumbnail.request.asset_id].path)}`, `contentSha256: ${JSON.stringify(bundle.article.content_sha256)}`, `publicationBundleSha256: ${JSON.stringify(bundle.publication_bundle_sha256)}`, "---", ""].join("\n");
     const articleBytes = Buffer.from(`${frontmatter}${body}\n`);
     await writeExclusiveDurable(articleFile, articleBytes);
     await syncDirectory(publicDir);
