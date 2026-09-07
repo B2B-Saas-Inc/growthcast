@@ -12,8 +12,11 @@ describe("validateLead", () => {
     const result = validateLead(valid, "lead_test", new Date("2026-09-06T12:00:00Z"));
     expect(result).toEqual({
       schema_version: "1.0", source: "growthcast.app", submission_id: "lead_test", submitted_at: "2026-09-06T12:00:00.000Z",
-      lead: { first_name:"Avery", last_name:"Morgan", work_email:"avery@example.com", company_website:"https://example.com/", job_title:"VP Marketing", primary_challenge:"Build pipeline", consent:true },
+      lead: { first_name:"Avery", last_name:"Morgan", work_email:"avery@example.com", company_website:"https://example.com/", job_title:"VP Marketing", primary_challenge:"Build pipeline", consent:true, test_record:false },
     });
+  });
+  it("marks explicitly synthetic submissions as test records", () => {
+    expect(validateLead({ ...valid, test_record: true }, "lead_test").lead.test_record).toBe(true);
   });
   it.each([
     [{ ...valid, consent:false }], [{ ...valid, work_email:"bad" }], [{ ...valid, company_website:"javascript:alert(1)" }],

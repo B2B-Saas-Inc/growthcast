@@ -11,6 +11,7 @@ export type LeadEnvelope = {
     job_title: string;
     primary_challenge: string;
     consent: true;
+    test_record: boolean;
   };
 };
 
@@ -34,6 +35,6 @@ export function validateLead(input: unknown, submissionId: string, now = new Dat
   return {
     schema_version: "1.0", source: "growthcast.app", submission_id: submissionId, submitted_at: now.toISOString(),
     lead: { first_name:firstName, last_name:lastName, work_email:email, company_website:parsedWebsite.toString(), job_title:title,
-      primary_challenge:challenge, consent:true }
+      primary_challenge:challenge, consent:true, test_record:body.test_record === true }
   };
 }
