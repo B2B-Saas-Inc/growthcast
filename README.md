@@ -73,18 +73,25 @@ Editable Budget and Churn charts each include a local reset and an optional togg
 
 ### Channel settings
 
-A separate page keeps channel configuration out of the main forecast. Channel names, labels, values, and tabs use a high-legibility treatment. It includes tabs for:
+A separate page keeps channel configuration out of the main forecast. Channel names, labels, values, and tabs use a high-legibility treatment.
 
-- **General:** Set visitor-to-signup conversion, signup-to-purchase conversion, and new-customer ARPU across every subchannel at once; individual channels can still override them afterward
-- **Direct Response:** Branded Search, Non-Brand Search, Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat
-- **Demand Gen:** YouTube, Display, and CTV through Vibe.co/Quantcast
-- **Owned / Partner / Custom:** SEO/organic, Partners, Enterprise/B2B, and Custom. Partners additionally support affiliate commission percentage and commission duration; defaults reflect the current 30% recurring, 12-month affiliate offer.
+New and reset models start with **no channels**. Open a category's **Browse channel library**, search by tactic/platform/use case or filter by group, and add only the channels you need. The library contains 65 editable presets:
+
+- **General:** Set B2C conversion and ARPU defaults or B2B MQL, SQL, close-rate, and ACV defaults across existing channels and future additions; individual channels can still override them afterward.
+- **Direct Response (20):** Brand, non-brand, competitor, Bing, shopping, Performance Max, and app search; major paid-social platforms; retargeting, native ads, review sites, marketplaces, and a custom CPC tactic.
+- **Demand Gen (16):** Video, connected TV, streaming, social awareness, display, native sponsorships, podcasts, streaming audio, newsletter and creator sponsorships, digital out-of-home, and a custom CPM/CTR tactic.
+- **Owned / Partner / Custom (29):** SEO, content, AI search, organic social/video, communities, email and product-led acquisition, affiliates, co-marketing, integrations, referrals, events, PR, outbound, sales-led acquisition, and custom traffic. Partners retains editable affiliate commission defaults of 30% for 12 months.
+
+Library values are **illustrative USD planning assumptions, not performance benchmarks**. Paid presets supply CPC or CPM/CTR inputs. For non-clickable media, CTR represents an estimated exposure-to-site response rate, not modeled view-through lift. Owned presets supply incremental launch visitors, not impressions or contacts; account for non-media costs through the existing Sales & Marketing Overhead input on Forecast. Lifecycle tactics represent acquisition traffic, not a new retention model. Avoid double-counting visitors already included in the baseline.
+
+New channels launch in month 1 and inherit the General funnel defaults. A paid addition receives only the remaining unallocated budget, or 0% if the budget is already fully allocated; existing allocations are never changed by adding a tactic. Review and split allocations after adding channels. Owned channels receive no paid allocation. Existing saved/imported lists retain their membership, order, and edited assumptions; loading them never inserts library tactics. The schema remains version 3, with versions 1 and 2 still supported.
 
 Every channel supports:
 
 - Go-live month; `0` disables the channel completely and proportionally redistributes its paid allocation across the remaining enabled paid channels
-- Hide, show, and restore controls
-- Expandable visitor-to-signup, signup-to-purchase, and ARPU assumptions
+- Hide, show, and restore controls; hiding affects only list visibility, not forecast participation. Library entries already in the plan cannot be duplicated, and restoring a hidden entry preserves its edits and activation state.
+- Remove control inside the expanded editor; removal clears that channel's monthly spend overrides and leaves its allocation unassigned without changing other channels. Re-adding uses library defaults, not the removed edits.
+- Expandable B2C or B2B funnel assumptions, with responsive channel editors on mobile
 
 Paid media defaults to a $0 monthly budget and uses editable subchannel allocations. Dollar allocations and expected traffic are calculated automatically:
 
@@ -201,6 +208,8 @@ At mobile widths, agency navigation remains fully available in a touch-sized gri
 src/
 ├── AgencyApp.tsx           Lightweight agency island and server-routed contact flow
 ├── App.tsx                 Forecast island, state, and exports
+├── channels.ts             Channel types, legacy normalization, and 65 library presets
+├── channels.test.ts        Library, allocation, and saved-model regression tests
 ├── components/             Astro shell and React island entry points
 ├── content/blog/           Typed Markdown/MDX blog posts
 ├── layouts/                Shared Astro metadata and document shell

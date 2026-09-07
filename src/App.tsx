@@ -36,7 +36,6 @@ import JSZip from "jszip";
 import {
   forecast,
   type Assumptions,
-  type ChannelAssumption,
   type ForecastMonth,
 } from "./engine/forecast";
 import {
@@ -52,6 +51,15 @@ import {
   type CashFlowSettings,
 } from "./engine/metrics";
 import posthog, { isPostHogEnabled } from "./posthog";
+import {
+  addChannelFromLibrary,
+  normalizeChannels,
+  type ChannelDefaults,
+  type ChannelModel,
+  type ChannelPreset,
+  type EditableChannel,
+} from "./channels";
+import ChannelLibrary, { channelCategoryNames } from "./components/ChannelLibrary";
 
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 const money = (n: number | null) =>
@@ -227,66 +235,6 @@ const scenarios: Record<string, Partial<Assumptions>> = {
     closeRate: 0.3,
   },
 };
-type ChannelModel = "manual" | "cpc" | "cpm";
-type EditableChannel = ChannelAssumption & {
-  model: ChannelModel;
-  allocation: number;
-  cpc: number;
-  cpm: number;
-  ctr: number;
-  hidden: boolean;
-  affiliateCommissionRate: number;
-  affiliateCommissionMonths: number;
-  mqlRate: number;
-  sqlRate: number;
-  closeRate: number;
-  acv: number;
-};
-const makeChannel = (
-  name: string,
-  model: ChannelModel,
-  allocation = 0,
-): EditableChannel => ({
-  name,
-  model,
-  allocation,
-  cpc: 2,
-  cpm: 20,
-  ctr: 0.008,
-  visitors: 0,
-  goLiveMonth: 1,
-  signupRate: 0.137,
-  purchaseRate: 0.008,
-  arpu: 38,
-  mqlRate: 0.05,
-  sqlRate: 0.4,
-  closeRate: 0.2,
-  acv: 12000,
-  hidden: false,
-  affiliateCommissionRate: 0,
-  affiliateCommissionMonths: 0,
-});
-const initialChannels = () => [
-  makeChannel("SEO / organic", "manual"),
-  {
-    ...makeChannel("Partners", "manual"),
-    affiliateCommissionRate: 0.3,
-    affiliateCommissionMonths: 12,
-  },
-  makeChannel("Branded Search", "cpc"),
-  makeChannel("Non-Brand Search", "cpc"),
-  makeChannel("Meta", "cpc", 0.25),
-  makeChannel("Reddit", "cpc", 0.1),
-  makeChannel("Pinterest", "cpc", 0.1),
-  makeChannel("LinkedIn", "cpc", 0.1),
-  makeChannel("TikTok", "cpc", 0.1),
-  makeChannel("Snapchat", "cpc", 0.05),
-  makeChannel("YouTube", "cpm", 0.15),
-  makeChannel("Display", "cpm", 0.1),
-  makeChannel("CTV (Vibe.co / Quantcast)", "cpm", 0.05),
-  makeChannel("Enterprise / B2B", "manual"),
-  makeChannel("Custom", "manual"),
-];
 type Baseline = {
   month: string;
   visitors: number;
@@ -298,15 +246,6 @@ type Baseline = {
   mrr: number;
   arpu: number;
   arr: number;
-};
-type ChannelDefaults = {
-  signupRate: number;
-  purchaseRate: number;
-  arpu: number;
-  mqlRate: number;
-  sqlRate: number;
-  closeRate: number;
-  acv: number;
 };
 type SavedModel = {
   modelName: string;
@@ -331,35 +270,6 @@ const loadSavedModel = (): Partial<SavedModel> => {
   } catch {
     return {};
   }
-};
-const normalizeChannels = (channels?: EditableChannel[]) => {
-  const defaults = initialChannels();
-  if (!channels?.length) return defaults;
-  const byName = new Map(channels.map((c) => [c.name, c]));
-  const merged = defaults.map((base) => {
-    const saved = byName.get(base.name);
-    return saved
-      ? {
-          ...base,
-          ...saved,
-          mqlRate: saved.mqlRate ?? base.mqlRate,
-          sqlRate: saved.sqlRate ?? base.sqlRate,
-          closeRate: saved.closeRate ?? base.closeRate,
-          acv: saved.acv ?? base.acv,
-          affiliateCommissionRate:
-            saved.affiliateCommissionRate ?? base.affiliateCommissionRate,
-          affiliateCommissionMonths:
-            saved.affiliateCommissionMonths ?? base.affiliateCommissionMonths,
-        }
-      : base;
-  });
-  const known = new Set(defaults.map((c) => c.name));
-  return [
-    ...merged,
-    ...channels
-      .filter((c) => !known.has(c.name))
-      .map((c) => ({ ...makeChannel(c.name, c.model, c.allocation), ...c })),
-  ];
 };
 const finiteNonnegative = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -799,6 +709,7 @@ function ChannelRow({
   setChannels,
   channels,
   businessModel,
+  onRemove,
 }: {
   channel: EditableChannel;
   modeled: EditableChannel;
@@ -807,6 +718,7 @@ function ChannelRow({
   setChannels: (c: EditableChannel[]) => void;
   channels: EditableChannel[];
   businessModel: "b2c" | "b2b";
+  onRemove: () => void;
 }) {
   const update = (patch: Partial<EditableChannel>) =>
     setChannels(channels.map((x, i) => (i === index ? { ...x, ...patch } : x)));
@@ -839,7 +751,7 @@ function ChannelRow({
   const spend = c.goLiveMonth === 0 ? 0 : budget * c.allocation;
   const impliedCpc = modeled.visitors ? spend / modeled.visitors : 0;
   return (
-    <details className="channel">
+    <details className="channel" data-channel-name={c.name}>
       <summary>
         <strong>{c.name}</strong>
         <label>
@@ -1066,12 +978,18 @@ function ChannelRow({
             </div>
           </>
         )}
-        <button
-          className="hideChannel"
-          onClick={() => update({ hidden: !c.hidden })}
-        >
-          {c.hidden ? "Restore subchannel" : "Hide subchannel"}
-        </button>
+        <div className="channelRowActions">
+          <button
+            className="hideChannel"
+            onClick={() => update({ hidden: !c.hidden })}
+          >
+            {c.hidden ? "Restore subchannel" : "Hide subchannel"}
+          </button>
+          <button className="hideChannel" onClick={onRemove} aria-label={`Remove ${c.name}`}>
+            Remove channel
+          </button>
+          <small>Hiding only changes this list. Set Live month to 0 to disable. Removing clears this channel’s monthly spend edits and leaves its budget unallocated.</small>
+        </div>
       </div>
     </details>
   );
@@ -3113,8 +3031,8 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
   );
 }
 
-export default function App({ initialPath = "/" }: { initialPath?: string }) {
-  const [saved] = useState(loadSavedModel);
+export default function App({ initialPath = "/", restoreSavedModel = true }: { initialPath?: string; restoreSavedModel?: boolean }) {
+  const [saved] = useState(() => restoreSavedModel ? loadSavedModel() : {} as Partial<SavedModel>);
   const fileInput = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState("");
   const [modelName, setModelName] = useState(saved.modelName || "GrowthCast");
@@ -3181,6 +3099,8 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
     "general",
   );
   const [showHidden, setShowHidden] = useState(false);
+  const [channelStatus, setChannelStatus] = useState("");
+  const channelListHeading = useRef<HTMLHeadingElement>(null);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [baseline, setBaseline] = useState<Baseline>(
     saved.baseline || {
@@ -3227,6 +3147,22 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
   const [channels, setChannels] = useState(() =>
     normalizeChannels(saved.channels),
   );
+  const addLibraryChannel = (preset: ChannelPreset) => {
+    const existing = channels.find((channel) => channel.name === preset.name);
+    setChannels((current) => addChannelFromLibrary(current, preset, channelDefaults));
+    setChannelStatus(`${preset.name} ${existing ? "restored with its saved assumptions" : "added to your plan"}. Review its settings below the library.`);
+  };
+  const removeChannel = (name: string) => {
+    setChannels((current) => current.filter((channel) => channel.name !== name));
+    setMonthlyBudgetOverrides((current) => Object.fromEntries(
+      Object.entries(current).map(([month, spending]) => [
+        month,
+        Object.fromEntries(Object.entries(spending).filter(([channel]) => channel !== name)),
+      ]),
+    ));
+    setChannelStatus(`${name} removed. Other channels and their budget allocations are unchanged.`);
+    channelListHeading.current?.focus();
+  };
   const [showGrowthPlan, setShowGrowthPlan] = useState(false);
   const [growthPlanClosing, setGrowthPlanClosing] = useState(false);
   const [growthPlanSubmitted, setGrowthPlanSubmitted] = useState(() => {
@@ -3342,6 +3278,8 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
     return () => window.removeEventListener("popstate", handleHistory);
   }, []);
   useEffect(() => {
+    // Never persist the static hydration pass over an existing browser model.
+    if (!restoreSavedModel) return;
     try {
       const value: SavedModel = {
         modelName,
@@ -3362,6 +3300,7 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
       /* Persistence may be unavailable in private browsing. */
     }
   }, [
+    restoreSavedModel,
     modelName,
     baseline,
     forecastStartMonth,
@@ -5208,7 +5147,8 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
                       arpu: 0,
                       arr: 0,
                     });
-                    setChannels(initialChannels());
+                    setChannels([]);
+                    setChannelStatus("");
                     setChannelDefaults({
                       signupRate: 0.137,
                       purchaseRate: 0.008,
@@ -5797,25 +5737,29 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
             <div className="channelTabs">
               <button
                 className={channelTab === "general" ? "active" : ""}
-                onClick={() => setChannelTab("general")}
+                aria-pressed={channelTab === "general"}
+                onClick={() => { setChannelTab("general"); setChannelStatus(""); }}
               >
                 General
               </button>
               <button
                 className={channelTab === "cpc" ? "active" : ""}
-                onClick={() => setChannelTab("cpc")}
+                aria-pressed={channelTab === "cpc"}
+                onClick={() => { setChannelTab("cpc"); setChannelStatus(""); }}
               >
                 Direct Response
               </button>
               <button
                 className={channelTab === "cpm" ? "active" : ""}
-                onClick={() => setChannelTab("cpm")}
+                aria-pressed={channelTab === "cpm"}
+                onClick={() => { setChannelTab("cpm"); setChannelStatus(""); }}
               >
                 Demand Gen
               </button>
               <button
                 className={channelTab === "manual" ? "active" : ""}
-                onClick={() => setChannelTab("manual")}
+                aria-pressed={channelTab === "manual"}
+                onClick={() => { setChannelTab("manual"); setChannelStatus(""); }}
               >
                 Owned / Partner / Custom
               </button>
@@ -5837,7 +5781,8 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
                     <p>
                       Changes here immediately update all direct response,
                       demand generation, owned, partner, and custom channels.
-                      You can still override an individual channel afterward.
+                      New channels inherit these defaults too. You can still
+                      override an individual channel afterward.
                     </p>
                   </div>
                   {businessModel === "b2b" ? (
@@ -5976,24 +5921,48 @@ export default function App({ initialPath = "/" }: { initialPath?: string }) {
                   )}
                 </section>
               ) : (
-                channels
-                  .map((c, i) => ({ c, i }))
-                  .filter(
-                    ({ c }) =>
-                      c.model === channelTab && (!c.hidden || showHidden),
-                  )
-                  .map(({ c, i }) => (
-                    <ChannelRow
-                      key={c.name}
-                      channel={c}
-                      modeled={modeledChannels[i]}
-                      index={i}
-                      budget={budget}
-                      setChannels={setChannels}
-                      channels={channels}
-                      businessModel={businessModel}
-                    />
-                  ))
+                <>
+                  <div className="channelPlanIntro">
+                    <div>
+                      <h3>{channelCategoryNames[channelTab]}</h3>
+                      <p>{channelTab === "cpc"
+                        ? "Capture demand with channels modeled by cost per click."
+                        : channelTab === "cpm"
+                          ? "Build awareness with channels modeled by impressions and site response."
+                          : "Plan organic, partner, and sales-led acquisition with launch visitors."}</p>
+                    </div>
+                    <span>{channels.filter((c) => c.model === channelTab).length} in your plan</span>
+                  </div>
+                  <ChannelLibrary key={channelTab} model={channelTab} channels={channels} onAdd={addLibraryChannel} />
+                  <p className="channelStatus" role="status">{channelStatus}</p>
+                  <h3 className="channelListHeading" ref={channelListHeading} tabIndex={-1}>Your channels</h3>
+                  {!channels.some((c) => c.model === channelTab && (!c.hidden || showHidden)) && (
+                    <div className="channelEmpty">
+                      <strong>{channels.some((c) => c.model === channelTab)
+                        ? "Your channels are hidden, not disabled"
+                        : "Build your channel mix, one tactic at a time"}</strong>
+                      <p>{channels.some((c) => c.model === channelTab)
+                        ? "Use Show hidden above or restore a tactic from the library. Hidden channels still contribute to your forecast."
+                        : "No channels added yet. Open the library above, choose a tactic, then adjust its launch timing and assumptions here."}</p>
+                    </div>
+                  )}
+                  {channels
+                    .map((c, i) => ({ c, i }))
+                    .filter(({ c }) => c.model === channelTab && (!c.hidden || showHidden))
+                    .map(({ c, i }) => (
+                      <ChannelRow
+                        key={c.name}
+                        channel={c}
+                        modeled={modeledChannels[i]}
+                        index={i}
+                        budget={budget}
+                        setChannels={setChannels}
+                        channels={channels}
+                        businessModel={businessModel}
+                        onRemove={() => removeChannel(c.name)}
+                      />
+                    ))}
+                </>
               )}
             </div>
           </section>

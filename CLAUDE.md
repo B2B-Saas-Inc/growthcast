@@ -34,6 +34,8 @@ The primary activation action is changing an assumption or loading an assumption
 ├── src/
 │   ├── AgencyApp.tsx           # Lightweight agency island and contact flow
 │   ├── App.tsx                 # Forecast island, local state, and exports
+│   ├── channels.ts             # Channel types, legacy normalization, preset library, addition helper
+│   ├── channels.test.ts        # Library and saved-channel compatibility regressions
 │   ├── components/             # Astro shell and React island entry
 │   ├── content/blog/           # Typed Markdown/MDX blog posts
 │   ├── layouts/                # Shared Astro document/SEO layout
@@ -102,6 +104,16 @@ Formatting, database, email-preview, and worker commands are not configured. Mar
 
 Astro owns route generation, document metadata, the blog, RSS, and sitemap. Public routes select one of two server-rendered, client-hydrated React islands: lightweight `src/AgencyApp.tsx` for agency pages and `src/App.tsx` for the Forecast product. This keeps charting and export libraries out of the agency page's initial dependency graph. Agency analytics load after the visitor's first interaction, with session replay, surveys, conversations, product tours, and feature flags disabled. The Forecast island owns UI state and local persistence orchestration. The forecast product starts at `/resources/tools/forecast` and renders Baseline, Forecast, Deep Dive, Channels, and Methodology. Global reset, import, format, and export controls live in the Tools dropdown immediately after Methodology. Forecast, Deep Dive, and Channels accept zero-valued B2C and B2B baselines so users can model from an empty or pre-revenue state. New and reset models default the baseline month to the user's current calendar month and the forecast start to the following month. Baseline owns the editable model name and selected model's opening metrics; forecast formulas stay in the engines. The Monthly Forecast table is backed by `src/engine/channelBreakdown.ts`, while `src/engine/metrics.ts` owns cash flow, NRR, blended CAC, and SaaS Magic Number calculations. Persisted and imported models pass through the shared version-aware validator before state setters run. Keep the app white-labelled. The editable model name controls document title and exported filenames and must round-trip through assumption JSON.
 
+### Channel library UX
+
+New and reset models start with an empty channel list. `src/channels.ts` owns channel types, the unchanged base/legacy defaults, membership-preserving normalization, and 65 illustrative planning presets: 20 Direct Response (CPC), 16 Demand Gen (CPM/CTR), and 29 Owned / Partner / Custom (manual launch visitors). `src/components/ChannelLibrary.tsx` provides a native, default-collapsed inline disclosure in each category, search, group filtering, assumption previews, duplicate prevention, hidden-channel restoration, and no-result feedback. Reuse the charcoal editor styling and Lucide icons; no modal, new dependencies, or forecast formula changes are needed.
+
+New channels inherit the General B2C/B2B funnel defaults and start in month 1. Paid additions receive only the unallocated fraction of the shared budget (clamped to 0–100%); existing allocations are untouched. Owned additions always have zero paid allocation. Preset economics are explicitly illustrative USD planning inputs, not sourced benchmarks. For non-clickable media, CTR is a site-response estimate, not view-through attribution. Owned tactics use incremental visitor estimates and the existing global Sales & Marketing Overhead for non-media costs, not a new per-tactic cost model. Lifecycle presets are acquisition-traffic proxies, not retention lift. Only the existing `Partners` channel has recurring affiliate commission behavior (default 30% for 12 months).
+
+`AppIsland.tsx` uses a React `useSyncExternalStore` hydration snapshot: render static defaults for the server and initial hydration, then remount the local model once to initialize from browser storage. The static pass must never persist, so an existing saved model cannot be overwritten before restoration. This also prevents saved channel/budget values from causing server/client hydration mismatches.
+
+Normalize only supplied channels, preserving names, order, membership, edits, visibility, and activation; never merge the library into saved/imported models, and preserve empty arrays. Fill missing legacy fields from the historical base defaults rather than new preset economics. Assumption schema remains version 3 with versions 1/2 migration unchanged. Hide affects only visibility; live month 0 disables. Restore never resets edited assumptions. Remove clears that channel and its named monthly spend overrides while leaving other allocations untouched; re-adding uses fresh preset and General defaults. Announce additions/removals and restore focus after removal. Test new/empty/reset lists, search/filter/add, all three categories, allocation edges, saved legacy values, both business models, reload and JSON/CSV round-trips, hide/restore/remove, and mobile overflow.
+
 ### Operator content persistence
 
 The public application remains static. Operator-only content automation uses the shared atomic filesystem queue under ignored `.content-runs/queue/` and exact publication-bundle records under `.content-runs/publication-bundles/`. The scheduler reads these records without creating approvals and fails closed unless shared artifact hashes, QA, and accountable bundle approval independently pass. This local queue is suitable for single-host operation; unattended production scheduling still requires a database-backed queue.
@@ -147,7 +159,7 @@ Required invariants:
 - Customer churn and revenue churn remain independently editable. Customer churn is realized in whole-customer units. For B2B, revenue churn is realized in whole monthly-contract units (`ACV ÷ 12`), so sub-contract loss produces no movement. Reconcile the realized movements each month through `churnedCustomerArpu = churnMrr ÷ churnedCustomers` and `churnedArpuRatio = churnedCustomerArpu ÷ openingArpu`; expose both in Forecast diagnostics and churn CSV/PDF outputs.
 - Channel traffic is introduced once at go-live, then compounds with global Traffic growth. Monthly paid-spend schedules become explicit adjustments to the compounded active cohort rather than replacing engine state.
 - Live month `0` excludes the channel from traffic, spend, allocation, customers, and revenue; when a paid channel is changed to 0, redistribute its allocation proportionally across the other enabled paid channels so enabled allocation remains 100%.
-- Direct response includes Branded Search, Non-Brand Search, Meta, Reddit, Pinterest, LinkedIn, TikTok, and Snapchat: `visitors = allocatedSpend / CPC`.
+- Direct response uses a selectable library including search, paid social, retargeting, native, review-site, marketplace, and custom tactics: `visitors = allocatedSpend / CPC`. No channels are preselected for new/reset models.
 - Demand generation: `visitors = allocatedSpend / CPM * 1,000 * CTR`.
 - Expected CPC is `allocatedSpend / visitors`.
 - Partner assumptions include recurring affiliate commission percentage and commissioned months; defaults are 30% for 12 months. Estimate commission cost using channel ARPU and geometric monthly revenue retention over the commission window.
@@ -259,7 +271,7 @@ Do not create secret-bearing `.env` files. If more variables are introduced, add
 - **Baseline**: B2C supplies opening visitors, signups, new customers, total customers, and MRR. B2B supplies steady-state visitors, MQLs, SQLs, wins, total customers, and ARR; funnel throughput calibrates the global pipeline rates. Live forecast calculations use baseline visitors, customers, and MRR.
 - **Scenario**: Named set of global forecast assumptions.
 - **Baseline traffic**: Historical visitor base compounded by global Traffic growth.
-- **Channel defaults**: General-tab signup conversion, purchase conversion, and ARPU values applied immediately to every subchannel; individual values may then diverge.
+- **Channel defaults**: General-tab B2C conversion/ARPU or B2B pipeline/ACV values applied immediately to every subchannel and inherited by future library additions; individual values may then diverge.
 - **Channel**: Acquisition source with a go-live month and funnel assumptions.
 - **Subchannel**: Individually configurable paid or owned channel within a tab.
 - **Channel cohort**: Cumulative customers and MRR attributed to one launched channel after applying the global logo churn, revenue churn, expansion, and downgrade assumptions each month.
