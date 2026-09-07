@@ -4,7 +4,14 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { canonicalSha256, renderFixtureOg, renderHero } from "@ejwhite/content-engine";
 import { parseArguments, runCli } from "./cli.mjs";
+import { evidenceVerificationSha256 } from "./draft-pipeline.mjs";
 import { createGrowthCastProductionRenderer } from "./production-renderer.mjs";
+
+
+function evidenceVerification(evidence) {
+  const record = evidence?.records[0];
+  return { schema_version: 1, brief_id: "approved-brief", reviewed_by: "EJ White", reviewed_at: "2026-09-05T00:00:00.000Z", evidence_ledger_sha256: evidenceVerificationSha256(evidence), decisions: [{ evidence_id: record.evidence_id, content_sha256: record.content_sha256, supported_claim_ids: ["claim-1"], status: "verified", notes: "Source and claim mapping manually reviewed." }] };
+}
 
 const directories = [];
 afterEach(async () => Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true }))));
@@ -80,7 +87,7 @@ describe("generation operator CLI", () => {
     const root = await workspace();
     const fetchImpl = mockedHttp();
     const visuals = mockedVisuals();
-    const dependencies = { root, env, fetchImpl, ...visuals, now: () => "2026-09-05T00:00:00.000Z" };
+    const dependencies = { root, env, fetchImpl, evidenceVerification, ...visuals, now: () => "2026-09-05T00:00:00.000Z" };
     const first = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
     const resumed = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
     expect(resumed).toEqual(first);
@@ -107,10 +114,10 @@ describe("generation operator CLI", () => {
   it("requires the write flag, accepts only an exact approval hash, and writes a draft without overwriting", async () => {
     const root = await workspace();
     const fetchImpl = mockedHttp();
-    const initial = await runCli(["approved-brief", "--run-id", "approved-run"], { root, env, fetchImpl });
+    const initial = await runCli(["approved-brief", "--run-id", "approved-run"], { root, env, fetchImpl, evidenceVerification });
     const approvalFile = path.join(root, "approval.json");
     await writeFile(approvalFile, JSON.stringify({ status: "approved", approved_by: "human editor", approved_at: "2026-09-04T00:00:00.000Z", content_sha256: initial.content_sha256 }));
-    const written = await runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile, "--write-to-src"], { root, env, fetchImpl });
+    const written = await runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile, "--write-to-src"], { root, env, fetchImpl, evidenceVerification });
     expect(written.approval_matches).toBe(true);
     expect(await readFile(path.join(root, written.source_written), "utf8")).toContain("draft: true");
     await expect(runCli(["approved-brief", "--run-id", "approved-run", "--write-to-src"], { root, env, fetchImpl })).rejects.toThrow("refusing to overwrite");

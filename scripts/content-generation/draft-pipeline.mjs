@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -8,6 +9,35 @@ import {
   parseContract,
 } from "@ejwhite/content-engine";
 import { FilesystemCheckpointStore } from "./filesystem-checkpoint-store.mjs";
+
+export function evidenceVerificationSha256(evidence) {
+  const identity = { brief_id: evidence.brief_id, records: evidence.records.map(({ evidence_id, canonical_url, content_sha256, supported_claim_ids }) => ({ evidence_id, canonical_url, content_sha256, supported_claim_ids })) };
+  return createHash("sha256").update(JSON.stringify(identity)).digest("hex");
+}
+
+export function applyEvidenceVerification(evidence, verification, briefId) {
+  verification = typeof verification === "function" ? verification(evidence) : verification;
+  if (!verification || typeof verification !== "object" || Array.isArray(verification)) throw new Error("an operator evidence-verification contract is required");
+  if (verification.schema_version !== 1 || verification.brief_id !== briefId || typeof verification.reviewed_by !== "string" || !verification.reviewed_by.trim()) throw new Error("invalid operator evidence-verification identity");
+  if (!Number.isFinite(Date.parse(verification.reviewed_at))) throw new Error("invalid operator evidence-verification timestamp");
+  const ledgerSha256 = evidenceVerificationSha256(evidence);
+  if (verification.evidence_ledger_sha256 !== ledgerSha256) throw new Error("operator evidence verification does not match the retrieved ledger");
+  if (!Array.isArray(verification.decisions)) throw new Error("operator evidence verification decisions are required");
+  const decisions = new Map();
+  for (const decision of verification.decisions) {
+    if (!decision || decisions.has(decision.evidence_id) || !["verified", "rejected"].includes(decision.status) || typeof decision.notes !== "string" || !decision.notes.trim()) throw new Error("invalid or duplicate operator evidence-verification decision");
+    decisions.set(decision.evidence_id, decision);
+  }
+  if (decisions.size !== evidence.records.length) throw new Error("every retrieved evidence record requires an operator disposition");
+  const records = evidence.records.map((record) => {
+    const decision = decisions.get(record.evidence_id);
+    if (!decision || decision.content_sha256 !== record.content_sha256) throw new Error(`operator evidence decision does not match ${record.evidence_id}`);
+    if (!Array.isArray(decision.supported_claim_ids) || decision.supported_claim_ids.length === 0 || new Set(decision.supported_claim_ids).size !== decision.supported_claim_ids.length) throw new Error(`operator evidence decision has invalid claim mappings for ${record.evidence_id}`);
+    if (decision.supported_claim_ids.some((id) => !record.supported_claim_ids.includes(id))) throw new Error(`operator evidence decision expands provider claim mappings for ${record.evidence_id}`);
+    return { ...record, supported_claim_ids: decision.supported_claim_ids, verification_status: decision.status, verification_notes: `${verification.reviewed_by}: ${decision.notes}` };
+  });
+  return { ...evidence, records };
+}
 
 export const DRAFT_STAGES = [
   "brief-validation", "research", "outline", "rough-draft", "factual-audit",
@@ -213,7 +243,7 @@ function buildRunManifest({ brief, runId, checkpoint, endedAt, status }) {
   };
 }
 
-export async function runDraftPipeline({ brief: rawBrief, provider, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 3, now = () => new Date().toISOString() }) {
+export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVerification, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 3, now = () => new Date().toISOString() }) {
   const brief = await parseContract("brief", rawBrief);
   if (brief.status !== "approved" || !brief.approval) throw new Error(`${brief.content_id}: an approved brief with accountable approval is required`);
 
@@ -248,16 +278,20 @@ export async function runDraftPipeline({ brief: rawBrief, provider, runId, artif
       "Return only JSON. Apply the human-first writing guide. Never invent human observations. Keep the body between 1200 and 1800 words. Every material evidence claim must use exact text present in the body, name a body_locator string also present in the body, and use only support_ids whose evidence record maps to that claim_id.",
       "Return the complete corrected article JSON object with title, description, body, claims, and internal_links.",
       now,
-      (value, input) => validateFinalArticleResponse(normalizeArticleResponse(value, input, brief), input),
+      (value, input) => {
+        const verifiedInput = { ...input, evidence: applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id) };
+        return validateFinalArticleResponse(normalizeArticleResponse(value, verifiedInput, brief), verifiedInput);
+      },
     ),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
       const startedAt = now();
-      const article = buildArticle(brief, input.human_first_edit, input);
+      const verifiedInput = { ...input, evidence: applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id) };
+      const article = buildArticle(brief, verifiedInput.human_first_edit, verifiedInput);
       await parseContract("article", article);
       const { profiles } = await loadConfiguration();
-      const qa = createQaReport(article, input.evidence, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
+      const qa = createQaReport(article, verifiedInput.evidence, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
       await parseContract("qa-report", qa);
-      return { ...withStageProvenance(input, "deterministic-validation", startedAt, now()), article, qa };
+      return { ...withStageProvenance(verifiedInput, "deterministic-validation", startedAt, now()), article, qa };
     } },
   };
 

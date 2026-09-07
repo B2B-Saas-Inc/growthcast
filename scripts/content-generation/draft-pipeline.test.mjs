@@ -2,7 +2,13 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runDraftPipeline, validateFinalArticleResponse } from "./draft-pipeline.mjs";
+import { applyEvidenceVerification, evidenceVerificationSha256, runDraftPipeline, validateFinalArticleResponse } from "./draft-pipeline.mjs";
+
+
+function verification({ url = "https://www.nist.gov/itl/ai-risk-management-framework", hash = "a".repeat(64), claimIds = ["claim-1"], required = true, sourceType = "standards_body" } = {}) {
+  const evidence = { schema_version: 1, brief_id: "approved-brief", records: [{ evidence_id: "EV-001", canonical_url: url, title: url.includes("nist.gov") ? "AI Risk Management Framework" : "Other", source_owner: new URL(url).hostname, source_type: sourceType, retrieved_at: "2026-09-04T00:00:00.000Z", factual_summary: url.includes("nist.gov") ? "NIST publishes an AI risk management framework." : "Other context.", supported_claim_ids: claimIds, time_sensitive: true, primary_source_preference: { sought: true, result: "authoritative_used", reason: "Provider returned a retrievable URL for operator review." }, verification_status: "retrieved", required, content_sha256: hash }] };
+  return { schema_version: 1, brief_id: "approved-brief", reviewed_by: "EJ White", reviewed_at: "2026-09-07T18:10:00.000Z", evidence_ledger_sha256: evidenceVerificationSha256(evidence), decisions: [{ evidence_id: "EV-001", content_sha256: hash, supported_claim_ids: claimIds, status: "verified", notes: "Source and listed claim mapping manually reviewed." }] };
+}
 
 const directories = [];
 afterEach(async () => Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true }))));
@@ -49,7 +55,7 @@ describe("runDraftPipeline", () => {
     const mock = provider();
     const timestamps = Array.from({ length: 40 }, (_, index) => new Date(index * 1000).toISOString());
     const now = vi.fn(() => timestamps.shift());
-    const options = { brief: approvedBrief(), provider: mock, runId: "review-run", now, ...dirs };
+    const options = { brief: approvedBrief(), provider: mock, runId: "review-run", now, evidenceVerification: verification(), ...dirs };
     const first = await runDraftPipeline(options);
     const resumed = await runDraftPipeline(options);
 
@@ -69,7 +75,7 @@ describe("runDraftPipeline", () => {
     expect(first.manifest.stages.find(({ name }) => name === "outline").model.identifier).toBe("generation-model-1");
     expect(first.manifest.stages.find(({ name }) => name === "human-first-edit").model.identifier).toBe("generation-model-6");
     expect(first.manifest.stages.find(({ name }) => name === "deterministic-validation").model).toBeUndefined();
-    expect(JSON.parse(await readFile(path.join(first.artifactDirectory, "evidence-ledger.json"), "utf8")).records[0]).toMatchObject({ verification_status: "retrieved", canonical_url: "https://www.nist.gov/itl/ai-risk-management-framework", source_type: "standards_body", supported_claim_ids: ["claim-1"], required: true });
+    expect(JSON.parse(await readFile(path.join(first.artifactDirectory, "evidence-ledger.json"), "utf8")).records[0]).toMatchObject({ verification_status: "verified", canonical_url: "https://www.nist.gov/itl/ai-risk-management-framework", source_type: "standards_body", supported_claim_ids: ["claim-1"], required: true });
     expect(mock.research).toHaveBeenCalledWith(expect.objectContaining({ query: expect.stringContaining("claim-1"), allowedSourceTypes: ["standards body"] }), undefined);
     await expect(readFile(dirs.source, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
@@ -89,7 +95,7 @@ describe("runDraftPipeline", () => {
         : result;
     });
 
-    const result = await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "wrapped-human-first", ...dirs });
+    const result = await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "wrapped-human-first", evidenceVerification: verification(), ...dirs });
     expect(result.article).toMatchObject({ title: "A measured growth workflow", approval: null });
     expect(result.article.body).toContain("https://www.nist.gov/");
     expect(result.article.claims[0]).toMatchObject({ text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"] });
@@ -101,7 +107,7 @@ describe("runDraftPipeline", () => {
     const mock = provider();
     mock.generate.mockRejectedValueOnce(new Error("temporary generation failure"));
     mock.generate.mockRejectedValueOnce(new Error("temporary generation failure"));
-    const options = { brief: approvedBrief(), provider: mock, runId: "recoverable-run", maximumAttemptsPerStage: 2, ...dirs };
+    const options = { brief: approvedBrief(), provider: mock, runId: "recoverable-run", maximumAttemptsPerStage: 2, evidenceVerification: verification(), ...dirs };
 
     await expect(runDraftPipeline(options)).rejects.toThrow("outline failed after 2 attempts");
     const failedManifest = JSON.parse(await readFile(path.join(dirs.artifactDirectory, "recoverable-run", "run-manifest.json"), "utf8"));
@@ -118,11 +124,11 @@ describe("runDraftPipeline", () => {
   it("fails closed instead of resuming output from a different configured model", async () => {
     const dirs = await locations();
     const firstProvider = provider();
-    await runDraftPipeline({ brief: approvedBrief(), provider: firstProvider, runId: "model-bound-run", ...dirs });
+    await runDraftPipeline({ brief: approvedBrief(), provider: firstProvider, runId: "model-bound-run", evidenceVerification: verification(), ...dirs });
 
     const changedProvider = provider();
     changedProvider.model = "mock-model-v2";
-    await expect(runDraftPipeline({ brief: approvedBrief(), provider: changedProvider, runId: "model-bound-run", ...dirs }))
+    await expect(runDraftPipeline({ brief: approvedBrief(), provider: changedProvider, runId: "model-bound-run", evidenceVerification: verification(), ...dirs }))
       .rejects.toThrow("resume input does not match checkpoint");
     expect(changedProvider.research).not.toHaveBeenCalled();
     expect(changedProvider.generate).not.toHaveBeenCalled();
@@ -134,7 +140,7 @@ describe("runDraftPipeline", () => {
     const brief = approvedBrief();
     brief.status = "proposed";
     brief.approval = null;
-    await expect(runDraftPipeline({ brief, provider: mock, runId: "blocked-run", ...dirs })).rejects.toThrow("approved brief");
+    await expect(runDraftPipeline({ brief, provider: mock, runId: "blocked-run", evidenceVerification: verification(), ...dirs })).rejects.toThrow("approved brief");
     expect(mock.research).not.toHaveBeenCalled();
     expect(mock.generate).not.toHaveBeenCalled();
   });
@@ -150,10 +156,17 @@ describe("runDraftPipeline", () => {
       if (request.prompt.includes("outline array")) return generated;
       return { ...generated, text: JSON.stringify({ ...JSON.parse(generated.text), claims: [] }) };
     });
-    const result = await runDraftPipeline({ brief, provider: mock, runId: "source-mismatch", ...dirs });
+    const result = await runDraftPipeline({ brief, provider: mock, runId: "source-mismatch", evidenceVerification: verification({ url: "https://example.com/other", hash: "b".repeat(64), claimIds: ["research-context"], required: false, sourceType: "company_primary" }), ...dirs });
     expect(result.evidence.records[0]).toMatchObject({ supported_claim_ids: ["research-context"], required: false });
   });
 
+
+  it("promotes only exact operator-reviewed evidence and fails closed on mismatch", () => {
+    const contract = verification();
+    const evidence = { schema_version: 1, brief_id: "approved-brief", records: [{ evidence_id: "EV-001", canonical_url: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", source_owner: "www.nist.gov", source_type: "standards_body", retrieved_at: "2026-09-04T00:00:00.000Z", factual_summary: "NIST publishes an AI risk management framework.", supported_claim_ids: ["claim-1"], time_sensitive: true, primary_source_preference: { sought: true, result: "authoritative_used", reason: "Provider returned a retrievable URL for operator review." }, verification_status: "retrieved", required: true, content_sha256: "a".repeat(64) }] };
+    expect(applyEvidenceVerification(evidence, contract, "approved-brief").records[0]).toMatchObject({ verification_status: "verified", supported_claim_ids: ["claim-1"] });
+    expect(() => applyEvidenceVerification(evidence, { ...contract, evidence_ledger_sha256: "0".repeat(64) }, "approved-brief")).toThrow("does not match");
+  });
 
   it("rejects final prose with missing locators, cross-claim evidence, or out-of-profile length", () => {
     const input = { evidence: { records: [{ evidence_id: "EV-001", supported_claim_ids: ["claim-1"] }] } };

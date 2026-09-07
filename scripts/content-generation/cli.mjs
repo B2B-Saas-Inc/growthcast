@@ -11,7 +11,7 @@ import { runShadowVisualStages } from "./shadow-visuals.mjs";
 const ROOT = path.resolve(import.meta.dirname, "../..");
 
 function usage() {
-  return "Usage: npm run content:generate -- <approved-brief-id> [--run-id <id>] [--shadow] [--write-to-src] [--approval-file <path>]";
+  return "Usage: npm run content:generate -- <approved-brief-id> [--run-id <id>] [--shadow] [--write-to-src] [--approval-file <path>] [--evidence-verification-file <path>]";
 }
 
 export function parseArguments(argv) {
@@ -22,10 +22,10 @@ export function parseArguments(argv) {
     if (!value?.startsWith("--") && !options.briefId) options.briefId = value;
     else if (value === "--shadow") options.shadow = true;
     else if (value === "--write-to-src") options.writeToSrc = true;
-    else if (["--run-id", "--approval-file"].includes(value)) {
+    else if (["--run-id", "--approval-file", "--evidence-verification-file"].includes(value)) {
       const next = values.shift();
       if (!next || next.startsWith("--")) throw new Error(`${value} requires a value`);
-      options[value === "--run-id" ? "runId" : "approvalFile"] = next;
+      options[value === "--run-id" ? "runId" : value === "--approval-file" ? "approvalFile" : "evidenceVerificationFile"] = next;
     } else throw new Error(`Unknown argument: ${value}\n${usage()}`);
   }
   if (!options.briefId) throw new Error(usage());
@@ -66,7 +66,7 @@ async function writeSourceDraft(article, root) {
   return target;
 }
 
-export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl = globalThis.fetch, imageProvider, renderer, now } = {}) {
+export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl = globalThis.fetch, imageProvider, renderer, evidenceVerification: suppliedEvidenceVerification, now } = {}) {
   const options = parseArguments(argv);
   const briefFile = path.join(root, "docs/content-briefs/contracts", `${options.briefId}.json`);
   await access(briefFile, constants.R_OK);
@@ -74,8 +74,9 @@ export async function runCli(argv, { root = ROOT, env = process.env, fetchImpl =
   const runId = options.runId || `${options.briefId}-draft`;
   const artifactRoot = path.join(root, "artifacts/content-generation", options.shadow ? "shadow" : "runs");
   const checkpointRoot = path.join(root, "artifacts/content-generation/checkpoints");
+  const evidenceVerification = options.evidenceVerificationFile ? JSON.parse(await readFile(path.resolve(options.evidenceVerificationFile), "utf8")) : suppliedEvidenceVerification;
   const provider = new OpenRouterProvider({ env, fetchImpl });
-  let result = await runDraftPipeline({ brief, provider, runId, artifactDirectory: artifactRoot, checkpointDirectory: checkpointRoot });
+  let result = await runDraftPipeline({ brief, provider, evidenceVerification, runId, artifactDirectory: artifactRoot, checkpointDirectory: checkpointRoot });
   result = await applyApproval(result, options.approvalFile);
   let visuals = null;
   if (options.shadow) {
