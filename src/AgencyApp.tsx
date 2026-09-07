@@ -1,4 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import "./posthog";
 
 type PageView =
   | "home"
