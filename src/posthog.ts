@@ -1,26 +1,13 @@
-import posthog from 'posthog-js';
-import { DEFAULT_POSTHOG_PROJECT_KEY } from './posthog-project';
+import type { PostHog } from 'posthog-js';
 
-const posthogKey = import.meta.env.VITE_POSTHOG_KEY || DEFAULT_POSTHOG_PROJECT_KEY;
-
-export const isPostHogEnabled = Boolean(posthogKey);
-
-if (posthogKey && typeof window !== 'undefined') {
-  posthog.init(posthogKey, {
-    api_host: '/ingest',
-    ui_host: 'https://us.posthog.com',
-    defaults: '2026-05-30',
-    disable_session_recording: true,
-    disable_surveys: true,
-    disable_conversations: true,
-    disable_product_tours: true,
-    advanced_disable_feature_flags: true,
-    capture_exceptions: {
-      capture_unhandled_errors: true,
-      capture_unhandled_rejections: true,
-      capture_console_errors: false,
-    },
-  });
+declare global {
+  interface Window {
+    posthog?: PostHog;
+  }
 }
+
+export const isPostHogEnabled = typeof window !== 'undefined' && Boolean(window.posthog);
+
+const posthog = (typeof window !== 'undefined' ? window.posthog : undefined) as PostHog;
 
 export default posthog;
