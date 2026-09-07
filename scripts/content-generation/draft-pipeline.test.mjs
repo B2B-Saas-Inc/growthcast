@@ -114,6 +114,10 @@ describe("runDraftPipeline", () => {
       if (request.system.includes("human-first writing guide")) {
         expect(request.input.evidence.records).toHaveLength(1);
         expect(request.input.evidence.records[0]).toMatchObject({ evidence_id: "EV-001", verification_status: "verified", supported_claim_ids: ["claim-1"] });
+        const result = await originalGenerate(request);
+        const article = JSON.parse(result.text);
+        article.claims[0].support_ids.push("EV-002");
+        return { ...result, text: JSON.stringify(article) };
       }
       return originalGenerate(request);
     });
@@ -121,7 +125,8 @@ describe("runDraftPipeline", () => {
       schema_version: 1, brief_id: "approved-brief", reviewed_by: "EJ White", reviewed_at: "2026-09-07T18:10:00.000Z", evidence_ledger_sha256: evidenceVerificationSha256(ledger),
       decisions: ledger.records.map((record) => ({ evidence_id: record.evidence_id, content_sha256: record.content_sha256, supported_claim_ids: record.supported_claim_ids, status: record.canonical_url.includes("nist.gov") ? "verified" : "rejected", notes: record.canonical_url.includes("nist.gov") ? "Claim mapping reviewed." : "Not suitable for factual support." })),
     });
-    await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "verified-allowlist", evidenceVerification, ...dirs });
+    const result = await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "verified-allowlist", evidenceVerification, ...dirs });
+    expect(result.article.claims[0].support_ids).toEqual(["EV-001"]);
   });
 
   it("records a failed stage and resumes it without replaying completed stages", async () => {

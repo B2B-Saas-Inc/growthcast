@@ -69,17 +69,20 @@ function normalizeArticleResponse(value, input, brief) {
   const allowedLinks = new Set(brief.internal_link_targets.map(({ url }) => url));
   return {
     ...article,
-    claims: Array.isArray(article.claims) ? article.claims.map((claim) => {
-      if ("text" in claim) return claim;
-      const supportIds = (claim.evidence_urls ?? []).map((url) => evidenceByUrl.get(url)).filter(Boolean);
-      return {
-        claim_id: claim.claim_id,
-        text: claim.claim,
+    claims: Array.isArray(article.claims) ? article.claims.map((rawClaim) => {
+      const claim = "text" in rawClaim ? rawClaim : {
+        claim_id: rawClaim.claim_id,
+        text: rawClaim.claim,
         material: true,
         support_type: "evidence",
-        support_ids: supportIds,
-        ...(claim.body_locator ? { body_locator: claim.body_locator } : {}),
+        support_ids: (rawClaim.evidence_urls ?? []).map((url) => evidenceByUrl.get(url)).filter(Boolean),
+        ...(rawClaim.body_locator ? { body_locator: rawClaim.body_locator } : {}),
       };
+      if (!claim.material || claim.support_type !== "evidence" || !Array.isArray(claim.support_ids)) return claim;
+      return { ...claim, support_ids: claim.support_ids.filter((id) => {
+        const record = input?.evidence?.records?.find(({ evidence_id }) => evidence_id === id);
+        return record?.verification_status === "verified" && record.supported_claim_ids?.includes(claim.claim_id);
+      }) };
     }) : [],
     internal_links: Array.isArray(article.internal_links) ? article.internal_links.map((link) => {
       if ("anchor" in link) return link;
