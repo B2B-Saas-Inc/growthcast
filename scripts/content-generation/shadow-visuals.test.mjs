@@ -71,6 +71,8 @@ describe("GrowthCast shadow visual stages", () => {
     expect(call.system).toContain("conceptual, non-factual");
     expect(call.system).toContain("Never request or depict charts");
     expect(call.prompt).toContain("screen-reader user");
+    expect(call.prompt).toContain("40 to 140 characters");
+    expect(call.prompt).toContain("do not use these words even to negate them");
     expect(call.prompt).toContain("Copy body_locator exactly");
   });
 
