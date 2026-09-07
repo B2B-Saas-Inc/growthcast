@@ -32,6 +32,34 @@ export function calculateNrr(expansionRate: number, retractionRate: number, reve
   return 1 + expansionRate - retractionRate - revenueChurnRate;
 }
 
+export function calculatePredictedLtv(
+  businessModel: "b2c" | "b2b",
+  acquisitionArpu: number | null,
+  acv: number,
+  churnRate: number,
+  grossMargin: number,
+) {
+  if (!churnRate) return null;
+  if (businessModel === "b2b") return (acv * grossMargin) / churnRate;
+  return acquisitionArpu === null
+    ? null
+    : (acquisitionArpu * grossMargin) / churnRate;
+}
+
+export function calculatePaybackPeriod(
+  businessModel: "b2c" | "b2b",
+  blendedCac: number,
+  acquisitionArpu: number | null,
+  acv: number,
+  grossMargin: number,
+) {
+  const monthlyRevenue =
+    businessModel === "b2b"
+      ? (acv / 12) * grossMargin
+      : (acquisitionArpu ?? 0) * grossMargin;
+  return monthlyRevenue ? blendedCac / monthlyRevenue : 0;
+}
+
 export function calculateMagicNumber(projection: ForecastMonth[], monthlyPaidSpend: number[], monthlyOverhead: number) {
   if (projection.length < 4) return null;
   const currentIndex = projection.length - 1;

@@ -4,6 +4,8 @@ import {
   calculateBlendedCac,
   calculateMagicNumber,
   calculateNrr,
+  calculatePaybackPeriod,
+  calculatePredictedLtv,
   cashFlowFor,
   defaultCashFlow,
 } from "./metrics";
@@ -43,6 +45,16 @@ describe("SaaS metrics", () => {
     expect(calculateNrr(0.018, 0.006, 0.057)).toBeCloseTo(0.955);
   });
 
+  it("uses ACV contribution margin and annual logo churn for B2B LTV and payback", () => {
+    expect(calculatePredictedLtv("b2b", 100, 120_000, 0.05, 0.8)).toBe(
+      1_920_000,
+    );
+    expect(calculatePredictedLtv("b2b", null, 120_000, 0, 0.8)).toBeNull();
+    expect(
+      calculatePaybackPeriod("b2b", 47_138, 100, 120_000, 0.8),
+    ).toBeCloseTo(5.89225);
+  });
+
   it("compares ending ARR with three months earlier and includes three months of paid spend and overhead", () => {
     const projection = [
       month("2027-04", 1_203_496),
@@ -57,6 +69,16 @@ describe("SaaS metrics", () => {
         30_000,
       ),
     ).toBeCloseTo(406_211 / 240_000);
+  });
+
+  it("matches the reported quarterly SaaS Magic Number example", () => {
+    const projection = [
+      month("2029-06", 1_991_910),
+      month("2029-07", 2_030_000),
+      month("2029-08", 2_080_000),
+      month("2029-09", 2_126_606),
+    ];
+    expect(calculateMagicNumber(projection, [0, 6_000, 6_000, 6_000], 20_000)).toBeCloseTo(1.7268718);
   });
 
   it("returns unavailable without four months or quarterly spend", () => {
@@ -81,8 +103,9 @@ describe("SaaS metrics", () => {
     ).toBeNull();
   });
 
-  it("includes monthly Sales & Marketing overhead in blended CAC", () => {
+  it("includes Sales & Marketing overhead in blended CAC", () => {
     expect(calculateBlendedCac(50_000, 30_000, 5_000, 100)).toBe(850);
+    expect(calculateBlendedCac(24_000, 24_000, 0, 12)).toBe(4_000);
     expect(calculateBlendedCac(50_000, 30_000, 5_000, 0)).toBe(0);
   });
 

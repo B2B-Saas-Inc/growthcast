@@ -2,6 +2,7 @@ import {
   Fragment,
   type CSSProperties,
   type FormEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -24,6 +25,7 @@ import {
 } from "recharts";
 import {
   Download,
+  CircleHelp,
   ImageDown,
   RotateCcw,
   TrendingUp,
@@ -46,6 +48,8 @@ import {
   calculateBlendedCac,
   calculateMagicNumber,
   calculateNrr,
+  calculatePaybackPeriod,
+  calculatePredictedLtv,
   cashFlowFor,
   defaultCashFlow,
   type CashFlowSettings,
@@ -96,6 +100,18 @@ const number = (n: number) =>
 const whole = (n: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
 const one = (n: number) => Number(n.toFixed(1));
+function MetricDefinition({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <span className="metricDefinition">
+      <button type="button" aria-label={`Define ${label}`}>
+        <CircleHelp size={16} aria-hidden="true" />
+      </button>
+      <span className="metricDefinitionTooltip" role="tooltip">
+        {children}
+      </span>
+    </span>
+  );
+}
 const addIsoMonths = (month: string, count: number) => {
   const [y, m] = month.split("-").map(Number);
   const d = new Date(Date.UTC(y, m - 1 + count, 1));
@@ -636,17 +652,46 @@ const b2bFields: typeof fields = [
     kind: "money",
     hint: "Annual recurring value",
   },
-  ...fields.filter(
-    (field) =>
-      ![
-        "months",
-        "monthlyTrafficGrowth",
-        "signupRate",
-        "purchaseRate",
-        "daysToUpgrade",
-        "newCustomerArpu",
-      ].includes(field.key),
-  ),
+  ...fields
+    .filter(
+      (field) =>
+        ![
+          "months",
+          "monthlyTrafficGrowth",
+          "signupRate",
+          "purchaseRate",
+          "daysToUpgrade",
+          "newCustomerArpu",
+          "voluntaryRevenueChurn",
+          "delinquentRevenueChurn",
+        ].includes(field.key),
+    )
+    .map((field) => {
+      if (
+        field.key === "voluntaryCustomerChurn" ||
+        field.key === "delinquentCustomerChurn"
+      )
+        return { ...field, hint: "Annual; applied every 12 forecast months" };
+      if (field.key === "expansionRate")
+        return {
+          ...field,
+          label: "Annual expansion rate",
+          hint: "Applied every 12 forecast months",
+        };
+      if (field.key === "retractionRate")
+        return {
+          ...field,
+          label: "Annual downgrade rate",
+          hint: "Applied every 12 forecast months",
+        };
+      if (field.key === "monthlySalesMarketingOverhead")
+        return {
+          ...field,
+          label: "Annual Sales & Marketing Overhead",
+          hint: "Annual salaries, commissions, and tools",
+        };
+      return field;
+    }),
 ];
 function Field({
   f,
@@ -1170,6 +1215,7 @@ function DeepDive({
   cashFlowSettings: CashFlowSettings;
   setCashFlowSettings: (v: CashFlowSettings) => void;
 }) {
+  const isB2b = assumptions.businessModel === "b2b";
   const [tab, setTab] = useState<DeepTab>("budget");
   const [showLines, setShowLines] = useState<Record<DeepTab, boolean>>({
     budget: true,
@@ -1195,9 +1241,12 @@ function DeepDive({
   );
   const [churnEditRate, setChurnEditRate] = useState(
     one(
-      (monthlyChurnOverrides[projection[0]?.month] ??
-        assumptions.voluntaryRevenueChurn +
-          assumptions.delinquentRevenueChurn) * 100,
+      (isB2b
+        ? assumptions.voluntaryCustomerChurn +
+          assumptions.delinquentCustomerChurn
+        : monthlyChurnOverrides[projection[0]?.month] ??
+          assumptions.voluntaryRevenueChurn +
+            assumptions.delinquentRevenueChurn) * 100,
     ),
   );
   const paid = useMemo(
@@ -1459,10 +1508,15 @@ function DeepDive({
         />
       );
     };
-  const revTotal =
-    assumptions.voluntaryRevenueChurn + assumptions.delinquentRevenueChurn;
   const logoTotal =
     assumptions.voluntaryCustomerChurn + assumptions.delinquentCustomerChurn;
+  const voluntaryChurnRate = isB2b
+    ? assumptions.voluntaryCustomerChurn
+    : assumptions.voluntaryRevenueChurn;
+  const delinquentChurnRate = isB2b
+    ? assumptions.delinquentCustomerChurn
+    : assumptions.delinquentRevenueChurn;
+  const revTotal = voluntaryChurnRate + delinquentChurnRate;
   const budgetData = projection.map((p, i) => {
     const values = monthSpends(p.month, i);
     return {
@@ -1474,15 +1528,16 @@ function DeepDive({
   const churnData = projection.map((p) => ({
     month: p.month,
     voluntaryMrr: revTotal
-      ? (-p.churnMrr * assumptions.voluntaryRevenueChurn) / revTotal
+      ? (-p.churnMrr * voluntaryChurnRate) / revTotal
       : 0,
     delinquentMrr: revTotal
-      ? (-p.churnMrr * assumptions.delinquentRevenueChurn) / revTotal
+      ? (-p.churnMrr * delinquentChurnRate) / revTotal
       : 0,
-    overrideMrr: revTotal ? 0 : -p.churnMrr,
+    overrideMrr: revTotal || isB2b ? 0 : -p.churnMrr,
     churnedCustomerArpu: p.churnedCustomerArpu ?? 0,
     churnedArpuRatio: (p.churnedArpuRatio ?? 0) * 100,
-    revenueChurnRate: (monthlyChurnOverrides[p.month] ?? revTotal) * 100,
+    revenueChurnRate:
+      (isB2b ? revTotal : monthlyChurnOverrides[p.month] ?? revTotal) * 100,
     voluntaryCustomers: logoTotal
       ? (p.churnedCustomers * assumptions.voluntaryCustomerChurn) / logoTotal
       : 0,
@@ -1865,30 +1920,37 @@ function DeepDive({
               <span>Retention</span>
               <h2>Churn overview</h2>
               <p>
-                Revenue and customer churn split into voluntary and delinquent
-                movement.
+                {isB2b
+                  ? "Annual logo churn applied once every 12 forecast months, with lost MRR based on ACV."
+                  : "Revenue and customer churn split into voluntary and delinquent movement."}
               </p>
             </div>
             <div className="deepActions">
-              <strong>{pct(revTotal)} revenue churn</strong>
-              <label className="futureToggle">
-                <input
-                  aria-label="Apply churn edits to future months"
-                  type="checkbox"
-                  checked={applyFuture}
-                  onChange={(e) => setApplyFuture(e.target.checked)}
-                />{" "}
-                Apply chart edits to future months
-              </label>
+              <strong>
+                {pct(revTotal)} {isB2b ? "annual logo churn" : "revenue churn"}
+              </strong>
+              {!isB2b && (
+                <>
+                  <label className="futureToggle">
+                    <input
+                      aria-label="Apply churn edits to future months"
+                      type="checkbox"
+                      checked={applyFuture}
+                      onChange={(e) => setApplyFuture(e.target.checked)}
+                    />{" "}
+                    Apply chart edits to future months
+                  </label>
+                  <button onClick={() => setMonthlyChurnOverrides({})}>
+                    <RotateCcw size={12} /> Reset chart
+                  </button>
+                </>
+              )}
               <button onClick={() => setShowLine(!showLine)}>
                 {showLine ? "Hide line" : "Show line"}
               </button>
-              <button onClick={() => setMonthlyChurnOverrides({})}>
-                <RotateCcw size={12} /> Reset chart
-              </button>
             </div>
           </div>
-          <div className="churnPlanner">
+          {!isB2b && <div className="churnPlanner">
             <label>
               Change month
               <select
@@ -1929,7 +1991,7 @@ function DeepDive({
             >
               Apply churn {applyFuture ? "forward" : "to month"}
             </button>
-          </div>
+          </div>}
           <div id="deep-chart-churn" className="deepChart">
             <ResponsiveContainer width="100%" height={340}>
               <ComposedChart data={churnData} margin={{ left: 10, right: 24 }}>
@@ -1985,9 +2047,9 @@ function DeepDive({
                     dataKey="revenueChurnRate"
                     stroke="#27282a"
                     strokeWidth={3}
-                    name="Revenue churn %"
+                    name={isB2b ? "Annual logo churn %" : "Revenue churn %"}
                     activeDot={false}
-                    dot={dot("churn")}
+                    dot={isB2b ? false : dot("churn")}
                   />
                 )}
               </ComposedChart>
@@ -2000,7 +2062,7 @@ function DeepDive({
             { key: "overrideMrr", label: "Override MRR", format: money },
             {
               key: "revenueChurnRate",
-              label: "Revenue churn",
+              label: isB2b ? "Annual logo churn" : "Revenue churn",
               format: (v) => `${number(v)}%`,
             },
             {
@@ -2015,7 +2077,7 @@ function DeepDive({
             },
             {
               key: "customerChurnRate",
-              label: "Customer churn",
+              label: isB2b ? "Annual logo churn" : "Customer churn",
               format: (v) => `${number(v)}%`,
             },
             {
@@ -3487,7 +3549,9 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
     : 0;
   const monthlyRevenueRetention = Math.max(
     0,
-    1 - a.voluntaryRevenueChurn - a.delinquentRevenueChurn,
+    businessModel === "b2b"
+      ? (1 - a.voluntaryCustomerChurn - a.delinquentCustomerChurn) ** (1 / 12)
+      : 1 - a.voluntaryRevenueChurn - a.delinquentRevenueChurn,
   );
   const commissionFactor = partner
     ? Array.from(
@@ -3505,37 +3569,61 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
     (businessModel === "b2b" ? (partner?.acv || 0) / 12 : partner?.arpu || 0) *
     (partner?.affiliateCommissionRate || 0) *
     commissionFactor;
-  const acquiredCustomers = paidLaunch.customers + partnerCustomers;
-  const blendedCac = calculateBlendedCac(
-    paidLaunch.spend,
-    a.monthlySalesMarketingOverhead,
-    partnerCommissionCost,
-    acquiredCustomers,
-  );
-  const predictedLtv = end.ltv === null ? null : end.ltv * a.grossMargin;
-  const payback =
-    end.acquisitionArpu && a.grossMargin
-      ? blendedCac / (end.acquisitionArpu * a.grossMargin)
-      : 0;
-  const expectedLtvCac =
-    blendedCac && predictedLtv !== null ? predictedLtv / blendedCac : null;
-  const endingRevenueChurn =
-    monthlyChurnOverrides[end.month] ??
-    a.voluntaryRevenueChurn + a.delinquentRevenueChurn;
-  const netRevenueRetention = calculateNrr(
-    a.expansionRate,
-    a.retractionRate,
-    endingRevenueChurn,
-  );
   const monthlyPaidSpend = projection.map((row, index) =>
     channels
       .filter((c) => c.model !== "manual")
       .reduce((sum, c) => sum + effectiveSpend(row.month, index, c), 0),
   );
+  const b2bAnnualMonths = Math.min(12, projection.length);
+  const acquiredCustomers =
+    businessModel === "b2b"
+      ? projection
+          .slice(0, b2bAnnualMonths)
+          .reduce((sum, row) => sum + row.newCustomers, 0)
+      : paidLaunch.customers + partnerCustomers;
+  const blendedCac = calculateBlendedCac(
+    businessModel === "b2b"
+      ? monthlyPaidSpend
+          .slice(0, b2bAnnualMonths)
+          .reduce((sum, spend) => sum + spend, 0)
+      : paidLaunch.spend,
+    a.monthlySalesMarketingOverhead,
+    partnerCommissionCost,
+    acquiredCustomers,
+  );
+  const endingRevenueChurn =
+    businessModel === "b2b"
+      ? a.voluntaryCustomerChurn + a.delinquentCustomerChurn
+      : monthlyChurnOverrides[end.month] ??
+        a.voluntaryRevenueChurn + a.delinquentRevenueChurn;
+  const effectiveLtvChurn = endingRevenueChurn;
+  const predictedLtv = calculatePredictedLtv(
+    businessModel,
+    end.acquisitionArpu,
+    a.acv ?? 0,
+    effectiveLtvChurn,
+    a.grossMargin,
+  );
+  const payback = calculatePaybackPeriod(
+    businessModel,
+    blendedCac,
+    end.acquisitionArpu,
+    a.acv ?? 0,
+    a.grossMargin,
+  );
+  const expectedLtvCac =
+    blendedCac && predictedLtv !== null ? predictedLtv / blendedCac : null;
+  const netRevenueRetention = calculateNrr(
+    a.expansionRate,
+    a.retractionRate,
+    endingRevenueChurn,
+  );
   const magicNumber = calculateMagicNumber(
     projection,
     monthlyPaidSpend,
-    a.monthlySalesMarketingOverhead,
+    businessModel === "b2b"
+      ? a.monthlySalesMarketingOverhead / 12
+      : a.monthlySalesMarketingOverhead,
   );
   const trend = projection.map((m) => ({
     month: m.month,
@@ -3599,7 +3687,9 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       (c) => c.model !== "manual" && c.goLiveMonth > 0,
     );
     const revenueChurn = a.voluntaryRevenueChurn + a.delinquentRevenueChurn,
-      customerChurn = a.voluntaryCustomerChurn + a.delinquentCustomerChurn;
+      customerChurn = a.voluntaryCustomerChurn + a.delinquentCustomerChurn,
+      exportedChurnRate =
+        businessModel === "b2b" ? customerChurn : revenueChurn;
     const cashRows = projection.map((row) =>
       cashFlowFor(row, cashFlowSettings),
     );
@@ -3608,7 +3698,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       [
         ...keys,
         "monthlyBudget",
-        "revenueChurnRate",
+        businessModel === "b2b" ? "annualLogoChurnRate" : "revenueChurnRate",
         "monthlySubscriptions",
         "yearlySubscriptions",
         "oneTimePayments",
@@ -3619,7 +3709,9 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       projection.map((row, index) => [
         ...keys.map((key) => row[key]),
         monthlyPaidSpend[index],
-        monthlyChurnOverrides[row.month] ?? revenueChurn,
+        businessModel === "b2b"
+          ? customerChurn
+          : monthlyChurnOverrides[row.month] ?? revenueChurn,
         ...Object.values(cashRows[index]),
       ]),
     );
@@ -3640,7 +3732,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
         "voluntaryMrr",
         "delinquentMrr",
         "overrideMrr",
-        "revenueChurnRate",
+        businessModel === "b2b" ? "annualLogoChurnRate" : "revenueChurnRate",
         "voluntaryCustomers",
         "delinquentCustomers",
         "customerChurnRate",
@@ -3649,14 +3741,24 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       ],
       projection.map((row) => [
         row.month,
-        revenueChurn
-          ? (-row.churnMrr * a.voluntaryRevenueChurn) / revenueChurn
+        exportedChurnRate
+          ? (-row.churnMrr *
+              (businessModel === "b2b"
+                ? a.voluntaryCustomerChurn
+                : a.voluntaryRevenueChurn)) /
+            exportedChurnRate
           : 0,
-        revenueChurn
-          ? (-row.churnMrr * a.delinquentRevenueChurn) / revenueChurn
+        exportedChurnRate
+          ? (-row.churnMrr *
+              (businessModel === "b2b"
+                ? a.delinquentCustomerChurn
+                : a.delinquentRevenueChurn)) /
+            exportedChurnRate
           : 0,
-        revenueChurn ? 0 : -row.churnMrr,
-        (monthlyChurnOverrides[row.month] ?? revenueChurn) * 100,
+        exportedChurnRate || businessModel === "b2b" ? 0 : -row.churnMrr,
+        (businessModel === "b2b"
+          ? customerChurn
+          : monthlyChurnOverrides[row.month] ?? revenueChurn) * 100,
         customerChurn
           ? (row.churnedCustomers * a.voluntaryCustomerChurn) / customerChurn
           : 0,
@@ -3835,11 +3937,17 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       `Business model ${businessModel.toUpperCase()}`,
       `Traffic growth ${pct(a.monthlyTrafficGrowth)}`,
       ...acquisitionAssumptions,
-      `Revenue churn ${pct(a.voluntaryRevenueChurn + a.delinquentRevenueChurn)}`,
-      `Logo churn ${pct(a.voluntaryCustomerChurn + a.delinquentCustomerChurn)}`,
+      ...(businessModel === "b2b"
+        ? [
+            `Annual logo churn ${pct(a.voluntaryCustomerChurn + a.delinquentCustomerChurn)}`,
+          ]
+        : [
+            `Revenue churn ${pct(a.voluntaryRevenueChurn + a.delinquentRevenueChurn)}`,
+            `Logo churn ${pct(a.voluntaryCustomerChurn + a.delinquentCustomerChurn)}`,
+          ]),
       `Gross margin ${pct(a.grossMargin)}`,
       `Budget growth ${pct(monthlyBudgetGrowth)}`,
-      `S&M overhead ${money(a.monthlySalesMarketingOverhead)} / month`,
+      `S&M overhead ${money(a.monthlySalesMarketingOverhead)} / ${businessModel === "b2b" ? "year" : "month"}`,
       `Cash fees ${pct(cashFlowSettings.feeRate)}`,
       `Cash refunds ${pct(cashFlowSettings.refundRate)}`,
       `Plan split ${pct(cashFlowSettings.monthlyShare)} monthly / ${pct(cashFlowSettings.annualShare)} annual${cashFlowSettings.oneTimeEnabled ? ` / ${pct(cashFlowSettings.oneTimeShare)} one-time` : ""}`,
@@ -5221,23 +5329,25 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
             <h2>Assumptions</h2>
             <span>{scenario}</span>
           </div>
-          <div className="scenarioTabs">
-            {Object.keys(scenarios).map((name) => (
-              <button
-                className={scenario === name ? "active" : ""}
-                key={name}
-                onClick={() => {
-                  setScenario(name);
-                  setA({ ...a, ...scenarios[name] });
-                  if (isPostHogEnabled && scenario !== name) {
-                    posthog.capture("scenario_selected", { scenario: name });
-                  }
-                }}
-              >
-                {name}
-              </button>
-            ))}
-          </div>
+          {businessModel === "b2c" && (
+            <div className="scenarioTabs">
+              {Object.keys(scenarios).map((name) => (
+                <button
+                  className={scenario === name ? "active" : ""}
+                  key={name}
+                  onClick={() => {
+                    setScenario(name);
+                    setA({ ...a, ...scenarios[name] });
+                    if (isPostHogEnabled && scenario !== name) {
+                      posthog.capture("scenario_selected", { scenario: name });
+                    }
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
           <label className="field">
             <span>
               Starting month<small>First forecast month</small>
@@ -5552,71 +5662,75 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
               <section className="cards">
                 <article>
                   <small>ENDING MRR</small>
+                  <MetricDefinition label="Ending MRR">
+                    {baseline.mrr ? pct(end.endingMrr / baseline.mrr - 1) : "—"} vs {baseline.month}
+                  </MetricDefinition>
                   <strong>{moneyWhole(end.endingMrr)}</strong>
-                  <em>
-                    {baseline.mrr ? pct(end.endingMrr / baseline.mrr - 1) : "—"}{" "}
-                    vs {baseline.month}
-                  </em>
                 </article>
                 <article>
                   <small>ENDING ARR</small>
+                  <MetricDefinition label="Ending ARR">{a.months}-month run rate</MetricDefinition>
                   <strong>{moneyWhole(end.arr)}</strong>
-                  <em>{a.months}-month run rate</em>
                 </article>
                 <article>
                   <small>TOTAL CUSTOMERS</small>
+                  <MetricDefinition label="Total customers">+{whole(end.customers - baseline.customers)} net</MetricDefinition>
                   <strong>{whole(end.customers)}</strong>
-                  <em>+{whole(end.customers - baseline.customers)} net</em>
                 </article>
                 <article>
                   <small>MAX CAC</small>
+                  <MetricDefinition label="Maximum CAC">{a.targetLtvCac}:1 contribution LTV:CAC</MetricDefinition>
                   <strong>{moneyWhole(end.maxCac)}</strong>
-                  <em>{a.targetLtvCac}:1 contribution LTV:CAC</em>
                 </article>
                 <article>
                   <small>NET REVENUE RETENTION</small>
+                  <MetricDefinition label="Net revenue retention">Expansion less downgrade and {businessModel === "b2b" ? "annual logo churn" : "revenue churn"}</MetricDefinition>
                   <strong>{pct(netRevenueRetention)}</strong>
-                  <em>Expansion less downgrade and revenue churn</em>
                 </article>
               </section>
               <section className="cards secondaryCards">
                 <article>
                   <small>PAYBACK PERIOD</small>
+                  <MetricDefinition label="Payback period">
+                    {businessModel === "b2b"
+                      ? `Blended CAC ÷ ((${money(a.acv ?? 0)} ACV ÷ 12) × ${pct(a.grossMargin)} margin)`
+                      : "Blended CAC ÷ monthly contribution ARPU"}
+                  </MetricDefinition>
                   <strong>{number(payback)} mo</strong>
-                  <em>Blended CAC ÷ monthly contribution ARPU</em>
                 </article>
                 <article>
                   <small>PREDICTED LTV</small>
+                  <MetricDefinition label="Predicted LTV">
+                    {businessModel === "b2b"
+                      ? `(${money(a.acv ?? 0)} ACV × ${pct(a.grossMargin)} margin) ÷ ${pct(endingRevenueChurn)} annual logo churn`
+                      : "Weighted acquisition ARPU × gross margin ÷ revenue churn"}
+                  </MetricDefinition>
                   <strong>{money(predictedLtv)}</strong>
-                  <em>
-                    Weighted acquisition ARPU × gross margin ÷ revenue churn
-                  </em>
                 </article>
                 <article>
                   <small>ACTUAL BLENDED CAC</small>
+                  <MetricDefinition label="Actual blended CAC">
+                    {businessModel === "b2b"
+                      ? "Annual S&M overhead + 12 months paid spend + affiliate commissions ÷ 12-month acquired customers"
+                      : "Paid spend + S&M overhead + affiliate commissions ÷ acquired customers"}
+                  </MetricDefinition>
                   <strong>{money(blendedCac)}</strong>
-                  <em>
-                    Paid spend + S&amp;M overhead + affiliate commissions ÷
-                    acquired customers
-                  </em>
                 </article>
                 <article>
                   <small>EXPECTED LTV:CAC</small>
+                  <MetricDefinition label="Expected LTV to CAC">Predicted LTV ÷ blended CAC</MetricDefinition>
                   <strong>
                     {expectedLtvCac === null
                       ? "—"
                       : `${number(expectedLtvCac)}:1`}
                   </strong>
-                  <em>Predicted LTV ÷ blended CAC</em>
                 </article>
                 <article>
                   <small>SAAS MAGIC NUMBER</small>
+                  <MetricDefinition label="SaaS Magic Number">ARR gained over 3 months ÷ those 3 months of S&amp;M spend</MetricDefinition>
                   <strong>
                     {magicNumber === null ? "—" : number(magicNumber)}
                   </strong>
-                  <em>
-                    ARR gained over 3 months ÷ those 3 months of S&amp;M spend
-                  </em>
                 </article>
               </section>
             </div>
@@ -5996,16 +6110,16 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                 <span>07</span>
                 <h3>Unit economics</h3>
                 <p>
-                  Predicted LTV uses the customer-weighted monthly value of all
-                  acquisition sources, gross margin, and revenue churn, so
-                  channel economics matter while logo churn cannot mechanically
-                  reduce LTV. Blended CAC combines paid launch spend, one month
-                  of Sales &amp; Marketing Overhead, and churn-adjusted
-                  affiliate commissions, divided by the customers attributed to
-                  those channels.
+                  {businessModel === "b2b"
+                    ? "Predicted LTV uses ACV contribution margin divided by annual logo churn."
+                    : "Predicted LTV uses the customer-weighted monthly value of all acquisition sources, gross margin, and revenue churn."} {businessModel === "b2b"
+                    ? "Blended CAC combines annual S&M overhead, the first 12 forecast months of paid spend, and affiliate commissions, divided by all customers acquired in those 12 months."
+                    : "Blended CAC combines paid launch spend, one month of Sales & Marketing Overhead, and churn-adjusted affiliate commissions, divided by customers attributed to those channels."}
                 </p>
                 <code>
-                  LTV = (total new MRR ÷ new customers) × margin ÷ revenue churn
+                  {businessModel === "b2b"
+                    ? "LTV = (ACV × gross margin) ÷ annual logo churn"
+                    : "LTV = (total new MRR ÷ new customers) × margin ÷ revenue churn"}
                   <br />
                   CAC = (paid spend + S&amp;M overhead + affiliate commissions)
                   ÷ acquired customers
@@ -6016,11 +6130,12 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                 <h3>Read the result</h3>
                 <p>
                   Payback shows months needed to recover blended CAC from
-                  monthly contribution ARPU. Expected LTV:CAC compares predicted
-                  contribution LTV with blended CAC.
+                  {businessModel === "b2b" ? " ACV ÷ 12" : " monthly contribution ARPU"}. Expected LTV:CAC compares predicted LTV with blended CAC.
                 </p>
                 <code>
-                  payback = CAC ÷ (weighted acquisition ARPU × margin)
+                  {businessModel === "b2b"
+                    ? "payback = CAC ÷ ((ACV ÷ 12) × gross margin)"
+                    : "payback = CAC ÷ (weighted acquisition ARPU × margin)"}
                   <br />
                   LTV:CAC = predicted LTV ÷ CAC
                 </code>
