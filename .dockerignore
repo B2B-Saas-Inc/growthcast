@@ -4,4 +4,6 @@ dist
 CONTINUITY.md
 baseline.csv
 .vercel
-.env.local
+.env
+.env.*
+!.env.example
