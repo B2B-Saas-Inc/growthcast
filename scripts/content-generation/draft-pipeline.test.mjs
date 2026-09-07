@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -57,9 +58,17 @@ describe("runDraftPipeline", () => {
     const now = vi.fn(() => timestamps.shift());
     const options = { brief: approvedBrief(), provider: mock, runId: "review-run", now, evidenceVerification: verification(), ...dirs };
     const first = await runDraftPipeline(options);
+    const governedFiles = ["evidence-ledger.json", "article.json", "qa-report.json", "run-manifest.json"];
+    const firstBytes = await Promise.all(governedFiles.map((file) => readFile(path.join(first.artifactDirectory, file))));
+    const firstHashes = firstBytes.map((bytes) => createHash("sha256").update(bytes).digest("hex"));
     const resumed = await runDraftPipeline(options);
+    const resumedBytes = await Promise.all(governedFiles.map((file) => readFile(path.join(resumed.artifactDirectory, file))));
+    const resumedHashes = resumedBytes.map((bytes) => createHash("sha256").update(bytes).digest("hex"));
 
     expect(resumed.article).toEqual(first.article);
+    expect(resumed.manifest).toEqual(first.manifest);
+    expect(resumedBytes).toEqual(firstBytes);
+    expect(resumedHashes).toEqual(firstHashes);
     expect(mock.research).toHaveBeenCalledTimes(1);
     expect(mock.generate).toHaveBeenCalledTimes(6);
     expect(first.article.body).toContain("https://www.nist.gov/");
