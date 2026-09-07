@@ -228,10 +228,11 @@ function buildRunManifest({ brief, runId, checkpoint, endedAt, status }) {
   const latestOutput = [...checkpoint.records].reverse().find((record) => record.output)?.output;
   const stageTimes = latestOutput?.pipeline_provenance ?? {};
   const startedAt = checkpoint.records.length ? stageTimes[checkpoint.records[0].stage]?.started_at ?? endedAt : endedAt;
+  const stableEndedAt = status === "stopped_for_approval" ? stageTimes[checkpoint.records.at(-1)?.stage]?.ended_at ?? endedAt : endedAt;
   return {
     schema_version: 1, run_id: runId, content_id: brief.content_id, brand: brief.brand,
     profile_version: brief.profile_version, policy_versions: brief.policy_versions,
-    started_at: startedAt, ended_at: endedAt, status,
+    started_at: startedAt, ended_at: stableEndedAt, status,
     stages: checkpoint.records.map((record) => {
       const provenance = stageTimes[record.stage] ?? { started_at: endedAt, ended_at: endedAt };
       return {
