@@ -4903,26 +4903,6 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       if (menu !== except) menu.removeAttribute("open");
     });
   };
-  const openAgencyHome = () => {
-    window.history.pushState({}, "", "/");
-    setPageView("home");
-    setImportMessage("");
-    window.scrollTo({ top: 0 });
-  };
-  const openAgencyPage = (target: "why" | "how") => {
-    const path = target === "why" ? "/why-growthcast" : "/how-it-works";
-    window.history.pushState({}, "", path);
-    setPageView(target);
-    setImportMessage("");
-    window.scrollTo({ top: 0 });
-  };
-  const openCompanyPage = (target: "about" | "philosophy" | "careers" | "partners") => {
-    closeSiteMenus();
-    window.history.pushState({}, "", `/company/${target}`);
-    setPageView(target);
-    setImportMessage("");
-    window.scrollTo({ top: 0 });
-  };
   const openLegalPage = (target: "terms" | "privacy") => {
     window.history.pushState({}, "", `/${target}`);
     setPageView(target);
@@ -5008,33 +4988,22 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
   const isAgencyPage = ["home", "why", "how", "terms", "privacy", "about", "philosophy", "careers", "partners"].includes(pageView);
   return (
     <main
-      className={`${isAgencyPage ? "marketingHome" : ""}${showGrowthPlan ? " growthPlanVisible" : ""}`.trim() || undefined}
+      className={`${isAgencyPage ? "marketingHome" : "forecastTool"}${showGrowthPlan ? " growthPlanVisible" : ""}`}
       style={
         {
           "--growth-plan-height": `${growthPlanHeight}px`,
         } as CSSProperties
       }
     >
-      {isAgencyPage ? (
         <header className="siteHeader">
-          <button className="siteBrand" type="button" onClick={openAgencyHome}>
-            <span>GrowthCast</span>
-          </button>
+          <a className="siteBrand" href="/">GrowthCast</a>
           <nav className="siteNav" aria-label="Main navigation">
-            <button
-              className={pageView === "why" ? "active" : ""}
-              type="button"
-              onClick={() => openAgencyPage("why")}
-            >
+            <a href="/why-growthcast" aria-current={pageView === "why" ? "page" : undefined}>
               Why GrowthCast
-            </button>
-            <button
-              className={pageView === "how" ? "active" : ""}
-              type="button"
-              onClick={() => openAgencyPage("how")}
-            >
+            </a>
+            <a href="/how-it-works" aria-current={pageView === "how" ? "page" : undefined}>
               How We Work
-            </button>
+            </a>
             <details
               className="resourceNav companyNav"
               onToggle={(event) => {
@@ -5043,10 +5012,10 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
             >
               <summary>Company</summary>
               <div>
-                <button type="button" onClick={() => openCompanyPage("about")}>About</button>
-                <button type="button" onClick={() => openCompanyPage("philosophy")}>Philosophy</button>
-                <button type="button" onClick={() => openCompanyPage("partners")}>Partners</button>
-                <button type="button" onClick={() => openCompanyPage("careers")}>Careers</button>
+                <a href="/company/about">About</a>
+                <a href="/company/philosophy">Philosophy</a>
+                <a href="/company/partners">Partners</a>
+                <a href="/company/careers">Careers</a>
               </div>
             </details>
             <details
@@ -5058,27 +5027,19 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
               <summary>Resources</summary>
               <div>
                 <span>Tools</span>
-                <button type="button" onClick={openForecastTool}>Forecast</button>
+                <a href="/resources/tools/forecast" aria-current={!isAgencyPage ? "page" : undefined}>Forecast</a>
                 <span>Publishing</span>
                 <p>Newsletter <small>Coming soon</small></p>
                 <a href="/blog">Blog</a>
                 <p>Case Studies <small>Coming soon</small></p>
               </div>
             </details>
-            <button
-              className="siteNavCta"
-              type="button"
-              onClick={openContactForm}
-            >
-              Let's Talk Growth
-            </button>
+            <a className="siteNavCta" href="/?contact=1">Let's Talk Growth</a>
           </nav>
         </header>
-      ) : (
-      <header>
+      {!isAgencyPage && (
+      <header className="forecastHeader">
         <div>
-          <div className="brandTitle">
-            <button className="modelWordmark" type="button" onClick={openAgencyHome}>GrowthCast</button>
             <h1>
               {pageView === "baseline"
                   ? "Baseline setup"
@@ -5090,9 +5051,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                         ? "Channel settings"
                         : "Methodology"}
             </h1>
-          </div>
-          <nav className="pageNav">
-            <button onClick={openAgencyHome}>Agency</button>
+          <nav className="pageNav" aria-label="Forecast tool navigation">
             <button
               className={pageView === "baseline" ? "active" : ""}
               onClick={() => {
