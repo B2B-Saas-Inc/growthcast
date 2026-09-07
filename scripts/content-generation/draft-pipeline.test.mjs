@@ -116,7 +116,7 @@ describe("runDraftPipeline", () => {
         expect(request.input.evidence.records[0]).toMatchObject({ evidence_id: "EV-001", verification_status: "verified", supported_claim_ids: ["claim-1"] });
         const result = await originalGenerate(request);
         const article = JSON.parse(result.text);
-        article.claims[0].support_ids.push("EV-002");
+        article.claims[0].support_ids = ["EV-002"];
         return { ...result, text: JSON.stringify(article) };
       }
       return originalGenerate(request);
