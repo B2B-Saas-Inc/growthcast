@@ -79,10 +79,13 @@ function normalizeArticleResponse(value, input, brief) {
         ...(rawClaim.body_locator ? { body_locator: rawClaim.body_locator } : {}),
       };
       if (!claim.material || claim.support_type !== "evidence" || !Array.isArray(claim.support_ids)) return claim;
-      return { ...claim, support_ids: claim.support_ids.filter((id) => {
-        const record = input?.evidence?.records?.find(({ evidence_id }) => evidence_id === id);
-        return record?.verification_status === "verified" && record.supported_claim_ids?.includes(claim.claim_id);
-      }) };
+      const mappedSupportIds = (input?.evidence?.records ?? [])
+        .filter((record) => record.verification_status === "verified" && record.supported_claim_ids?.includes(claim.claim_id))
+        .map((record) => record.evidence_id);
+      const allowed = new Set(mappedSupportIds);
+      const retainedSupportIds = claim.support_ids.filter((id) => allowed.has(id));
+      return { ...claim, support_ids: retainedSupportIds.length > 0 ? retainedSupportIds : mappedSupportIds };
+
     }) : [],
     internal_links: Array.isArray(article.internal_links) ? article.internal_links.map((link) => {
       if ("anchor" in link) return link;
