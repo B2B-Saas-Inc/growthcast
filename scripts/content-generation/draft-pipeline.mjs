@@ -30,12 +30,39 @@ function withStageProvenance(input, stage, startedAt, endedAt, model) {
   };
 }
 
-function generationHandler(provider, stage, system, prompt, now) {
+function normalizeArticleResponse(value, input, brief) {
+  const article = value && typeof value === "object" && !Array.isArray(value) && value.article && typeof value.article === "object" && !Array.isArray(value.article)
+    ? value.article
+    : value;
+  if (!article || typeof article !== "object" || Array.isArray(article)) return article;
+  const evidenceByUrl = new Map((input?.evidence?.records ?? []).map((record) => [record.canonical_url, record.evidence_id]));
+  const allowedLinks = new Set(brief.internal_link_targets.map(({ url }) => url));
+  return {
+    ...article,
+    claims: Array.isArray(article.claims) ? article.claims.map((claim) => {
+      if ("text" in claim) return claim;
+      const supportIds = (claim.evidence_urls ?? []).map((url) => evidenceByUrl.get(url)).filter(Boolean);
+      return {
+        claim_id: claim.claim_id,
+        text: claim.claim,
+        material: true,
+        support_type: "evidence",
+        support_ids: supportIds,
+      };
+    }) : [],
+    internal_links: Array.isArray(article.internal_links) ? article.internal_links.map((link) => {
+      if ("anchor" in link) return link;
+      return { url: link.url, anchor: link.anchor_text, inventory_verified: allowedLinks.has(link.url) };
+    }) : [],
+  };
+}
+
+function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value) {
   return { id: `${provider.id}:${stage}`, async run({ input, signal }) {
     const startedAt = now();
-    const result = await provider.generate({ system, prompt, input, maximumOutputTokens: 5000 }, signal);
+    const result = await provider.generate({ system, prompt, input, maximumOutputTokens: 12000 }, signal);
     const output = withStageProvenance(input, stage, startedAt, now(), { provider: result.provider, identifier: result.model });
-    return { ...output, [stage.replaceAll("-", "_")]: parseGeneratedJson(result, stage) };
+    return { ...output, [stage.replaceAll("-", "_")]: normalize(parseGeneratedJson(result, stage), input) };
   } };
 }
 
@@ -103,7 +130,8 @@ function evidenceLedger(brief, batches) {
   };
 }
 
-function buildArticle(brief, draft) {
+function buildArticle(brief, draft, input) {
+  draft = normalizeArticleResponse(draft, input, brief);
   const date = new Date(brief.publishing.scheduled_at ?? 0).toISOString();
   const article = {
     schema_version: 1,
@@ -163,7 +191,7 @@ function buildRunManifest({ brief, runId, checkpoint, endedAt, status }) {
   };
 }
 
-export async function runDraftPipeline({ brief: rawBrief, provider, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 2, now = () => new Date().toISOString() }) {
+export async function runDraftPipeline({ brief: rawBrief, provider, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 3, now = () => new Date().toISOString() }) {
   const brief = await parseContract("brief", rawBrief);
   if (brief.status !== "approved" || !brief.approval) throw new Error(`${brief.content_id}: an approved brief with accountable approval is required`);
 
@@ -192,10 +220,10 @@ export async function runDraftPipeline({ brief: rawBrief, provider, runId, artif
     "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now),
     "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims.", "Return the complete corrected article JSON object.", now),
     "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now),
-    "human-first-edit": generationHandler(provider, "human-first-edit", "Return only JSON. Apply the human-first writing guide. Never invent human observations.", "Return the complete corrected article JSON object.", now),
+    "human-first-edit": generationHandler(provider, "human-first-edit", "Return only JSON. Apply the human-first writing guide. Never invent human observations.", "Return the complete corrected article JSON object.", now, (value, input) => normalizeArticleResponse(value, input, brief)),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
       const startedAt = now();
-      const article = buildArticle(brief, input.human_first_edit);
+      const article = buildArticle(brief, input.human_first_edit, input);
       await parseContract("article", article);
       const { profiles } = await loadConfiguration();
       const qa = createQaReport(article, input.evidence, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
