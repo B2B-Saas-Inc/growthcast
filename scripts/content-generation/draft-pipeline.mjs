@@ -109,10 +109,10 @@ export function validateFinalArticleResponse(article, input) {
   return article;
 }
 
-function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value) {
+function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value, providerInput = (input) => input) {
   return { id: `${provider.id}:${stage}`, async run({ input, signal }) {
     const startedAt = now();
-    const result = await provider.generate({ system, prompt, input, maximumOutputTokens: 12000 }, signal);
+    const result = await provider.generate({ system, prompt, input: providerInput(input), maximumOutputTokens: 12000 }, signal);
     const output = withStageProvenance(input, stage, startedAt, now(), { provider: result.provider, identifier: result.model });
     return { ...output, [stage.replaceAll("-", "_")]: normalize(parseGeneratedJson(result, stage), input) };
   } };
@@ -281,6 +281,10 @@ export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVeri
       (value, input) => {
         const verifiedInput = { ...input, evidence: applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id) };
         return validateFinalArticleResponse(normalizeArticleResponse(value, verifiedInput, brief), verifiedInput);
+      },
+      (input) => {
+        const evidence = applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id);
+        return { ...input, evidence: { ...evidence, records: evidence.records.filter(({ verification_status }) => verification_status === "verified") } };
       },
     ),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
