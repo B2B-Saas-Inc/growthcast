@@ -48,6 +48,7 @@ function normalizeArticleResponse(value, input, brief) {
         material: true,
         support_type: "evidence",
         support_ids: supportIds,
+        ...(claim.body_locator ? { body_locator: claim.body_locator } : {}),
       };
     }) : [],
     internal_links: Array.isArray(article.internal_links) ? article.internal_links.map((link) => {
@@ -55,6 +56,27 @@ function normalizeArticleResponse(value, input, brief) {
       return { url: link.url, anchor: link.anchor_text, inventory_verified: allowedLinks.has(link.url) };
     }) : [],
   };
+}
+
+function articleWordCount(body) {
+  return body.replace(/```[\s\S]*?```/gu, " ").replace(/https?:\/\/\S+/gu, " ").match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)?.length ?? 0;
+}
+
+export function validateFinalArticleResponse(article, input) {
+  if (!article || typeof article !== "object" || Array.isArray(article)) throw new Error("human-first-edit must return an article object");
+  const words = articleWordCount(typeof article.body === "string" ? article.body : "");
+  if (words < 1200 || words > 1800) throw new Error(`human-first-edit article must contain 1200-1800 words; received ${words}`);
+  const evidence = new Map((input?.evidence?.records ?? []).map((record) => [record.evidence_id, record]));
+  for (const claim of Array.isArray(article.claims) ? article.claims : []) {
+    if (!claim.material || claim.support_type !== "evidence") continue;
+    if (!claim.body_locator || !article.body.includes(claim.body_locator) || !article.body.includes(claim.text)) {
+      throw new Error(`human-first-edit claim ${claim.claim_id} must have exact body text and a body locator present in the article`);
+    }
+    if (!Array.isArray(claim.support_ids) || claim.support_ids.length === 0 || claim.support_ids.some((id) => !evidence.get(id)?.supported_claim_ids?.includes(claim.claim_id))) {
+      throw new Error(`human-first-edit claim ${claim.claim_id} may use only evidence mapped to that claim`);
+    }
+  }
+  return article;
 }
 
 function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value) {
@@ -220,7 +242,14 @@ export async function runDraftPipeline({ brief: rawBrief, provider, runId, artif
     "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now),
     "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims.", "Return the complete corrected article JSON object.", now),
     "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now),
-    "human-first-edit": generationHandler(provider, "human-first-edit", "Return only JSON. Apply the human-first writing guide. Never invent human observations.", "Return the complete corrected article JSON object.", now, (value, input) => normalizeArticleResponse(value, input, brief)),
+    "human-first-edit": generationHandler(
+      provider,
+      "human-first-edit",
+      "Return only JSON. Apply the human-first writing guide. Never invent human observations. Keep the body between 1200 and 1800 words. Every material evidence claim must use exact text present in the body, name a body_locator string also present in the body, and use only support_ids whose evidence record maps to that claim_id.",
+      "Return the complete corrected article JSON object with title, description, body, claims, and internal_links.",
+      now,
+      (value, input) => validateFinalArticleResponse(normalizeArticleResponse(value, input, brief), input),
+    ),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
       const startedAt = now();
       const article = buildArticle(brief, input.human_first_edit, input);
