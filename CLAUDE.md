@@ -306,3 +306,9 @@ Agents must not:
 - Claim completion without lint, tests, type checking, build, and UI validation.
 
 Treat this file as a living document. Update and commit it whenever architecture, assumptions, commands, integrations, or recurring agent mistakes change.
+
+## Forecast Growth Plan requests
+
+`/api/growth-plan` validates bounded JSON requests and sends `growth_plan_requested` server-side to PostHog, never directly to Attio. The browser redirects to `https://cal.com/growthcast/growth-plan-review` only after HTTP 202, preserving the form on failure. Submissions include explicit marketing disclosure version, identity, submission UUID, and `forecast_json` (baseline and assumptions). The UUID is reused for in-page retries; downstream consumers must independently deduplicate. Forecast JSON is restricted request data, not a general dashboard property.
+
+CRM routing must match/create People and business-domain Companies, never Deals; assign operator review without an SLA. The existing PostHog destination mapping must be reviewed/tested before rollout: JSON download in Attio, booking callbacks, and CRM outcomes are not verified by endpoint tests. A redirect is not a confirmed booking. No automatic plan delivery is implemented.
