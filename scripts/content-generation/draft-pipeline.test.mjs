@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runDraftPipeline } from "./draft-pipeline.mjs";
+import { runDraftPipeline, validateFinalArticleResponse } from "./draft-pipeline.mjs";
 
 const directories = [];
 afterEach(async () => Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true }))));
@@ -33,7 +33,8 @@ async function locations() {
 
 function provider() {
   let generation = 0;
-  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body: "Use a bounded workflow backed by [NIST](https://www.nist.gov/itl/ai-risk-management-framework).\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)", claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "paragraph-1" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
+  const body = `## Choose a workflow\n\nNIST publishes an AI risk framework. See https://www.nist.gov/itl/ai-risk-management-framework. ${"Review the assumptions, record the evidence, and keep a person responsible for the final decision. ".repeat(100)}\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)`;
+  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body, claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "## Choose a workflow" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
   return {
     id: "mock-http",
     model: "mock-model-v1",
@@ -82,7 +83,7 @@ describe("runDraftPipeline", () => {
       return request.prompt.includes("complete corrected article JSON object") && generate.mock.calls.length === 6
         ? { ...result, text: JSON.stringify({ article: {
           ...JSON.parse(result.text),
-          claims: [{ claim_id: "claim-1", claim: "NIST publishes an AI risk framework.", evidence_urls: ["https://www.nist.gov/itl/ai-risk-management-framework"] }],
+          claims: [{ claim_id: "claim-1", claim: "NIST publishes an AI risk framework.", body_locator: "## Choose a workflow", evidence_urls: ["https://www.nist.gov/itl/ai-risk-management-framework"] }],
           internal_links: [{ url: "/why-growthcast", anchor_text: "why GrowthCast", purpose: "Context" }],
         } }) }
         : result;
@@ -143,8 +144,27 @@ describe("runDraftPipeline", () => {
     const brief = approvedBrief();
     brief.source_plan = [{ claim_id: "claim-exact", source_type: "authoritative-web-source:https://example.com/planned", required: true }];
     mock.research.mockResolvedValue([{ canonicalUrl: "https://example.com/other", title: "Other", retrievedAt: "2026-09-04T00:00:00.000Z", contentSha256: "b".repeat(64), summary: "Other context." }]);
+    const originalGenerate = mock.generate;
+    mock.generate = vi.fn(async (request) => {
+      const generated = await originalGenerate(request);
+      if (request.prompt.includes("outline array")) return generated;
+      return { ...generated, text: JSON.stringify({ ...JSON.parse(generated.text), claims: [] }) };
+    });
     const result = await runDraftPipeline({ brief, provider: mock, runId: "source-mismatch", ...dirs });
     expect(result.evidence.records[0]).toMatchObject({ supported_claim_ids: ["research-context"], required: false });
+  });
+
+
+  it("rejects final prose with missing locators, cross-claim evidence, or out-of-profile length", () => {
+    const input = { evidence: { records: [{ evidence_id: "EV-001", supported_claim_ids: ["claim-1"] }] } };
+    const valid = {
+      body: `## Evidence\n\nA supported claim. ${"Use plain language and preserve editorial accountability throughout the review process. ".repeat(110)}`,
+      claims: [{ claim_id: "claim-1", text: "A supported claim.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "## Evidence" }],
+    };
+    expect(validateFinalArticleResponse(valid, input)).toBe(valid);
+    expect(() => validateFinalArticleResponse({ ...valid, body: "Too short." }, input)).toThrow("1200-1800 words");
+    expect(() => validateFinalArticleResponse({ ...valid, claims: [{ ...valid.claims[0], support_ids: ["EV-999"] }] }, input)).toThrow("only evidence mapped");
+    expect(() => validateFinalArticleResponse({ ...valid, claims: [{ ...valid.claims[0], body_locator: "## Missing" }] }, input)).toThrow("body locator");
   });
 
 });

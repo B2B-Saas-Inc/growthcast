@@ -23,7 +23,8 @@ async function workspace() {
 }
 
 function mockedHttp() {
-  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body: "## Choose a workflow\n\nUse a bounded workflow backed by [NIST](https://www.nist.gov/itl/ai-risk-management-framework).\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)", claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "paragraph-1" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
+  const body = `## Choose a workflow\n\nNIST publishes an AI risk framework. See https://www.nist.gov/itl/ai-risk-management-framework. ${"Review assumptions, preserve evidence, and keep a person responsible for each final decision. ".repeat(110)}\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)`;
+  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body, claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "## Choose a workflow" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
   return vi.fn(async (_url, init) => {
     const body = JSON.parse(init.body);
     const research = body.plugins?.[0]?.id === "web";
