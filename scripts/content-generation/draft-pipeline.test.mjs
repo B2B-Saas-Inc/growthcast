@@ -102,6 +102,28 @@ describe("runDraftPipeline", () => {
     expect(result.article.internal_links[0]).toEqual({ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true });
   });
 
+  it("passes only operator-verified evidence and its narrowed claim allowlist to final prose", async () => {
+    const dirs = await locations();
+    const mock = provider();
+    const originalGenerate = mock.generate;
+    mock.research.mockResolvedValue([
+      { canonicalUrl: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", retrievedAt: "2026-09-04T00:00:00.000Z", contentSha256: "a".repeat(64), summary: "NIST publishes an AI risk management framework.", provider: "mock-http", model: "research-model" },
+      { canonicalUrl: "https://example.com/context", title: "Context", retrievedAt: "2026-09-04T00:00:00.000Z", contentSha256: "b".repeat(64), summary: "Unverified context.", provider: "mock-http", model: "research-model" },
+    ]);
+    mock.generate = vi.fn(async (request) => {
+      if (request.system.includes("human-first writing guide")) {
+        expect(request.input.evidence.records).toHaveLength(1);
+        expect(request.input.evidence.records[0]).toMatchObject({ evidence_id: "EV-001", verification_status: "verified", supported_claim_ids: ["claim-1"] });
+      }
+      return originalGenerate(request);
+    });
+    const evidenceVerification = (ledger) => ({
+      schema_version: 1, brief_id: "approved-brief", reviewed_by: "EJ White", reviewed_at: "2026-09-07T18:10:00.000Z", evidence_ledger_sha256: evidenceVerificationSha256(ledger),
+      decisions: ledger.records.map((record) => ({ evidence_id: record.evidence_id, content_sha256: record.content_sha256, supported_claim_ids: record.supported_claim_ids, status: record.canonical_url.includes("nist.gov") ? "verified" : "rejected", notes: record.canonical_url.includes("nist.gov") ? "Claim mapping reviewed." : "Not suitable for factual support." })),
+    });
+    await runDraftPipeline({ brief: approvedBrief(), provider: mock, runId: "verified-allowlist", evidenceVerification, ...dirs });
+  });
+
   it("records a failed stage and resumes it without replaying completed stages", async () => {
     const dirs = await locations();
     const mock = provider();
