@@ -106,11 +106,12 @@ const currentMonth = () => {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
-const defaultBaselineMonth = currentMonth();
-const defaultForecastStartMonth = addIsoMonths(defaultBaselineMonth, 1);
-const monthOptions = Array.from({ length: 25 }, (_, i) =>
-  addIsoMonths(defaultForecastStartMonth, i),
-);
+const monthOptionsFrom = (startMonth: string) =>
+  Array.from({ length: 25 }, (_, i) => addIsoMonths(startMonth, i));
+// Deterministic month for the static build and the first client render, so
+// hydration matches. The island remounts with the visitor's real month once
+// restoreSavedModel turns true. See the month defaults in App.
+const seedBaselineMonth = "2024-08";
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 const clamp = (value: number, min = 0, max = Number.POSITIVE_INFINITY) =>
   Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
@@ -3033,6 +3034,16 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
 
 export default function App({ initialPath = "/", restoreSavedModel = true }: { initialPath?: string; restoreSavedModel?: boolean }) {
   const [saved] = useState(() => restoreSavedModel ? loadSavedModel() : {} as Partial<SavedModel>);
+  // Match the static build on the first pass, then use the visitor's month once
+  // the island remounts with browser-local state.
+  const defaultBaselineMonth = restoreSavedModel
+    ? currentMonth()
+    : seedBaselineMonth;
+  const defaultForecastStartMonth = addIsoMonths(defaultBaselineMonth, 1);
+  const monthOptions = useMemo(
+    () => monthOptionsFrom(defaultForecastStartMonth),
+    [defaultForecastStartMonth],
+  );
   const fileInput = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState("");
   const [modelName, setModelName] = useState(saved.modelName || "GrowthCast");
