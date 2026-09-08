@@ -9,10 +9,6 @@ Instructions for coding agents working in this repository.
 3. Use GrowthCast as the agency and default model identity, while preserving the editable model name on Baseline for white-labelled document titles and export filenames. The default route is the GTM Engineering agency homepage; Why GrowthCast and How it works live at `/why-growthcast` and `/how-it-works`; the forecast product starts at `/resources/tools/forecast` under Resources > Tools > Forecast. Keep those pages distinct and do not add a Services navigation tab.
 4. Use containers for dependency installation and verification. Do not install host packages.
 
-## Payment receiver review package
-
-`payments/` is an isolated Node/Postgres test receiver package; see `payments/README.md`. Build with `docker build -t growthcast-payments-test payments`; database checks require an empty disposable Postgres 17 container, never a hosted/populated database. The `api/stripe-test.mjs` Vercel adapter exists but is not deployed. `node payments/recover.mjs` previews pending receipts; `--execute` is a separately authorized retry operation. Never schedule it silently. Do not enable it, apply its migration, or add production credentials without review/approval.
-
 ## Architecture
 
 - Astro + TypeScript static site with React islands. Astro owns public routes, SEO, the Markdown blog, RSS, and sitemap generation; `src/App.tsx` remains the interactive local-first agency/Forecast island. Forecast, Deep Dive, and Channels accept zero-valued baselines for pre-revenue modeling.

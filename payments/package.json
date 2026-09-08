@@ -1,1 +1,0 @@
-{"name":"growthcast-payment-receiver","private":true,"type":"module","scripts":{"test":"node --test *.check.mjs","check":"node --check receiver.mjs && node --check ledger.mjs","start":"node server.mjs"},"dependencies":{"pg":"8.16.3","stripe":"18.5.0"}}

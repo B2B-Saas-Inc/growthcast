@@ -8,7 +8,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['scripts/**/*.mjs', 'payments/**/*.mjs', 'api/**/*.mjs'],
+    files: ['scripts/**/*.mjs'],
     languageOptions: { ecmaVersion: 2022, globals: { ...globals.node, fetch: 'readonly' } },
   },
   {
