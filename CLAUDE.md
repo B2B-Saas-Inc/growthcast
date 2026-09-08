@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Isolated payment integration review
+
+`payments/` is a separate Node package for Stripe test-mode receipt ingestion and Postgres-backed reconciliation into approved Attio fields. The public application stays static. A disabled-by-default `api/stripe-test.mjs` adapter preserves raw webhook bytes; it has not been deployed. Its migration is unapplied, runtime disabled by default, and its mocked-client integration tests are not live payment evidence. Follow `payments/README.md` for transaction/identity invariants, container workflow, and remaining deployment gates. Never add browser-visible payment/database credentials.
+
 This file provides persistent context for AI agents working on GrowthCast. Read it fully before writing any code.
 
 ## Project overview

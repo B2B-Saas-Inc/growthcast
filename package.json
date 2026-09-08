@@ -33,6 +33,8 @@
     "jszip": "3.10.1",
     "lucide-react": "1.28.0",
     "posthog-js": "1.424.1",
+    "pg": "8.16.3",
+    "stripe": "18.5.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "3.10.1",

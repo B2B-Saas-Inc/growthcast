@@ -1,5 +1,9 @@
 # GrowthCast
 
+## Payment receiver (review only)
+
+The isolated [`payments/`](payments/README.md) package contains a disabled-by-default Stripe test receiver, private Postgres migration, and explicitly mapped Attio summary reconciliation. A disabled-by-default Vercel adapter exists at `api/stripe-test.mjs`; it is not deployed. See its README for container tests, secrets, limitations, and deployment gates. No live payments are supported.
+
 GrowthCast is a GTM Engineering agency site for Series A and later companies with product-market fit. Its free, local-first Forecast tool models acquisition, recurring revenue, and unit economics.
 
 The application has no accounts or application database. It runs primarily as a static site, with one bounded `/api/lead` serverless endpoint for validated agency lead capture, and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
