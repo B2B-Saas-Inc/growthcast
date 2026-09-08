@@ -186,7 +186,7 @@ The operator-only shared generation pipeline reads an approved brief contract, r
 # Review mode (safe default)
 npm run content:generate -- <approved-brief-id> --run-id <stable-run-id>
 
-# Isolated shadow review artifacts; never writes src
+# Isolated full visual shadow bundle; never writes source, uploads, databases, deploy hooks, indexes, or publication
 npm run content:generate -- <approved-brief-id> --shadow --run-id <stable-run-id>
 
 # Deliberately create a new, non-publishable Astro draft
@@ -196,7 +196,7 @@ npm run content:generate -- <approved-brief-id> --write-to-src --run-id <stable-
 npm run content:generate -- <approved-brief-id> --approval-file <approval.json> --run-id <stable-run-id>
 ```
 
-Default and shadow modes write no source content. `--write-to-src` uses exclusive creation, refuses to overwrite, and always emits `draft: true`. An approval file must satisfy the shared article-approval contract and match the generated canonical SHA-256 exactly; the command never creates approval or human observations. Generation never publishes, calls a deploy hook, schedules content, or performs any remote write other than OpenRouter generation requests. Reuse the same run ID to resume matching checkpoints; use a new run ID when the approved brief changes.
+Default and shadow modes write no source content. `--write-to-src` uses exclusive creation, refuses to overwrite, and always emits `draft: true`. An approval file must satisfy the shared article-approval contract and match the generated canonical SHA-256 exactly; the command never creates approval or human observations. Shadow generation runs research/evidence, prose, contextual visual planning, Google `gemini-3-pro-image` inline illustration, certified deterministic hero/thumbnail, exact-title Manrope/logo OG, visual QA, manifest, and an approval-null publication bundle in deterministic order. Reusing the same run ID resumes hash-matching checkpoints and assets; changed or tampered inputs fail closed or regenerate only the invalid asset. Generation never publishes, uploads, writes a database, calls Sanity or a deploy hook, indexes, schedules content, or performs any remote write other than the explicitly configured generation provider requests. Reuse the same run ID to resume matching checkpoints; use a new run ID when the approved brief changes.
 
 For UI changes, validate the running production image with Playwright at desktop and mobile widths. The responsive layout stacks forecast cards, wraps navigation/actions, adapts Deep Dive controls, and keeps large tables horizontally scrollable on narrow screens.
 
@@ -278,3 +278,9 @@ Public-deployment follow-ups are monitoring, formal privacy/legal pages, and a d
 ## License
 
 Licensed under the terms in [`LICENSE`](LICENSE).
+
+## Forecast Growth Plan requests
+
+`/api/growth-plan` validates bounded JSON requests and sends `growth_plan_requested` server-side to PostHog, never directly to Attio. The browser redirects to `https://cal.com/growthcast/growth-plan-review` only after HTTP 202, preserving the form on failure. Submissions include explicit marketing disclosure version, identity, submission UUID, and `forecast_json` (baseline and assumptions). The UUID is reused for in-page retries; downstream consumers must independently deduplicate. Forecast JSON is restricted request data, not a general dashboard property.
+
+CRM routing must match/create People and business-domain Companies, never Deals; assign operator review without an SLA. The existing PostHog destination mapping must be reviewed/tested before rollout: JSON download in Attio, booking callbacks, and CRM outcomes are not verified by endpoint tests. A redirect is not a confirmed booking. No automatic plan delivery is implemented.

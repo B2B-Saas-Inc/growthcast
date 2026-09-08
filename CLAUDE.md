@@ -124,6 +124,8 @@ The public application remains static. Operator-only content automation uses the
 
 The public blog is Astro-native and has no backend, admin system, or remote content dependency. `src/content.config.ts` validates Markdown/MDX frontmatter in `src/content/blog`. Future-dated posts are excluded from routes, RSS, and the sitemap until a scheduled GitHub Action detects that they are due and calls the configured Vercel deploy hook. `/blog` renders image-led article cards with browser-side query and tag filtering suitable for static hosting; `/blog/[id]` preserves the MediaMixModel reference UX with breadcrumb and back navigation, author/read-time metadata, a boxed sticky table-of-contents/share rail that stacks on mobile, BreadcrumbList, and BlogPosting schema. Generate each post's standalone abstract artwork with `scripts/generate-blog-shape.html` and assign it to `artwork` for the article hero. Compose that artwork with article title, author, and publication date using `scripts/generate-blog-social.html`, then assign only the finished card to `image` for Open Graph metadata and `/blog` listings; never render the composed social card inside the article. `/rss.xml` and the Astro sitemap integration publish discovery feeds. Blog pages reuse the agency site's complete Company/Resources navigation and contact entry point, local Manrope/DM Mono fonts, and GrowthCast colors from the existing visual system.
 
+Shadow generation from an approved brief executes research/evidence, prose, contextual visual planning, Google `gemini-3-pro-image` inline imagery, certified deterministic hero/thumbnail, exact-title Manrope/logo OG, complete visual QA/manifest, and an approval-null publication bundle. It writes only ignored local artifacts and cannot write source, upload, call databases/Sanity/deploy/indexing, or publish. Resume is bound to stable request and article hashes.
+
 Every article draft and edit must follow `docs/editorial/human-first-writing.md`. Run the human-first agency, AI-signature, rhythm, specificity, and read-aloud passes before approval. The reproducibly vendored `@ejwhite/content-engine` contract and GrowthCast profile enforce hard rules during every container build. `content:preflight` requires passing QA and an approval for the exact canonical article hash; `content:rendered` checks built metadata, indexability, and `BlogPosting` JSON-LD.
 
 ### B2C and B2B model contracts
@@ -304,3 +306,9 @@ Agents must not:
 - Claim completion without lint, tests, type checking, build, and UI validation.
 
 Treat this file as a living document. Update and commit it whenever architecture, assumptions, commands, integrations, or recurring agent mistakes change.
+
+## Forecast Growth Plan requests
+
+`/api/growth-plan` validates bounded JSON requests and sends `growth_plan_requested` server-side to PostHog, never directly to Attio. The browser redirects to `https://cal.com/growthcast/growth-plan-review` only after HTTP 202, preserving the form on failure. Submissions include explicit marketing disclosure version, identity, submission UUID, and `forecast_json` (baseline and assumptions). The UUID is reused for in-page retries; downstream consumers must independently deduplicate. Forecast JSON is restricted request data, not a general dashboard property.
+
+CRM routing must match/create People and business-domain Companies, never Deals; assign operator review without an SLA. The existing PostHog destination mapping must be reviewed/tested before rollout: JSON download in Attio, booking callbacks, and CRM outcomes are not verified by endpoint tests. A redirect is not a confirmed booking. No automatic plan delivery is implemented.

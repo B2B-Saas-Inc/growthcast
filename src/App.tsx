@@ -5066,32 +5066,37 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       setContactStatus("Your request could not be submitted. Please try again.");
     }
   };
-  const requestGrowthPlan = (event: FormEvent<HTMLFormElement>) => {
+  const growthPlanRequestId = useRef<string | null>(null);
+  const growthPlanSubmitting = useRef(false);
+  const requestGrowthPlan = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (growthPlanSubmitting.current) return;
     const data = new FormData(event.currentTarget);
-    const firstName = String(data.get("firstName") || "").trim();
-    const email = String(data.get("email") || "").trim().toLowerCase();
-    if (!firstName || !email) return;
-    if (isPostHogEnabled) {
-      const modelMetadata = { baseline, assumptions: a };
-      posthog.identify(email, { email, first_name: firstName });
-      posthog.capture(
-        "growth_plan_requested",
-        { source: "model_change_slide_in", ...modelMetadata },
-        {
-          $set: { email, first_name: firstName },
-          send_instantly: true,
-          transport: "fetch",
-        },
-      );
-    }
+    growthPlanRequestId.current ??= crypto.randomUUID();
+    growthPlanSubmitting.current = true;
+    setGrowthPlanStatus("Submitting…");
     try {
-      localStorage.setItem("growth-plan-requested-v1", "true");
+      const response = await fetch("/api/growth-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submission_id: growthPlanRequestId.current,
+          first_name: String(data.get("firstName") || "").trim(),
+          email: String(data.get("email") || "").trim().toLowerCase(),
+          marketing_consent: true,
+          forecast_snapshot: { baseline, assumptions: a },
+        }),
+      });
+      if (response.status !== 202) throw new Error("delivery_failed");
+      try { localStorage.setItem("growth-plan-requested-v1", "true"); } catch { /* Optional local persistence. */ }
+      setGrowthPlanSubmitted(true);
+      setGrowthPlanStatus("Request received. Opening your booking page…");
+      window.location.assign("https://cal.com/growthcast/growth-plan-review");
     } catch {
-      /* The request still succeeds when persistence is unavailable. */
+      setGrowthPlanStatus("We couldn't submit your request. Please try again.");
+    } finally {
+      growthPlanSubmitting.current = false;
     }
-    setGrowthPlanSubmitted(true);
-    setGrowthPlanStatus("Thanks — your Growth Plan request is in.");
   };
   const isAgencyPage = ["home", "why", "how", "terms", "privacy", "about", "philosophy", "careers", "partners"].includes(pageView);
   return (
@@ -6738,6 +6743,8 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                   required
                 />
               </label>
+              <p>By requesting your Growth Plan, you subscribe to GrowthCast marketing emails. You can unsubscribe anytime. Next, choose a time for your 30-minute Growth Plan Review.</p>
+              <p role="status">{growthPlanStatus}</p>
               <button className="primary" type="submit">
                 Get my Growth Plan
               </button>
