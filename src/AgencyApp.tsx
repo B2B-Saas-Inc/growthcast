@@ -420,7 +420,7 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
 }
 
 
-const loadAnalytics = () => import("./posthog");
+const loadAnalytics = () => import("./clientBridge");
 
 export default function AgencyApp({ initialPath = "/" }: { initialPath?: string }) {
   const [pageView, setPageView] = useState<PageView>(() => pageFromPath(initialPath));
@@ -469,7 +469,10 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
     const initializeAnalytics = () => {
       if (loaded) return;
       loaded = true;
-      void loadAnalytics();
+      // A blocked or stale chunk must degrade quietly. The bridge only
+      // re-exports the already-initialised window.posthog, so a failed load
+      // costs no analytics and must not surface as an unhandled rejection.
+      loadAnalytics().catch(() => {});
       window.removeEventListener("pointerdown", initializeAnalytics);
       window.removeEventListener("keydown", initializeAnalytics);
     };
