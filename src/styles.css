@@ -343,6 +343,7 @@ aside {
   display: flex;
   flex-direction: column;
   font-weight: 600;
+  cursor: pointer;
 }
 .field small {
   font-size: 12px;
