@@ -335,10 +335,56 @@ describe("forecast", () => {
     );
     expect(wholeWins.newCustomers).toBe(2);
     expect(wholeWins.newMrr).toBe(8000);
-    expect(wholeWins.churnedCustomers).toBe(1);
-    expect(wholeWins.churnMrr).toBe(4000);
-    expect(wholeWins.customers).toBe(21);
-    expect(wholeWins.endingMrr).toBe(84000);
+    expect(wholeWins.churnedCustomers).toBe(0);
+    expect(wholeWins.churnMrr).toBe(0);
+    expect(wholeWins.customers).toBe(22);
+    expect(wholeWins.endingMrr).toBe(88000);
+  });
+  it("applies B2B annual logo churn once every 12 forecast months and ignores revenue churn", () => {
+    const months = forecast(
+      { month: "2026-07", visitors: 0, customers: 20, mrr: 80000 },
+      {
+        ...a,
+        months: 13,
+        monthlyTrafficGrowth: 0,
+        monthlyIncrementalVisitors: 0,
+        businessModel: "b2b",
+        mqlRate: 0,
+        sqlRate: 0,
+        closeRate: 0,
+        dealCycleDays: 0,
+        acv: 48000,
+        voluntaryCustomerChurn: 0.1,
+        delinquentCustomerChurn: 0.05,
+        voluntaryRevenueChurn: 0.9,
+        delinquentRevenueChurn: 0.1,
+        expansionRate: 0.1,
+        retractionRate: 0.05,
+      },
+      [],
+      { revenueChurn: { "2027-07": 1 } },
+    );
+    expect(
+      months
+        .slice(0, 11)
+        .every(
+          (month) =>
+            month.churnedCustomers === 0 &&
+            month.expansionMrr === 0 &&
+            month.retractionMrr === 0,
+        ),
+    ).toBe(true);
+    expect(months[11].churnedCustomers).toBe(3);
+    expect(months[11].churnMrr).toBe(12000);
+    expect(months[11].expansionMrr).toBe(8000);
+    expect(months[11].retractionMrr).toBe(4000);
+    expect(months[11].customers).toBe(17);
+    expect(months[11].endingMrr).toBe(72000);
+    expect(months[12].churnedCustomers).toBe(0);
+    expect(months[12].expansionMrr).toBe(0);
+    expect(months[12].retractionMrr).toBe(0);
+    expect(months[12].endingMrr).toBe(72000);
+    expect(months[0].ltv).toBe(320000);
   });
   it("uses exact calendar boundaries for B2B deal-cycle cohorts", () => {
     expect(delayedConversionShares("2026-08", 45, 3)).toEqual([
@@ -371,9 +417,9 @@ describe("forecast", () => {
     expect(months[2].newCustomers).toBe(102);
     expect(months[1].newMrr).toBe(5200);
     expect(months[0].acquisitionArpu).toBeNull();
-    expect(months[0].maxCostPerMql).toBeNull();
+    expect(months[0].maxCostPerMql).toBeCloseTo(8000, 2);
     expect(months[1].acquisitionArpu).toBeCloseTo(100, 2);
-    expect(months[1].maxCostPerMql).toBeCloseTo(666.67, 2);
+    expect(months[1].maxCostPerMql).toBeCloseTo(8000, 2);
     expect(months[0].maxCostPerSignup).toBeNull();
   });
   it("is deterministic", () =>

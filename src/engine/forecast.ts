@@ -209,27 +209,26 @@ export function forecast(
         ? newCustomers * (pendingMrr[i] / pendingCustomerCount)
         : pendingMrr[i];
     const openingArpu = customers ? mrr / customers : 0;
+    const logoChurn =
+      a.voluntaryCustomerChurn + a.delinquentCustomerChurn;
+    const annualB2bChurnEvent = isB2b && (i + 1) % 12 === 0;
     const churnedCustomers = Math.min(
       customers,
-      Math.round(
-        customers *
-          (a.voluntaryCustomerChurn + a.delinquentCustomerChurn),
-      ),
+      annualB2bChurnEvent || !isB2b
+        ? Math.round(customers * logoChurn)
+        : 0,
     );
-    const expansionMrr = mrr * a.expansionRate;
-    const retractionMrr = mrr * a.retractionRate;
-    const revenueChurn =
-      overrides.revenueChurn?.[month] ??
-      a.voluntaryRevenueChurn + a.delinquentRevenueChurn;
+    const expansionMrr =
+      !isB2b || annualB2bChurnEvent ? mrr * a.expansionRate : 0;
+    const retractionMrr =
+      !isB2b || annualB2bChurnEvent ? mrr * a.retractionRate : 0;
+    const revenueChurn = isB2b
+      ? logoChurn / 12
+      : overrides.revenueChurn?.[month] ??
+        a.voluntaryRevenueChurn + a.delinquentRevenueChurn;
     const monthlyContractValue = baselineAcv / 12;
     const churnMrr = isB2b
-      ? Math.min(
-          mrr,
-          monthlyContractValue
-            ? Math.round((mrr * revenueChurn) / monthlyContractValue) *
-                monthlyContractValue
-            : 0,
-        )
+      ? Math.min(mrr, churnedCustomers * monthlyContractValue)
       : mrr * revenueChurn;
     const churnedCustomerArpu = churnedCustomers
       ? churnMrr / churnedCustomers
@@ -242,8 +241,11 @@ export function forecast(
     mrr = Math.max(0, mrr + newMrr + expansionMrr - retractionMrr - churnMrr);
     const arpu = customers ? mrr / customers : 0;
     const acquisitionArpu = newCustomers ? newMrr / newCustomers : null;
-    const ltv =
-      revenueChurn && acquisitionArpu !== null
+    const ltv = isB2b
+      ? logoChurn
+        ? baselineAcv / logoChurn
+        : null
+      : revenueChurn && acquisitionArpu !== null
         ? acquisitionArpu / revenueChurn
         : null;
     const maxCac =
