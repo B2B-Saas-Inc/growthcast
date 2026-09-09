@@ -301,7 +301,7 @@ export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVeri
     "human-first-edit": generationHandler(
       provider,
       "human-first-edit",
-      "Return only JSON. Apply the human-first writing guide. Never invent human observations. Keep the body between 1200 and 1800 words. Every material evidence claim must use exact text present in the body, name a body_locator string also present in the body, and use only support_ids whose evidence record maps to that claim_id.",
+      "Return only JSON. Apply the human-first writing guide by editing the supplied complete article, not summarizing or replacing it. Preserve every substantive section and all supported detail. The body must contain 1200 to 1800 words; count the final body words before returning JSON and expand useful section-grounded explanation when it is below 1200. Never invent human observations, claims, evidence, examples, metrics, or results. Every material evidence claim must use exact text present in the body, name a body_locator string also present in the body, and use only support_ids whose evidence record maps to that claim_id.",
       "Return the complete corrected article JSON object with title, description, body, claims, and internal_links.",
       now,
       (value, input) => {

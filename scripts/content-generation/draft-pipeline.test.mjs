@@ -71,6 +71,10 @@ describe("runDraftPipeline", () => {
     expect(resumedHashes).toEqual(firstHashes);
     expect(mock.research).toHaveBeenCalledTimes(1);
     expect(mock.generate).toHaveBeenCalledTimes(6);
+    const humanFirstRequest = mock.generate.mock.calls.find(([request]) => request.system.includes("human-first writing guide"))[0];
+    expect(humanFirstRequest.system).toContain("editing the supplied complete article, not summarizing or replacing it");
+    expect(humanFirstRequest.system).toContain("count the final body words before returning JSON");
+    expect(humanFirstRequest.system).toContain("Never invent human observations, claims, evidence, examples, metrics, or results");
     expect(first.article.body).toContain("https://www.nist.gov/");
     expect(first.article.approval).toBeNull();
     expect(first.manifest).toMatchObject({ status: "stopped_for_approval", publication_requested: false });
