@@ -75,6 +75,12 @@ describe("GrowthCast shadow visual stages", () => {
     expect(call.prompt).toContain("do not use these words even to negate them");
     expect(call.prompt).toContain("Copy body_locator exactly");
     expect(call.prompt).toContain("Copy section_excerpt exactly");
+    expect(call.maximumOutputTokens).toBe(6000);
+    expect(call.responseFormat).toMatchObject({
+      type: "json_schema",
+      json_schema: { name: "contextual_visual_plan", schema: { required: ["inline"] } },
+    });
+    expect(call.responseFormat.json_schema.schema.properties.inline.items.required).toEqual(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"]);
   });
 
   it("does not guess an ambiguous final heading locator", async () => {

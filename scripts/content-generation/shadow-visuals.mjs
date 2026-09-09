@@ -81,6 +81,29 @@ function normalizeInlineConcepts(items, locators, body) {
   }));
 }
 
+const VISUAL_PLAN_RESPONSE_FORMAT = {
+  type: "json_schema",
+  json_schema: {
+    name: "contextual_visual_plan",
+    strict: false,
+    schema: {
+      type: "object",
+      required: ["inline"],
+      properties: {
+        inline: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "object",
+            required: ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"],
+            properties: Object.fromEntries(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"].map((key) => [key, { type: "string" }])),
+          },
+        },
+      },
+    },
+  },
+};
+
 function parsePlan(result) {
   const source = result.text.trim().replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, "");
   try { return JSON.parse(source); }
@@ -116,7 +139,8 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
         "Alt must be 40 to 140 characters, independently describe the meaningful visual relationship for a screen-reader user, contain no filename or extension, and not say image/graphic; caption must explain the takeaway without asserting outcomes.",
       ].join(" "),
       input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators, final_sections: locators.map((heading) => ({ heading, excerpt: sectionExcerpt(article.body, heading) })) },
-      maximumOutputTokens: 2000,
+      maximumOutputTokens: 6000,
+      responseFormat: VISUAL_PLAN_RESPONSE_FORMAT,
     });
     const raw = parsePlan(generated);
     const candidates = [];
