@@ -140,7 +140,7 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
         "Each item must contain only string fields body_locator, section_excerpt, purpose, concept, alt, and caption.",
         "Copy section_excerpt exactly from the text immediately following that heading in final_sections.",
         "Copy body_locator exactly from valid_body_locators (a unique heading text without Markdown marks is normalized back to that final heading).",
-        "Purpose must explain the comprehension gain; concept must concretely name a recognizable subject, objects, setting, and action grounded in section_excerpt.",
+        "Purpose must explain the comprehension gain. Write every concept as a literal scene sentence in this exact order: subject, visible objects, physical setting, and observable action or process; name all four explicitly and ground each one in section_excerpt. Abstract nouns, colored shapes, symbols, metaphors, and brand mood do not count as any of the four.",
         "In purpose and concept, do not use these words even to negate them: chart, graph, dashboard, screenshot, interface, UI, result, results, benchmark, metric, analytics, report.",
         "Alt must be 40 to 140 characters, independently describe the meaningful visual relationship for a screen-reader user, contain no filename or extension, and not say image/graphic; caption must explain the takeaway without asserting outcomes.",
       ].join(" "),

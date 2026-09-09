@@ -127,6 +127,8 @@ describe("GrowthCast shadow visual stages", () => {
     const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
     expect(result.manifest.assets).toHaveLength(4);
     expect(deps.proseProvider.generate).toHaveBeenCalledTimes(2);
+    expect(deps.proseProvider.generate.mock.calls[0][0].prompt).toContain("subject, visible objects, physical setting, and observable action or process");
+    expect(deps.proseProvider.generate.mock.calls[0][0].prompt).toContain("Abstract nouns, colored shapes, symbols, metaphors, and brand mood do not count");
     expect(deps.imageProvider.generate).toHaveBeenCalledTimes(1);
   });
 
