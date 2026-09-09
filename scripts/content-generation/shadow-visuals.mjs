@@ -125,11 +125,10 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
     if (error?.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
   }
   if (!plan) {
-    let generated;
-    let raw;
     let generationError;
     for (let attempt = 1; attempt <= 3; attempt += 1) {
-      generated = await proseProvider.generate({
+      try {
+        const generated = await proseProvider.generate({
       system: [
         "Return only JSON for contextual editorial illustrations that materially improve comprehension.",
         "Use concrete, non-factual scenes with recognizable subjects, objects, settings, and actions that explain the adjacent section without numbers or purported observations.",
@@ -148,9 +147,20 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
       input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators, final_sections: locators.map((heading) => ({ heading, excerpt: sectionExcerpt(article.body, heading) })) },
       maximumOutputTokens: 6000,
       responseFormat: VISUAL_PLAN_RESPONSE_FORMAT,
-      });
-      try {
-        raw = parsePlan(generated);
+        });
+        const raw = parsePlan(generated);
+        const candidates = [];
+        const required = ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"];
+        const visit = (value) => {
+          if (Array.isArray(value)) {
+            if (value.length > 0 && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && required.every((key) => typeof item[key] === "string"))) candidates.push(value);
+            return;
+          }
+          if (value && typeof value === "object") Object.values(value).forEach(visit);
+        };
+        visit(raw);
+        if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
+        plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators, article.body));
         generationError = undefined;
         break;
       } catch (error) {
@@ -158,20 +168,6 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
       }
     }
     if (generationError) throw generationError;
-    const candidates = [];
-    const required = ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"];
-    const visit = (value) => {
-      if (Array.isArray(value)) {
-        if (value.length > 0 && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && required.every((key) => typeof item[key] === "string"))) candidates.push(value);
-        return;
-      }
-      if (value && typeof value === "object") Object.values(value).forEach(visit);
-    };
-    visit(raw);
-    if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
-    plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators, article.body));
-    const findings = validateVisualPlan(article, plan);
-    if (findings.length > 0) throw new Error(findings.map((finding) => finding.message).join("; "));
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);
   }
   const assetDirectory = path.join(path.resolve(artifactDirectory), "assets");
