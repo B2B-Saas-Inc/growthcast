@@ -73,13 +73,16 @@ describe("GrowthCast shadow visual stages", () => {
     expect(call.prompt).toContain("screen-reader user");
     expect(call.prompt).toContain("40 to 140 characters");
     expect(call.prompt).toContain("do not use these words even to negate them");
+    expect(call.prompt).toContain("one to four useful illustrations");
     expect(call.prompt).toContain("Copy body_locator exactly");
     expect(call.prompt).toContain("Copy section_excerpt exactly");
     expect(call.maximumOutputTokens).toBe(6000);
     expect(call.responseFormat).toMatchObject({
       type: "json_schema",
-      json_schema: { name: "contextual_visual_plan", schema: { required: ["inline"] } },
+      json_schema: { name: "contextual_visual_plan", strict: true, schema: { required: ["inline"], additionalProperties: false } },
     });
+    expect(call.responseFormat.json_schema.schema.properties.inline.maxItems).toBe(4);
+    expect(call.responseFormat.json_schema.schema.properties.inline.items.additionalProperties).toBe(false);
     expect(call.responseFormat.json_schema.schema.properties.inline.items.required).toEqual(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"]);
   });
 

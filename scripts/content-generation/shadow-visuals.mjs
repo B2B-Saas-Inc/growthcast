@@ -85,17 +85,20 @@ const VISUAL_PLAN_RESPONSE_FORMAT = {
   type: "json_schema",
   json_schema: {
     name: "contextual_visual_plan",
-    strict: false,
+    strict: true,
     schema: {
       type: "object",
       required: ["inline"],
+      additionalProperties: false,
       properties: {
         inline: {
           type: "array",
           minItems: 1,
+          maxItems: 4,
           items: {
             type: "object",
             required: ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"],
+            additionalProperties: false,
             properties: Object.fromEntries(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"].map((key) => [key, { type: "string" }])),
           },
         },
@@ -134,7 +137,7 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
         "Do not introduce facts, labels inside the image, logos, trademarks, or photorealistic people.",
       ].join(" "),
       prompt: [
-        "Return exactly {\"inline\":[...]}; do not add another candidate array.",
+        "Return exactly {\"inline\":[...]}; include one to four useful illustrations at unique section headings and do not add another candidate array.",
         "Each item must contain only string fields body_locator, section_excerpt, purpose, concept, alt, and caption.",
         "Copy section_excerpt exactly from the text immediately following that heading in final_sections.",
         "Copy body_locator exactly from valid_body_locators (a unique heading text without Markdown marks is normalized back to that final heading).",
