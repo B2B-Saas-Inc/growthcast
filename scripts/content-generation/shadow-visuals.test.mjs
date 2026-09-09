@@ -14,7 +14,7 @@ function article() {
 }
 
 function dependencies() {
-  const proseProvider = { generate: vi.fn(async () => ({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Explain the evidence review sequence", concept: "Connected gates moving from source review to a decision", alt: "Connected evidence review gates leading toward a decision", caption: "A conceptual evidence-review sequence without measured outcomes." }] }) })) };
+  const proseProvider = { generate: vi.fn(async () => ({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Explain the evidence review sequence", concept: "An analyst compares evidence on printed source pages at a desk before making a decision and choosing one route on a wall map", alt: "An analyst sorts source pages into trays before choosing a route", caption: "Source pages are sorted before one route is selected." }] }) })) };
   const imageProvider = { provider: "google", model: "gemini-3-pro-image", generate: vi.fn(async (request, prompt) => { const image = renderHero({ brand: "verdant", contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: "inline" }); return { bytes: image.bytes, mime_type: "image/png", provider: "google", model: "gemini-3-pro-image", prompt_sha256: canonicalSha256(prompt), retry_count: 0 }; }) };
   const renderer = { render: vi.fn(async (request, currentArticle) => { const input = { brand: request.brand, contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: currentArticle.title }; const image = request.kind === "og" ? renderFixtureOg(input) : renderHero(input, request.kind === "thumbnail"); return { bytes: image.bytes, mime_type: "image/png", renderer: { name: "mock-production-compositor", version: "1.0.0", library_versions: { mock: "1.0.0" } }, prompt_sha256: canonicalSha256(request) }; }) };
   return { proseProvider, imageProvider, renderer };
@@ -63,17 +63,18 @@ describe("GrowthCast shadow visual stages", () => {
   it("normalizes a unique heading text to the exact final locator and prompts for accessible non-factual concepts", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-normalized-visuals-")); directories.push(directory);
     const deps = dependencies();
-    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", purpose: "  Explain how evidence review leads to a decision  ", concept: "  Abstract source cards passing through review gates  ", alt: "  Source cards pass through review gates toward a decision  ", caption: "  Evidence is reviewed before a decision is made.  " }] }) });
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "  Explain how evidence review leads to a decision  ", concept: "  An analyst compares evidence on printed source pages at a desk before making a decision and selecting one route on a wall map  ", alt: "  An analyst sorts printed source pages before selecting a route  ", caption: "  Printed sources are sorted before a route is selected.  " }] }) });
     const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
     expect(result.manifest.assets[0].request.body_locator).toBe("## Review the evidence");
-    expect(result.manifest.assets[0].request.alt).toBe("Source cards pass through review gates toward a decision");
+    expect(result.manifest.assets[0].request.alt).toBe("An analyst sorts printed source pages before selecting a route");
     const call = deps.proseProvider.generate.mock.calls[0][0];
-    expect(call.system).toContain("conceptual, non-factual");
+    expect(call.system).toContain("concrete, non-factual");
     expect(call.system).toContain("Never request or depict charts");
     expect(call.prompt).toContain("screen-reader user");
     expect(call.prompt).toContain("40 to 140 characters");
     expect(call.prompt).toContain("do not use these words even to negate them");
     expect(call.prompt).toContain("Copy body_locator exactly");
+    expect(call.prompt).toContain("Copy section_excerpt exactly");
   });
 
   it("does not guess an ambiguous final heading locator", async () => {
@@ -82,7 +83,7 @@ describe("GrowthCast shadow visual stages", () => {
     const duplicateHeadingArticle = article();
     duplicateHeadingArticle.body = "## Review the evidence\n\nFirst.\n\n### Review the evidence\n\nSecond.";
     duplicateHeadingArticle.content_sha256 = canonicalArticleHash({ ...duplicateHeadingArticle, content_sha256: "" });
-    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", purpose: "Explain the evidence review sequence", concept: "Abstract sources moving through a decision gate", alt: "Sources move through a review gate before a decision", caption: "Evidence passes through a review gate." }] }) });
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Explain the evidence review sequence", concept: "An analyst compares evidence on printed source pages at a desk before making a decision and selecting one route on a wall map", alt: "An analyst sorts source pages before selecting a route", caption: "Source pages are sorted before a route is selected." }] }) });
     await expect(runShadowVisualStages({ article: duplicateHeadingArticle, artifactDirectory: directory, ...deps })).rejects.toThrow("locator is not present in final article");
     expect(deps.imageProvider.generate).not.toHaveBeenCalled();
     expect(deps.renderer.render).not.toHaveBeenCalled();
@@ -116,7 +117,7 @@ describe("GrowthCast shadow visual stages", () => {
     expect(deps.imageProvider.generate).toHaveBeenCalledTimes(2);
     expect(deps.renderer.render).toHaveBeenCalledTimes(4);
 
-    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
     await expect(runShadowVisualStages({ ...options, artifactDirectory: path.join(directory, "rejected") })).rejects.toThrow("prohibited factual chart");
   });
   it("recovers from malformed generated PNG output without repeating successful work", async () => {

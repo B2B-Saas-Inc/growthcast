@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessPublicationReadiness } from "./content-astro-adapter.mjs";
+import { assessPublicationReadiness, validateInventoryQa } from "./content-astro-adapter.mjs";
 
 const hash = "a".repeat(64);
 const passingReport = { result: "pass", findings: [] };
@@ -23,5 +23,15 @@ describe("Astro publication readiness", () => {
       ready: false,
       reasons: ["shared QA report does not pass", "GrowthCast profile validation does not pass"],
     });
+  });
+
+  it("grandfathers title-only findings only for read-only historical inventory checks", () => {
+    const report = { result: "fail", findings: [
+      { class: "hard", rule_id: "editorial.concise-natural-title" },
+      { class: "hard", rule_id: "editorial.exact-hash-approval" },
+    ] };
+    expect(validateInventoryQa(report)).toBe(true);
+    expect(validateInventoryQa({ ...report, findings: [...report.findings, { class: "hard", rule_id: "evidence.traceability" }] })).toBe(false);
+    expect(assessPublicationReadiness(article, report)).toMatchObject({ ready: false });
   });
 });

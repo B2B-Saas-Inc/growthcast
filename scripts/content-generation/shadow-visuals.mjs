@@ -58,9 +58,22 @@ function normalizeHeadingLocator(value, locators) {
   return matches.length === 1 ? matches[0] : requested;
 }
 
-function normalizeInlineConcepts(items, locators) {
+function sectionExcerpt(body, locator) {
+  const lines = body.split(/\r?\n/u);
+  const start = lines.findIndex((line) => line.trim() === locator);
+  if (start < 0) return "";
+  const section = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{2,6}\s+\S/u.test(line.trim())) break;
+    if (line.trim()) section.push(line.trim());
+  }
+  return section.join(" ");
+}
+
+function normalizeInlineConcepts(items, locators, body) {
   return items.map((item) => ({
     body_locator: normalizeHeadingLocator(item.body_locator, locators),
+    section_excerpt: sectionExcerpt(body, normalizeHeadingLocator(item.body_locator, locators)),
     purpose: item.purpose.trim(),
     concept: item.concept.trim(),
     alt: item.alt.trim(),
@@ -89,24 +102,25 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
     const generated = await proseProvider.generate({
       system: [
         "Return only JSON for contextual editorial illustrations that materially improve comprehension.",
-        "Use conceptual, non-factual scenes: relationships, sequences, boundaries, or decision flow without numbers or purported observations.",
+        "Use concrete, non-factual scenes with recognizable subjects, objects, settings, and actions that explain the adjacent section without numbers or purported observations.",
         "Never request or depict charts, graphs, UI, dashboards, screenshots, reports, metrics, benchmarks, customer outcomes, or claimed results.",
         "Do not introduce facts, labels inside the image, logos, trademarks, or photorealistic people.",
       ].join(" "),
       prompt: [
         "Return exactly {\"inline\":[...]}; do not add another candidate array.",
-        "Each item must contain only string fields body_locator, purpose, concept, alt, and caption.",
+        "Each item must contain only string fields body_locator, section_excerpt, purpose, concept, alt, and caption.",
+        "Copy section_excerpt exactly from the text immediately following that heading in final_sections.",
         "Copy body_locator exactly from valid_body_locators (a unique heading text without Markdown marks is normalized back to that final heading).",
-        "Purpose must explain the comprehension gain; concept must describe a clearly non-factual illustration.",
+        "Purpose must explain the comprehension gain; concept must concretely name a recognizable subject, objects, setting, and action grounded in section_excerpt.",
         "In purpose and concept, do not use these words even to negate them: chart, graph, dashboard, screenshot, interface, UI, result, results, benchmark, metric, analytics, report.",
         "Alt must be 40 to 140 characters, independently describe the meaningful visual relationship for a screen-reader user, contain no filename or extension, and not say image/graphic; caption must explain the takeaway without asserting outcomes.",
       ].join(" "),
-      input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators },
+      input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators, final_sections: locators.map((heading) => ({ heading, excerpt: sectionExcerpt(article.body, heading) })) },
       maximumOutputTokens: 2000,
     });
     const raw = parsePlan(generated);
     const candidates = [];
-    const required = ["body_locator", "purpose", "concept", "alt", "caption"];
+    const required = ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"];
     const visit = (value) => {
       if (Array.isArray(value)) {
         if (value.length > 0 && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && required.every((key) => typeof item[key] === "string"))) candidates.push(value);
@@ -116,7 +130,7 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
     };
     visit(raw);
     if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
-    plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators));
+    plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators, article.body));
     const findings = validateVisualPlan(article, plan);
     if (findings.length > 0) throw new Error(findings.map((finding) => finding.message).join("; "));
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);

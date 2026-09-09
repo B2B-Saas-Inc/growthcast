@@ -3,9 +3,9 @@
 GrowthCast consumes `@ejwhite/content-engine` 0.1.0 from the adjacent tarball so installs do not depend on a remote package registry for this private package.
 
 - Upstream repository: `/Users/ejwhite/Code/content-engine`
-- Immutable package identifier: `package-sha256:e641494368a9cac902ce038a0b27cce50aeb38ba56764f2af4df603a6c43aa3a`
-- Artifact: `ejwhite-content-engine-0.1.0-e641494368a9.tgz`
-- SHA-256: `e641494368a9cac902ce038a0b27cce50aeb38ba56764f2af4df603a6c43aa3a`
+- Immutable package identifier: `package-sha256:63ff65eb2b70ee94d4548e2b6fc8918dad095daa39583131362585360faef50a`
+- Artifact: `ejwhite-content-engine-0.1.0-63ff65eb2b70.tgz`
+- SHA-256: `63ff65eb2b70ee94d4548e2b6fc8918dad095daa39583131362585360faef50a`
 
 Verify before use:
 

@@ -37,7 +37,7 @@ function mockedHttp() {
     const research = body.plugins?.[0]?.id === "web";
     const userMessage = body.messages?.[1]?.content || "";
     const generated = userMessage.includes("valid_body_locators")
-      ? { inline: [{ body_locator: "## Choose a workflow", purpose: "Clarify the bounded workflow sequence", concept: "Abstract connected steps with a review gate", alt: "Connected workflow steps ending at a review gate", caption: "A bounded workflow pauses for review." }] }
+      ? { inline: [{ body_locator: "## Choose a workflow", section_excerpt: article.body.split(/\r?\n/u).slice(1).filter((line) => line.trim()).join(" "), purpose: "Clarify how a person reviews assumptions and preserves evidence before a decision", concept: "An analyst at a desk reviews assumptions on printed evidence pages, files each page in a labeled tray, and signs a final decision card", alt: "An analyst reviews evidence pages before signing a decision card", caption: "Evidence and assumptions are reviewed before a person makes the final decision." }] }
       : (userMessage.includes("outline array") ? { outline: [{ heading: "Choose a workflow" }] } : article);
     const message = research ? { content: "NIST framework", annotations: [{ url_citation: { url: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", content: "NIST publishes an AI risk management framework." } }] } : { content: JSON.stringify(generated) };
     return { ok: true, json: async () => ({ model: "mock-model", choices: [{ message }] }) };
