@@ -115,10 +115,29 @@ export function validateFinalArticleResponse(article, input) {
   return article;
 }
 
-function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value, providerInput = (input) => input) {
+const COMPLETE_ARTICLE_RESPONSE_FORMAT = {
+  type: "json_schema",
+  json_schema: {
+    name: "complete_article",
+    strict: false,
+    schema: {
+      type: "object",
+      required: ["title", "description", "body", "claims", "internal_links"],
+      properties: {
+        title: { type: "string", maxLength: 60, pattern: "^[^:：﹕꞉∶]*$" },
+        description: { type: "string" },
+        body: { type: "string" },
+        claims: { type: "array", items: { type: "object" } },
+        internal_links: { type: "array", items: { type: "object" } },
+      },
+    },
+  },
+};
+
+function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value, providerInput = (input) => input, responseFormat) {
   return { id: `${provider.id}:${stage}`, async run({ input, signal }) {
     const startedAt = now();
-    const result = await provider.generate({ system, prompt, input: providerInput(input), maximumOutputTokens: 12000 }, signal);
+    const result = await provider.generate({ system, prompt, input: providerInput(input), maximumOutputTokens: 12000, ...(responseFormat ? { responseFormat } : {}) }, signal);
     const output = withStageProvenance(input, stage, startedAt, now(), { provider: result.provider, identifier: result.model });
     return { ...output, [stage.replaceAll("-", "_")]: normalize(parseGeneratedJson(result, stage), input) };
   } };
@@ -276,9 +295,9 @@ export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVeri
     } },
     outline: generationHandler(provider, "outline", "Return only JSON. Do not invent human observations or approval.", "Create an outline as a JSON object with an outline array.", now),
     "rough-draft": generationHandler(provider, "rough-draft", "Return only JSON. Cite evidence URLs inline. Do not invent human observations, approval, or results.", "Draft JSON with title, description, body, claims, and internal_links.", now),
-    "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now),
-    "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims.", "Return the complete corrected article JSON object.", now),
-    "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now),
+    "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
+    "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims. Preserve a concise natural editorial title of at most 60 Unicode characters and do not use a colon-joined or two-part headline.", "Return the complete corrected article JSON object.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
+    "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
     "human-first-edit": generationHandler(
       provider,
       "human-first-edit",
@@ -293,6 +312,7 @@ export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVeri
         const evidence = applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id);
         return { ...input, evidence: { ...evidence, records: evidence.records.filter(({ verification_status }) => verification_status === "verified") } };
       },
+      COMPLETE_ARTICLE_RESPONSE_FORMAT,
     ),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
       const startedAt = now();

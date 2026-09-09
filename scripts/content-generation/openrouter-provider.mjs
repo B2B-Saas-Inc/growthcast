@@ -96,7 +96,7 @@ export class OpenRouterProvider {
       ],
       max_tokens: request.maximumOutputTokens,
       reasoning: { effort: "low", exclude: true },
-      response_format: { type: "json_object" },
+      response_format: request.responseFormat ?? { type: "json_object" },
       temperature: 0,
     }, signal);
     const text = result?.choices?.[0]?.message?.content;

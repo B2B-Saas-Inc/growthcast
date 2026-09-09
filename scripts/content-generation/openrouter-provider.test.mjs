@@ -31,6 +31,16 @@ describe("OpenRouterProvider", () => {
     });
   });
 
+  it("forwards a stage-specific structured response contract", async () => {
+    const fetchImpl = vi.fn(async () => response(200, { choices: [{ message: { content: "{}" } }] }));
+    const provider = new OpenRouterProvider({ env, fetchImpl });
+    const responseFormat = { type: "json_schema", json_schema: { name: "article", strict: false, schema: { type: "object" } } };
+
+    await provider.generate({ system: "s", prompt: "p", input: null, maximumOutputTokens: 10, responseFormat });
+
+    expect(JSON.parse(fetchImpl.mock.calls[0][1].body).response_format).toEqual(responseFormat);
+  });
+
   it("uses the standardized endpoint, attribution, and bounded-attempt configuration", async () => {
     const fetchImpl = vi.fn(async () => response(200, { choices: [{ message: { content: "ok" } }] }));
     const provider = new OpenRouterProvider({
