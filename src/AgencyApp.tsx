@@ -296,14 +296,15 @@ function CompanyPage({ type }: { type: "about" | "philosophy" | "careers" | "par
 
   if (type === "partners") {
     const partnerGroups = [
-      ["Affiliate", [["Dub.co", "https://dub.co"]]],
+      ["Affiliate", [["Dub.co", "https://refer.dub.co/edward-white"]]],
       ["Analytics", [["PostHog", "https://posthog.com"], ["BlueAlpha", "https://bluealpha.ai"], ["Ahrefs", "https://ahrefs.com"]]],
-      ["CRM", [["Attio", "https://attio.com"]]],
+      ["CRM", [["Attio", "https://attio.com/?r=racPOVbt1UsK4sVv"]]],
       ["Marketing Automation", [["Customer.io", "https://customer.io"]]],
+      ["Paid Media", [["Atria", "https://tryatria.com/?linkId=lp_879287&sourceId=ej-white&tenantId=atria&utm_source=ej-white&utm_medium=affiliate"]]],
       ["CMS", [["Sanity", "https://sanity.io"], ["Prismic", "https://prismic.io"]]],
-      ["Content", [["beehiiv", "https://beehiiv.com"]]],
-      ["AI", [["OpenRouter", "https://openrouter.ai"], ["ElevenLabs", "https://elevenlabs.io"], ["Clay", "https://clay.com"]]],
-      ["Infra", [["Trigger.dev", "https://trigger.dev"], ["Hookdeck", "https://hookdeck.com"]]],
+      ["Content", [["beehiiv", "https://www.beehiiv.com/?via=ej-white"], ["Trybe", "https://jointrybe.com/r/TBFE29DR"], ["Descript", "https://get.descript.com/37rhvrxqlrrm"]]],
+      ["AI", [["ElevenLabs", "https://try.elevenlabs.io/suwafbyu3u8z"], ["Viktor", "https://app.viktor.com/signin?ref=Qq6UffU9ko4xvtbognEk8V"], ["HeyGen", "https://app.heygen.com/guest/templates?cid=cc6da3ff&utm_source=ej-white&utm_medium=affiliates"]]],
+      ["Infra", [["Trigger.dev", "https://trigger.dev"], ["Hookdeck", "https://hookdeck.com"], ["Supademo", "https://supademo.cello.so/61wAGBTk0lS"], ["OpenRouter", "https://openrouter.ai"], ["Clay", "https://clay.com?via=4bf79e"]]],
     ] as const;
     return (
       <article className="homeCard agencyHome agencySubpage companyPage">
@@ -617,7 +618,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
       </div>}
       <footer className="agencyFooter h-card">
         <div className="footerBrand"><a className="u-url p-name" href="/">GrowthCast</a></div>
-        <nav aria-label="GrowthCast links"><a href="/blog">Read the Blog</a><span title="Email address coming soon">Email Our Founder</span><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><span title="Social profile coming soon">Follow GrowthCast</span></nav>
+        <nav aria-label="GrowthCast links"><a href="/blog">Read the Blog</a><a className="u-email" href="mailto:ewhite@growthcast.app">Email Our Founder</a><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><a href="https://www.linkedin.com/company/146310031/" target="_blank" rel="noreferrer">Follow GrowthCast</a></nav>
         <nav aria-label="Legal and site links"><button type="button" onClick={() => navigate("terms", "/terms")}>Terms</button><button type="button" onClick={() => navigate("privacy", "/privacy")}>Privacy</button><a href="/sitemap-index.xml">Sitemap</a></nav>
       </footer>
     </main>
