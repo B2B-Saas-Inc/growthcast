@@ -95,6 +95,24 @@ describe("GrowthCast shadow visual stages", () => {
     expect(deps.renderer.render).not.toHaveBeenCalled();
   });
 
+  it("retries malformed visual-plan JSON a bounded number of times before effects", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-retry-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const valid = await deps.proseProvider.generate();
+    deps.proseProvider.generate.mockReset();
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: "{" }).mockResolvedValueOnce(valid);
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets).toHaveLength(4);
+    expect(deps.proseProvider.generate).toHaveBeenCalledTimes(2);
+
+    const rejected = dependencies();
+    rejected.proseProvider.generate.mockResolvedValue({ text: "{" });
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "rejected"), ...rejected })).rejects.toThrow("invalid JSON");
+    expect(rejected.proseProvider.generate).toHaveBeenCalledTimes(3);
+    expect(rejected.imageProvider.generate).not.toHaveBeenCalled();
+    expect(rejected.renderer.render).not.toHaveBeenCalled();
+  });
+
   it("fails closed when provider output contains multiple valid inline arrays", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-visuals-")); directories.push(directory);
     const deps = dependencies();
@@ -169,7 +187,7 @@ describe("GrowthCast shadow visual stages", () => {
     expect(wrongModel.renderer.render).not.toHaveBeenCalled();
 
     const malformed = dependencies();
-    malformed.proseProvider.generate.mockResolvedValueOnce({ text: "not json" });
+    malformed.proseProvider.generate.mockResolvedValue({ text: "not json" });
     await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "malformed"), ...malformed })).rejects.toThrow("invalid JSON");
     expect(malformed.imageProvider.generate).not.toHaveBeenCalled();
     expect(malformed.renderer.render).not.toHaveBeenCalled();
