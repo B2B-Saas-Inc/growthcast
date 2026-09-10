@@ -54,7 +54,7 @@ import {
   defaultCashFlow,
   type CashFlowSettings,
 } from "./engine/metrics";
-import posthog, { isPostHogEnabled } from "./posthog";
+import posthog, { isPostHogEnabled } from "./clientBridge";
 import {
   addChannelFromLibrary,
   normalizeChannels,
