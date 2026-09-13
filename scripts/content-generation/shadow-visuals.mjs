@@ -13,7 +13,7 @@ function safeHash(value) {
   return value;
 }
 
-async function atomicWrite(file, bytes) {
+export async function atomicWrite(file, bytes) {
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const temporary = `${file}.${process.pid}.tmp`;
   try {
