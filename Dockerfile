@@ -1,7 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-COPY vendor/content-engine/ejwhite-content-engine-0.1.0-63ff65eb2b70.tgz vendor/content-engine/ejwhite-content-engine-0.1.0-63ff65eb2b70.tgz
+COPY vendor/content-engine/ejwhite-content-engine-0.1.0-86a92a483a12.tgz vendor/content-engine/ejwhite-content-engine-0.1.0-86a92a483a12.tgz
 RUN npm ci
 COPY . .
 RUN npm run content:drift && npm run content:briefs:check && npm run content:validate && npm run lint && npm test && npm run build
