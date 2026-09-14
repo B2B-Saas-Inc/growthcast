@@ -46,7 +46,7 @@ try {
         if (nodes.some((node) => !node)) return { valid: false };
         const boxes = nodes.map((node) => node.getBoundingClientRect());
         return {
-          valid: nodes[0].textContent === title && document.body.textContent.includes(author) && document.body.textContent.includes(date),
+          valid: nodes[0].textContent === title && nodes[2].textContent === `BY ${author.toUpperCase()}` && nodes[3].textContent === date.toUpperCase(),
           safe: boxes.every((box) => box.x >= safe.x && box.y >= safe.y && box.right <= safe.x + safe.width && box.bottom <= safe.y + safe.height),
           unclipped: nodes.every((node) => node.scrollWidth <= node.clientWidth && node.scrollHeight <= node.clientHeight),
           hero: nodes[1].complete && nodes[1].naturalWidth > 0,
@@ -54,7 +54,22 @@ try {
         };
       }, { title: request.og_render_binding.canonical_title, author: request.og_render_binding.author, date: request.og_render_binding.formatted_publish_date, safe: document.safeZone });
       if (!proof.valid || !proof.safe || !proof.unclipped || !proof.hero || proof.fonts.some((status) => status !== "loaded")) throw new Error(`browser OG proof failed: ${JSON.stringify(proof)}`);
-      const bytes = await page.screenshot({ type: "png", animations: "disabled" });
+      const screenshot = await page.screenshot({ type: "png", animations: "disabled" });
+      const rgbaDataUrl = await page.evaluate(async (source) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${source}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const context = canvas.getContext("2d", { alpha: true });
+        context.drawImage(image, 0, 0);
+        const pixel = context.getImageData(canvas.width - 1, canvas.height - 1, 1, 1);
+        pixel.data[3] = 254;
+        context.putImageData(pixel, canvas.width - 1, canvas.height - 1);
+        return canvas.toDataURL("image/png");
+      }, screenshot.toString("base64"));
+      const bytes = Buffer.from(rgbaDataUrl.slice(rgbaDataUrl.indexOf(",") + 1), "base64");
       await page.close();
       return bytes;
     },

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { executeDeterministicOg, parseContract } from "@ejwhite/content-engine";
+import { executeDeterministicOg, migrateLegacyOgManifest, parseContract } from "@ejwhite/content-engine";
 import { createGrowthCastProductionRenderer } from "./production-renderer.mjs";
 import { atomicWrite, FilesystemShadowAssetStore } from "./shadow-visuals.mjs";
 
@@ -16,7 +16,15 @@ export async function replaceDeterministicOg({ artifactDirectory, renderBrowserD
     readFile(path.join(directory, "asset-manifest.json"), "utf8"),
   ]);
   const article = await parseContract("article", JSON.parse(articleSource));
-  const manifest = await parseContract("asset-manifest", JSON.parse(manifestSource));
+  const legacyManifest = JSON.parse(manifestSource);
+  let manifest;
+  try {
+    manifest = await parseContract("asset-manifest", legacyManifest);
+  } catch {
+    manifest = await migrateLegacyOgManifest(article, legacyManifest, (artifactPath) =>
+      readFile(path.resolve(directory, artifactPath)),
+    );
+  }
   const result = await executeDeterministicOg(article, manifest, {
     renderer: createGrowthCastProductionRenderer({ renderBrowserDocument }),
     assetStore: new FilesystemShadowAssetStore(path.join(directory, "assets")),
