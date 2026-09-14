@@ -56,7 +56,7 @@ try {
       if (!proof.valid || !proof.safe || !proof.unclipped || !proof.hero || proof.fonts.some((status) => status !== "loaded")) throw new Error(`browser OG proof failed: ${JSON.stringify(proof)}`);
       const screenshot = await page.screenshot({ type: "png", animations: "disabled" });
       const rgbaDataUrl = await page.evaluate(async (source) => {
-        const image = new Image();
+        const image = new globalThis.Image();
         image.src = `data:image/png;base64,${source}`;
         await image.decode();
         const canvas = document.createElement("canvas");
