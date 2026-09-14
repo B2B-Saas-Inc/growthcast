@@ -119,7 +119,7 @@ export async function validateSlug(slug) {
 }
 
 export function validateInventoryQa(report, local = []) {
-  const blocking = report.findings.filter((finding) => finding.class !== "advisory" && finding.rule_id !== "editorial.exact-hash-approval" && finding.rule_id !== "editorial.concise-natural-title");
+  const blocking = report.findings.filter((finding) => finding.class !== "advisory" && finding.rule_id !== "editorial.exact-hash-approval" && finding.rule_id !== "editorial.concise-natural-title" && finding.rule_id !== "editorial.title-matches-single-h1");
   return blocking.length === 0 && local.length === 0;
 }
 

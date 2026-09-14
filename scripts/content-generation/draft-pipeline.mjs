@@ -7,6 +7,7 @@ import {
   loadConfiguration,
   orchestrate,
   parseContract,
+  resolvePublicationDate,
 } from "@ejwhite/content-engine";
 import { FilesystemCheckpointStore } from "./filesystem-checkpoint-store.mjs";
 
@@ -209,7 +210,6 @@ function evidenceLedger(brief, batches) {
 
 function buildArticle(brief, draft, input) {
   draft = normalizeArticleResponse(draft, input, brief);
-  const date = new Date(brief.publishing.scheduled_at ?? 0).toISOString();
   const article = {
     schema_version: 1,
     content_id: brief.content_id,
@@ -223,8 +223,8 @@ function buildArticle(brief, draft, input) {
     canonical_url: `https://growthcast.app/blog/${brief.publishing.slug}`,
     body: draft.body,
     author: brief.human_input.author,
-    published_at: date,
-    modified_at: date,
+    published_at: brief.publishing.scheduled_at ?? "1970-01-01T00:00:00.000Z",
+    modified_at: brief.publishing.scheduled_at ?? "1970-01-01T00:00:00.000Z",
     claims: Array.isArray(draft.claims) ? draft.claims : [],
     internal_links: Array.isArray(draft.internal_links) ? draft.internal_links : [],
     media_requirements: [],
@@ -232,6 +232,10 @@ function buildArticle(brief, draft, input) {
     approval: null,
     content_sha256: "",
   };
+  article.content_sha256 = canonicalArticleHash(article);
+  const date = resolvePublicationDate({ brief, article }).published_at;
+  article.published_at = date;
+  article.modified_at = date;
   article.content_sha256 = canonicalArticleHash(article);
   return article;
 }
