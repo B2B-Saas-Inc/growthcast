@@ -36,3 +36,6 @@ npm-debug.log*
 !.env.example
 
 .aidesigner/
+
+# Client material is deployed privately, never committed to the public repo.
+private-proposals/

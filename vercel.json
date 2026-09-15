@@ -5,20 +5,58 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/ingest/static/:path(.*)", "destination": "https://us-assets.i.posthog.com/static/:path" },
-    { "source": "/ingest/array/:path(.*)", "destination": "https://us-assets.i.posthog.com/array/:path" },
-    { "source": "/ingest/:path(.*)", "destination": "https://us.i.posthog.com/:path" }
+    {
+      "source": "/clients/proposals/bluealpha",
+      "destination": "/api/bluealpha-proposal"
+    },
+    {
+      "source": "/clients/proposals/bluealpha/",
+      "destination": "/api/bluealpha-proposal"
+    },
+    {
+      "source": "/ingest/static/:path(.*)",
+      "destination": "https://us-assets.i.posthog.com/static/:path"
+    },
+    {
+      "source": "/ingest/array/:path(.*)",
+      "destination": "https://us-assets.i.posthog.com/array/:path"
+    },
+    {
+      "source": "/ingest/:path(.*)",
+      "destination": "https://us.i.posthog.com/:path"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/bluealpha-proposal.ts": {
+      "includeFiles": "server-assets/bluealpha-proposal.enc",
+      "maxDuration": 15
+    }
+  }
 }
