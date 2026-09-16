@@ -13,7 +13,7 @@ function safeHash(value) {
   return value;
 }
 
-async function atomicWrite(file, bytes) {
+export async function atomicWrite(file, bytes) {
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
   const temporary = `${file}.${process.pid}.tmp`;
   try {
@@ -50,6 +50,63 @@ export class FilesystemShadowAssetStore {
   }
 }
 
+function normalizeHeadingLocator(value, locators) {
+  const requested = value.trim();
+  if (locators.includes(requested)) return requested;
+  const headingText = requested.replace(/^#{1,6}\s+/u, "").trim();
+  const matches = locators.filter((locator) => locator.replace(/^#{2,6}\s+/u, "").trim() === headingText);
+  return matches.length === 1 ? matches[0] : requested;
+}
+
+function sectionExcerpt(body, locator) {
+  const lines = body.split(/\r?\n/u);
+  const start = lines.findIndex((line) => line.trim() === locator);
+  if (start < 0) return "";
+  const section = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{2,6}\s+\S/u.test(line.trim())) break;
+    if (line.trim()) section.push(line.trim());
+  }
+  return section.join(" ");
+}
+
+function normalizeInlineConcepts(items, locators, body) {
+  return items.map((item) => ({
+    body_locator: normalizeHeadingLocator(item.body_locator, locators),
+    section_excerpt: sectionExcerpt(body, normalizeHeadingLocator(item.body_locator, locators)),
+    purpose: item.purpose.trim(),
+    concept: item.concept.trim(),
+    alt: item.alt.trim(),
+    caption: item.caption.trim(),
+  }));
+}
+
+const VISUAL_PLAN_RESPONSE_FORMAT = {
+  type: "json_schema",
+  json_schema: {
+    name: "contextual_visual_plan",
+    strict: true,
+    schema: {
+      type: "object",
+      required: ["inline"],
+      additionalProperties: false,
+      properties: {
+        inline: {
+          type: "array",
+          minItems: 1,
+          maxItems: 4,
+          items: {
+            type: "object",
+            required: ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"],
+            additionalProperties: false,
+            properties: Object.fromEntries(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"].map((key) => [key, { type: "string" }])),
+          },
+        },
+      },
+    },
+  },
+};
+
 function parsePlan(result) {
   const source = result.text.trim().replace(/^```(?:json)?\s*/u, "").replace(/\s*```$/u, "");
   try { return JSON.parse(source); }
@@ -68,14 +125,49 @@ export async function runShadowVisualStages({ article, proseProvider, imageProvi
     if (error?.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
   }
   if (!plan) {
-    const generated = await proseProvider.generate({
-      system: "Return only JSON. Plan contextual editorial illustrations; never charts, UI, dashboards, screenshots, metrics, benchmarks, or claimed results.",
-      prompt: "Return an object with an inline array. Each item requires body_locator, purpose, concept, accessible alt, and caption.",
-      input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators },
-      maximumOutputTokens: 2000,
-    });
-    const raw = parsePlan(generated);
-    plan = createVisualPlan(article, raw.inline);
+    let generationError;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        const generated = await proseProvider.generate({
+      system: [
+        "Return only JSON for contextual editorial illustrations that materially improve comprehension.",
+        "Use concrete, non-factual scenes with recognizable subjects, objects, settings, and actions that explain the adjacent section without numbers or purported observations.",
+        "Never request or depict charts, graphs, UI, dashboards, screenshots, reports, metrics, benchmarks, customer outcomes, or claimed results.",
+        "Do not introduce facts, labels inside the image, logos, trademarks, or photorealistic people.",
+      ].join(" "),
+      prompt: [
+        "Return exactly {\"inline\":[...]}; include one to four useful illustrations at unique section headings and do not add another candidate array.",
+        "Each item must contain only string fields body_locator, section_excerpt, purpose, concept, alt, and caption.",
+        "Copy section_excerpt exactly from the text immediately following that heading in final_sections.",
+        "Copy body_locator exactly from valid_body_locators (a unique heading text without Markdown marks is normalized back to that final heading).",
+        "Purpose must explain the comprehension gain. Write every concept as a literal scene sentence in this exact order: subject, visible objects, physical setting, and observable action or process; name all four explicitly and ground each one in section_excerpt. Abstract nouns, colored shapes, symbols, metaphors, and brand mood do not count as any of the four.",
+        "In purpose and concept, do not use these words even to negate them: chart, graph, dashboard, screenshot, interface, UI, result, results, benchmark, metric, analytics, report.",
+        "Alt must be 40 to 140 characters, independently describe the meaningful visual relationship for a screen-reader user, contain no filename or extension, and not say image/graphic; caption must explain the takeaway without asserting outcomes.",
+      ].join(" "),
+      input: { article_sha256: article.content_sha256, title: article.title, body: article.body, valid_body_locators: locators, final_sections: locators.map((heading) => ({ heading, excerpt: sectionExcerpt(article.body, heading) })) },
+      maximumOutputTokens: 6000,
+      responseFormat: VISUAL_PLAN_RESPONSE_FORMAT,
+        });
+        const raw = parsePlan(generated);
+        const candidates = [];
+        const required = ["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"];
+        const visit = (value) => {
+          if (Array.isArray(value)) {
+            if (value.length > 0 && value.every((item) => item && typeof item === "object" && !Array.isArray(item) && required.every((key) => typeof item[key] === "string"))) candidates.push(value);
+            return;
+          }
+          if (value && typeof value === "object") Object.values(value).forEach(visit);
+        };
+        visit(raw);
+        if (candidates.length !== 1) throw new Error(`visual-plan response must contain exactly one structurally valid inline array; found ${candidates.length}`);
+        plan = createVisualPlan(article, normalizeInlineConcepts(candidates[0], locators, article.body));
+        generationError = undefined;
+        break;
+      } catch (error) {
+        generationError = error;
+      }
+    }
+    if (generationError) throw generationError;
     await atomicWrite(planFile, `${JSON.stringify(plan, null, 2)}\n`);
   }
   const assetDirectory = path.join(path.resolve(artifactDirectory), "assets");

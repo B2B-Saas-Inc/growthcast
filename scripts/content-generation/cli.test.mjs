@@ -2,9 +2,16 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { canonicalSha256, renderFixtureOg, renderHero } from "@ejwhite/content-engine";
+import { canonicalSha256, loadProductionVisualProfile, renderFixtureOg, renderHero } from "@ejwhite/content-engine";
 import { parseArguments, runCli } from "./cli.mjs";
+import { evidenceVerificationSha256 } from "./draft-pipeline.mjs";
 import { createGrowthCastProductionRenderer } from "./production-renderer.mjs";
+
+
+function evidenceVerification(evidence) {
+  const record = evidence?.records[0];
+  return { schema_version: 1, brief_id: "approved-brief", reviewed_by: "EJ White", reviewed_at: "2026-09-05T00:00:00.000Z", evidence_ledger_sha256: evidenceVerificationSha256(evidence), decisions: [{ evidence_id: record.evidence_id, content_sha256: record.content_sha256, supported_claim_ids: ["claim-1"], status: "verified", notes: "Source and claim mapping manually reviewed." }] };
+}
 
 const directories = [];
 afterEach(async () => Promise.all(directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true }))));
@@ -23,13 +30,14 @@ async function workspace() {
 }
 
 function mockedHttp() {
-  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body: "## Choose a workflow\n\nUse a bounded workflow backed by [NIST](https://www.nist.gov/itl/ai-risk-management-framework).\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)", claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "paragraph-1" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
+  const body = `## Choose a workflow\n\nNIST publishes an AI risk framework. See https://www.nist.gov/itl/ai-risk-management-framework. ${"Review assumptions, preserve evidence, and keep a person responsible for each final decision. ".repeat(110)}\n\nRead [why GrowthCast](/why-growthcast).\n\n[Start a GrowthCast conversation](/?contact=1)`;
+  const article = { title: "A measured growth workflow", description: "A practical guide to bounding and reviewing one growth workflow.", body, claims: [{ claim_id: "claim-1", text: "NIST publishes an AI risk framework.", material: true, support_type: "evidence", support_ids: ["EV-001"], body_locator: "## Choose a workflow" }], internal_links: [{ url: "/why-growthcast", anchor: "why GrowthCast", inventory_verified: true }, { url: "/?contact=1", anchor: "Start a GrowthCast conversation", inventory_verified: true }] };
   return vi.fn(async (_url, init) => {
     const body = JSON.parse(init.body);
     const research = body.plugins?.[0]?.id === "web";
     const userMessage = body.messages?.[1]?.content || "";
     const generated = userMessage.includes("valid_body_locators")
-      ? { inline: [{ body_locator: "## Choose a workflow", purpose: "Clarify the bounded workflow sequence", concept: "Abstract connected steps with a review gate", alt: "Connected workflow steps ending at a review gate", caption: "A bounded workflow pauses for review." }] }
+      ? { inline: [{ body_locator: "## Choose a workflow", section_excerpt: article.body.split(/\r?\n/u).slice(1).filter((line) => line.trim()).join(" "), purpose: "Clarify how a person reviews assumptions and preserves evidence before a decision", concept: "An analyst at a desk reviews assumptions on printed evidence pages, files each page in a labeled tray, and signs a final decision card", alt: "An analyst reviews evidence pages before signing a decision card", caption: "Evidence and assumptions are reviewed before a person makes the final decision." }] }
       : (userMessage.includes("outline array") ? { outline: [{ heading: "Choose a workflow" }] } : article);
     const message = research ? { content: "NIST framework", annotations: [{ url_citation: { url: "https://www.nist.gov/itl/ai-risk-management-framework", title: "AI Risk Management Framework", content: "NIST publishes an AI risk management framework." } }] } : { content: JSON.stringify(generated) };
     return { ok: true, json: async () => ({ model: "mock-model", choices: [{ message }] }) };
@@ -79,7 +87,7 @@ describe("generation operator CLI", () => {
     const root = await workspace();
     const fetchImpl = mockedHttp();
     const visuals = mockedVisuals();
-    const dependencies = { root, env, fetchImpl, ...visuals, now: () => "2026-09-05T00:00:00.000Z" };
+    const dependencies = { root, env, fetchImpl, evidenceVerification, ...visuals, now: () => "2026-09-05T00:00:00.000Z" };
     const first = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
     const resumed = await runCli(["approved-brief", "--shadow", "--run-id", "shadow-review"], dependencies);
     expect(resumed).toEqual(first);
@@ -106,31 +114,36 @@ describe("generation operator CLI", () => {
   it("requires the write flag, accepts only an exact approval hash, and writes a draft without overwriting", async () => {
     const root = await workspace();
     const fetchImpl = mockedHttp();
-    const initial = await runCli(["approved-brief", "--run-id", "approved-run"], { root, env, fetchImpl });
+    const initial = await runCli(["approved-brief", "--run-id", "approved-run"], { root, env, fetchImpl, evidenceVerification });
     const approvalFile = path.join(root, "approval.json");
     await writeFile(approvalFile, JSON.stringify({ status: "approved", approved_by: "human editor", approved_at: "2026-09-04T00:00:00.000Z", content_sha256: initial.content_sha256 }));
-    const written = await runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile, "--write-to-src"], { root, env, fetchImpl });
+    const written = await runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile, "--write-to-src"], { root, env, fetchImpl, evidenceVerification });
     expect(written.approval_matches).toBe(true);
     expect(await readFile(path.join(root, written.source_written), "utf8")).toContain("draft: true");
     await expect(runCli(["approved-brief", "--run-id", "approved-run", "--write-to-src"], { root, env, fetchImpl })).rejects.toThrow("refusing to overwrite");
     await writeFile(approvalFile, JSON.stringify({ status: "approved", approved_by: "human editor", approved_at: "2026-09-04T00:00:00.000Z", content_sha256: "f".repeat(64) }));
     await expect(runCli(["approved-brief", "--run-id", "approved-run", "--approval-file", approvalFile], { root, env, fetchImpl })).rejects.toThrow("approval content hash does not match");
   });
-  it("uses a deterministic certified GrowthCast renderer with exact-title Manrope/logo OG", async () => {
-    const renderer = createGrowthCastProductionRenderer();
+  it("delegates OG output to the bound shared GrowthCast browser compositor", async () => {
+    const capture = vi.fn(async (document) => Buffer.from(`${document.brand}:${document.title}:${document.heroAsset.sha256}`));
+    const renderer = createGrowthCastProductionRenderer({ renderBrowserDocument: capture });
     const article = { content_id: "renderer-proof", content_sha256: "b".repeat(64), brand: "growthcast", profile_version: "1.0.0", title: "An exact title for a measured growth workflow" };
-    const request = (kind) => ({ content_id: article.content_id, article_sha256: article.content_sha256, brand: article.brand, kind, brand_profile_version: article.profile_version });
+    const profileAssets = loadProductionVisualProfile("growthcast").assets;
+    const request = (kind) => ({ content_id: article.content_id, article_sha256: article.content_sha256, brand: article.brand, kind, brand_profile_version: article.profile_version, ...(kind === "og" ? { og_render_binding: { contract_version: 2, canonical_title: article.title, author: "EJ White", published_at: "1970-01-01T00:00:00.000Z", formatted_publish_date: "JAN 1, 1970", hero: { asset_id: "a".repeat(64), artifact_path: "hero-bound.png", binary_sha256: "c".repeat(64) }, profile_assets: profileAssets } } : {}) });
     const hero = await renderer.render(request("hero"), article);
     const heroAgain = await renderer.render(request("hero"), article);
     const thumbnail = await renderer.render(request("thumbnail"), article);
     const og = await renderer.render(request("og"), article);
     const ogAgain = await renderer.render(request("og"), article);
     expect(hero.bytes).toEqual(heroAgain.bytes);
-    expect(og.bytes).toEqual(ogAgain.bytes);
     expect(hero.bytes).not.toEqual(thumbnail.bytes);
-    expect(og.renderer).toMatchObject({ name: "certified-growthcast-compositor", library_versions: { opentype: "1.3.4" } });
-    const changed = await renderer.render(request("og"), { ...article, title: `${article.title} revised` });
-    expect(changed.bytes).not.toEqual(og.bytes);
+    expect(og.bytes).toEqual(ogAgain.bytes);
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture.mock.calls[0][0]).toMatchObject({ brand: "growthcast", title: article.title, width: 1200, height: 630, heroAsset: { sha256: "c".repeat(64) } });
+    expect(capture.mock.calls[0][0].html).toContain("growthcast-social-v1");
+    expect(capture.mock.calls[0][0].html).not.toContain("<circle");
+    expect(og.renderer).toMatchObject({ name: "shared-growthcast-brand-native-browser-compositor", version: "growthcast-social-v1" });
+    await expect(createGrowthCastProductionRenderer().render(request("og"), article)).rejects.toThrow("network-disabled browser capture adapter");
     await expect(renderer.render({ ...request("hero"), brand: "verdant" }, article)).rejects.toThrow("foreign brands");
   });
 

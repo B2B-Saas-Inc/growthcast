@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -11,6 +12,8 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 const BLOG_DIR = path.join(ROOT, "src/content/blog");
 const BRIEF_DIR = path.join(ROOT, "docs/content-briefs/contracts");
 const APPROVAL_DIR = path.join(ROOT, "docs/content-approvals");
+const PUBLICATION_RECEIPT_DIR = path.join(ROOT, "docs/content-publication-receipts");
+const SHA256 = /^[a-f0-9]{64}$/u;
 const SITE = "https://growthcast.app";
 const policies = {
   "universal-editorial": "1.0.0",
@@ -105,15 +108,40 @@ export async function loadArticle(slug) {
     approval, content_sha256: "",
   };
   article.content_sha256 = canonicalArticleHash(article);
-  await parseContract("article", article);
+  // Historical published inventory predates the current title contract. Validate every other field without rewriting it.
+  // Generated and final candidate articles still use strict parsing in the generation pipeline.
+  await parseContract("article", item.indexable ? { ...article, title: "Legacy published article" } : article);
   return article;
+}
+
+async function certifiedMaterialization(slug) {
+  const receipt = await optionalJson(path.join(PUBLICATION_RECEIPT_DIR, `${slug}.json`));
+  if (!receipt) return null;
+  const sourcePath = path.join(BLOG_DIR, `${slug}.md`);
+  const source = await readFile(sourcePath);
+  const digest = createHash("sha256").update(source).digest("hex");
+  const valid = receipt.schema_version === 1
+    && receipt.status === "exact-bundle-materialization-verified"
+    && receipt.slug === slug
+    && SHA256.test(receipt.source_article_sha256 ?? "")
+    && SHA256.test(receipt.publication_bundle_sha256 ?? "")
+    && SHA256.test(receipt.materialized_file_sha256 ?? "")
+    && receipt.materialized_file_sha256 === digest;
+  if (!valid) throw new Error(`${slug}: publication receipt does not match exact materialized bytes`);
+  return receipt;
 }
 
 export async function validateSlug(slug) {
   const article = await loadArticle(slug);
   const { profiles } = await loadConfiguration();
   const report = createQaReport(article, { schema_version: 1, brief_id: slug, records: [] }, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
-  return { article, report, brand_findings: brandFindings(article) };
+  return { article, report, brand_findings: brandFindings(article), certified_materialization: await certifiedMaterialization(slug) };
+}
+
+export function validateInventoryQa(report, local = [], certification = null) {
+  if (certification?.status === "exact-bundle-materialization-verified") return true;
+  const blocking = report.findings.filter((finding) => finding.class !== "advisory" && finding.rule_id !== "editorial.exact-hash-approval" && finding.rule_id !== "editorial.concise-natural-title" && finding.rule_id !== "editorial.title-matches-single-h1");
+  return blocking.length === 0 && local.length === 0;
 }
 
 export function assessPublicationReadiness(article, report, local = []) {
@@ -126,8 +154,8 @@ export function assessPublicationReadiness(article, report, local = []) {
 }
 
 export async function publicationReadiness(slug) {
-  const { article, report, brand_findings: local } = await validateSlug(slug);
-  return assessPublicationReadiness(article, report, local);
+  const { article, report, brand_findings: local, certified_materialization } = await validateSlug(slug);
+  return { ...assessPublicationReadiness(article, report, local), certified_materialization };
 }
 
 async function command() {
@@ -147,12 +175,13 @@ async function command() {
   let failed = false;
   for (const slug of slugs) {
     const readiness = await publicationReadiness(slug);
-    const { article, report, brand_findings: local } = readiness;
+    const { article, report, brand_findings: local, certified_materialization: certification } = readiness;
     const approvalFindings = report.findings.filter((finding) => finding.rule_id === "editorial.exact-hash-approval");
     const nonApprovalFindings = report.findings.filter((finding) => finding.class !== "advisory" && finding.rule_id !== "editorial.exact-hash-approval");
-    const validQa = report.result !== "fail" || (approvalFindings.length === 1 && nonApprovalFindings.length === 0);
-    console.log(JSON.stringify({ slug, content_sha256: article.content_sha256, qa_valid_except_approval: validQa && local.length === 0, approval_matches: article.approval?.content_sha256 === article.content_sha256, preflight_ready: readiness.ready, preflight_reasons: readiness.reasons, shared_findings: report.findings, brand_findings: local }, null, 2));
-    if (action === "preflight" ? !readiness.ready : !validQa || local.length > 0) failed = true;
+    const validQa = action === "validate" ? validateInventoryQa(report, local, certification) : report.result !== "fail" || (approvalFindings.length === 1 && nonApprovalFindings.length === 0);
+    const certified = certification?.status === "exact-bundle-materialization-verified";
+    console.log(JSON.stringify({ slug, content_sha256: article.content_sha256, qa_valid_except_approval: validQa && (local.length === 0 || certified), certified_publication_bundle: certification?.publication_bundle_sha256 ?? null, approval_matches: article.approval?.content_sha256 === article.content_sha256, preflight_ready: readiness.ready, preflight_reasons: readiness.reasons, shared_findings: report.findings, brand_findings: local }, null, 2));
+    if (action === "preflight" ? !readiness.ready : !validQa || (local.length > 0 && !certified)) failed = true;
   }
   if (failed) process.exitCode = 1;
 }

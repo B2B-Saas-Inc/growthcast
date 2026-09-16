@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -6,8 +7,38 @@ import {
   loadConfiguration,
   orchestrate,
   parseContract,
+  resolvePublicationDate,
 } from "@ejwhite/content-engine";
 import { FilesystemCheckpointStore } from "./filesystem-checkpoint-store.mjs";
+
+export function evidenceVerificationSha256(evidence) {
+  const identity = { brief_id: evidence.brief_id, records: evidence.records.map(({ evidence_id, canonical_url, content_sha256, supported_claim_ids }) => ({ evidence_id, canonical_url, content_sha256, supported_claim_ids })) };
+  return createHash("sha256").update(JSON.stringify(identity)).digest("hex");
+}
+
+export function applyEvidenceVerification(evidence, verification, briefId) {
+  verification = typeof verification === "function" ? verification(evidence) : verification;
+  if (!verification || typeof verification !== "object" || Array.isArray(verification)) throw new Error("an operator evidence-verification contract is required");
+  if (verification.schema_version !== 1 || verification.brief_id !== briefId || typeof verification.reviewed_by !== "string" || !verification.reviewed_by.trim()) throw new Error("invalid operator evidence-verification identity");
+  if (!Number.isFinite(Date.parse(verification.reviewed_at))) throw new Error("invalid operator evidence-verification timestamp");
+  const ledgerSha256 = evidenceVerificationSha256(evidence);
+  if (verification.evidence_ledger_sha256 !== ledgerSha256) throw new Error("operator evidence verification does not match the retrieved ledger");
+  if (!Array.isArray(verification.decisions)) throw new Error("operator evidence verification decisions are required");
+  const decisions = new Map();
+  for (const decision of verification.decisions) {
+    if (!decision || decisions.has(decision.evidence_id) || !["verified", "rejected"].includes(decision.status) || typeof decision.notes !== "string" || !decision.notes.trim()) throw new Error("invalid or duplicate operator evidence-verification decision");
+    decisions.set(decision.evidence_id, decision);
+  }
+  if (decisions.size !== evidence.records.length) throw new Error("every retrieved evidence record requires an operator disposition");
+  const records = evidence.records.map((record) => {
+    const decision = decisions.get(record.evidence_id);
+    if (!decision || decision.content_sha256 !== record.content_sha256) throw new Error(`operator evidence decision does not match ${record.evidence_id}`);
+    if (!Array.isArray(decision.supported_claim_ids) || decision.supported_claim_ids.length === 0 || new Set(decision.supported_claim_ids).size !== decision.supported_claim_ids.length) throw new Error(`operator evidence decision has invalid claim mappings for ${record.evidence_id}`);
+    if (decision.supported_claim_ids.some((id) => !record.supported_claim_ids.includes(id))) throw new Error(`operator evidence decision expands provider claim mappings for ${record.evidence_id}`);
+    return { ...record, supported_claim_ids: decision.supported_claim_ids, verification_status: decision.status, verification_notes: `${verification.reviewed_by}: ${decision.notes}` };
+  });
+  return { ...evidence, records };
+}
 
 export const DRAFT_STAGES = [
   "brief-validation", "research", "outline", "rough-draft", "factual-audit",
@@ -30,12 +61,86 @@ function withStageProvenance(input, stage, startedAt, endedAt, model) {
   };
 }
 
-function generationHandler(provider, stage, system, prompt, now) {
+function normalizeArticleResponse(value, input, brief) {
+  const article = value && typeof value === "object" && !Array.isArray(value) && value.article && typeof value.article === "object" && !Array.isArray(value.article)
+    ? value.article
+    : value;
+  if (!article || typeof article !== "object" || Array.isArray(article)) return article;
+  const evidenceByUrl = new Map((input?.evidence?.records ?? []).map((record) => [record.canonical_url, record.evidence_id]));
+  const allowedLinks = new Set(brief.internal_link_targets.map(({ url }) => url));
+  return {
+    ...article,
+    claims: Array.isArray(article.claims) ? article.claims.map((rawClaim) => {
+      const claim = "text" in rawClaim ? rawClaim : {
+        claim_id: rawClaim.claim_id,
+        text: rawClaim.claim,
+        material: true,
+        support_type: "evidence",
+        support_ids: (rawClaim.evidence_urls ?? []).map((url) => evidenceByUrl.get(url)).filter(Boolean),
+        ...(rawClaim.body_locator ? { body_locator: rawClaim.body_locator } : {}),
+      };
+      if (!claim.material || claim.support_type !== "evidence" || !Array.isArray(claim.support_ids)) return claim;
+      const mappedSupportIds = (input?.evidence?.records ?? [])
+        .filter((record) => record.verification_status === "verified" && record.supported_claim_ids?.includes(claim.claim_id))
+        .map((record) => record.evidence_id);
+      const allowed = new Set(mappedSupportIds);
+      const retainedSupportIds = claim.support_ids.filter((id) => allowed.has(id));
+      return { ...claim, support_ids: retainedSupportIds.length > 0 ? retainedSupportIds : mappedSupportIds };
+
+    }) : [],
+    internal_links: Array.isArray(article.internal_links) ? article.internal_links.map((link) => {
+      if ("anchor" in link) return link;
+      return { url: link.url, anchor: link.anchor_text, inventory_verified: allowedLinks.has(link.url) };
+    }) : [],
+  };
+}
+
+function articleWordCount(body) {
+  return body.replace(/```[\s\S]*?```/gu, " ").replace(/https?:\/\/\S+/gu, " ").match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)?.length ?? 0;
+}
+
+export function validateFinalArticleResponse(article, input) {
+  if (!article || typeof article !== "object" || Array.isArray(article)) throw new Error("human-first-edit must return an article object");
+  const words = articleWordCount(typeof article.body === "string" ? article.body : "");
+  if (words < 1200 || words > 1800) throw new Error(`human-first-edit article must contain 1200-1800 words; received ${words}`);
+  const evidence = new Map((input?.evidence?.records ?? []).map((record) => [record.evidence_id, record]));
+  for (const claim of Array.isArray(article.claims) ? article.claims : []) {
+    if (!claim.material || claim.support_type !== "evidence") continue;
+    if (!claim.body_locator || !article.body.includes(claim.body_locator) || !article.body.includes(claim.text)) {
+      throw new Error(`human-first-edit claim ${claim.claim_id} must have exact body text and a body locator present in the article`);
+    }
+    if (!Array.isArray(claim.support_ids) || claim.support_ids.length === 0 || claim.support_ids.some((id) => !evidence.get(id)?.supported_claim_ids?.includes(claim.claim_id))) {
+      throw new Error(`human-first-edit claim ${claim.claim_id} may use only evidence mapped to that claim`);
+    }
+  }
+  return article;
+}
+
+const COMPLETE_ARTICLE_RESPONSE_FORMAT = {
+  type: "json_schema",
+  json_schema: {
+    name: "complete_article",
+    strict: false,
+    schema: {
+      type: "object",
+      required: ["title", "description", "body", "claims", "internal_links"],
+      properties: {
+        title: { type: "string", maxLength: 60, pattern: "^[^:：﹕꞉∶]*$" },
+        description: { type: "string" },
+        body: { type: "string" },
+        claims: { type: "array", items: { type: "object" } },
+        internal_links: { type: "array", items: { type: "object" } },
+      },
+    },
+  },
+};
+
+function generationHandler(provider, stage, system, prompt, now, normalize = (value) => value, providerInput = (input) => input, responseFormat) {
   return { id: `${provider.id}:${stage}`, async run({ input, signal }) {
     const startedAt = now();
-    const result = await provider.generate({ system, prompt, input, maximumOutputTokens: 5000 }, signal);
+    const result = await provider.generate({ system, prompt, input: providerInput(input), maximumOutputTokens: 12000, ...(responseFormat ? { responseFormat } : {}) }, signal);
     const output = withStageProvenance(input, stage, startedAt, now(), { provider: result.provider, identifier: result.model });
-    return { ...output, [stage.replaceAll("-", "_")]: parseGeneratedJson(result, stage) };
+    return { ...output, [stage.replaceAll("-", "_")]: normalize(parseGeneratedJson(result, stage), input) };
   } };
 }
 
@@ -103,8 +208,8 @@ function evidenceLedger(brief, batches) {
   };
 }
 
-function buildArticle(brief, draft) {
-  const date = new Date(brief.publishing.scheduled_at ?? 0).toISOString();
+function buildArticle(brief, draft, input) {
+  draft = normalizeArticleResponse(draft, input, brief);
   const article = {
     schema_version: 1,
     content_id: brief.content_id,
@@ -118,8 +223,8 @@ function buildArticle(brief, draft) {
     canonical_url: `https://growthcast.app/blog/${brief.publishing.slug}`,
     body: draft.body,
     author: brief.human_input.author,
-    published_at: date,
-    modified_at: date,
+    published_at: brief.publishing.scheduled_at ?? "1970-01-01T00:00:00.000Z",
+    modified_at: brief.publishing.scheduled_at ?? "1970-01-01T00:00:00.000Z",
     claims: Array.isArray(draft.claims) ? draft.claims : [],
     internal_links: Array.isArray(draft.internal_links) ? draft.internal_links : [],
     media_requirements: [],
@@ -127,6 +232,10 @@ function buildArticle(brief, draft) {
     approval: null,
     content_sha256: "",
   };
+  article.content_sha256 = canonicalArticleHash(article);
+  const date = resolvePublicationDate({ brief, article }).published_at;
+  article.published_at = date;
+  article.modified_at = date;
   article.content_sha256 = canonicalArticleHash(article);
   return article;
 }
@@ -142,10 +251,11 @@ function buildRunManifest({ brief, runId, checkpoint, endedAt, status }) {
   const latestOutput = [...checkpoint.records].reverse().find((record) => record.output)?.output;
   const stageTimes = latestOutput?.pipeline_provenance ?? {};
   const startedAt = checkpoint.records.length ? stageTimes[checkpoint.records[0].stage]?.started_at ?? endedAt : endedAt;
+  const stableEndedAt = status === "stopped_for_approval" ? stageTimes[checkpoint.records.at(-1)?.stage]?.ended_at ?? endedAt : endedAt;
   return {
     schema_version: 1, run_id: runId, content_id: brief.content_id, brand: brief.brand,
     profile_version: brief.profile_version, policy_versions: brief.policy_versions,
-    started_at: startedAt, ended_at: endedAt, status,
+    started_at: startedAt, ended_at: stableEndedAt, status,
     stages: checkpoint.records.map((record) => {
       const provenance = stageTimes[record.stage] ?? { started_at: endedAt, ended_at: endedAt };
       return {
@@ -163,7 +273,7 @@ function buildRunManifest({ brief, runId, checkpoint, endedAt, status }) {
   };
 }
 
-export async function runDraftPipeline({ brief: rawBrief, provider, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 2, now = () => new Date().toISOString() }) {
+export async function runDraftPipeline({ brief: rawBrief, provider, evidenceVerification, runId, artifactDirectory, checkpointDirectory, maximumAttemptsPerStage = 3, now = () => new Date().toISOString() }) {
   const brief = await parseContract("brief", rawBrief);
   if (brief.status !== "approved" || !brief.approval) throw new Error(`${brief.content_id}: an approved brief with accountable approval is required`);
 
@@ -189,18 +299,34 @@ export async function runDraftPipeline({ brief: rawBrief, provider, runId, artif
     } },
     outline: generationHandler(provider, "outline", "Return only JSON. Do not invent human observations or approval.", "Create an outline as a JSON object with an outline array.", now),
     "rough-draft": generationHandler(provider, "rough-draft", "Return only JSON. Cite evidence URLs inline. Do not invent human observations, approval, or results.", "Draft JSON with title, description, body, claims, and internal_links.", now),
-    "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now),
-    "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims.", "Return the complete corrected article JSON object.", now),
-    "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now),
-    "human-first-edit": generationHandler(provider, "human-first-edit", "Return only JSON. Apply the human-first writing guide. Never invent human observations.", "Return the complete corrected article JSON object.", now),
+    "factual-audit": generationHandler(provider, "factual-audit", "Return only JSON. Remove or qualify claims unsupported by the evidence ledger.", "Return a corrected article JSON object with title, description, body, claims, and internal_links.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
+    "search-audit": generationHandler(provider, "search-audit", "Return only JSON. Improve search clarity without adding claims. Preserve a concise natural editorial title of at most 60 Unicode characters and do not use a colon-joined or two-part headline.", "Return the complete corrected article JSON object.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
+    "brand-edit": generationHandler(provider, "brand-edit", "Return only JSON. Apply the GrowthCast profile without adding claims.", "Return the complete corrected article JSON object.", now, (value) => value, (input) => input, COMPLETE_ARTICLE_RESPONSE_FORMAT),
+    "human-first-edit": generationHandler(
+      provider,
+      "human-first-edit",
+      "Return only JSON. Apply the human-first writing guide by editing the supplied complete article, not summarizing or replacing it. Preserve every substantive section and all supported detail. The body must contain 1200 to 1800 words; count the final body words before returning JSON and expand useful section-grounded explanation when it is below 1200. Never invent human observations, claims, evidence, examples, metrics, or results. Every material evidence claim must use exact text present in the body, name a body_locator string also present in the body, and use only support_ids whose evidence record maps to that claim_id.",
+      "Return the complete corrected article JSON object with title, description, body, claims, and internal_links.",
+      now,
+      (value, input) => {
+        const verifiedInput = { ...input, evidence: applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id) };
+        return validateFinalArticleResponse(normalizeArticleResponse(value, verifiedInput, brief), verifiedInput);
+      },
+      (input) => {
+        const evidence = applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id);
+        return { ...input, evidence: { ...evidence, records: evidence.records.filter(({ verification_status }) => verification_status === "verified") } };
+      },
+      COMPLETE_ARTICLE_RESPONSE_FORMAT,
+    ),
     "deterministic-validation": { id: "shared-qa", run: async ({ input }) => {
       const startedAt = now();
-      const article = buildArticle(brief, input.human_first_edit);
+      const verifiedInput = { ...input, evidence: applyEvidenceVerification(input.evidence, evidenceVerification, brief.content_id) };
+      const article = buildArticle(brief, verifiedInput.human_first_edit, verifiedInput);
       await parseContract("article", article);
       const { profiles } = await loadConfiguration();
-      const qa = createQaReport(article, input.evidence, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
+      const qa = createQaReport(article, verifiedInput.evidence, profiles.growthcast, { generatedAt: new Date(0).toISOString() });
       await parseContract("qa-report", qa);
-      return { ...withStageProvenance(input, "deterministic-validation", startedAt, now()), article, qa };
+      return { ...withStageProvenance(verifiedInput, "deterministic-validation", startedAt, now()), article, qa };
     } },
   };
 

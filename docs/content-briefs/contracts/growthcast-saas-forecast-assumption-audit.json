@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "content_id": "growthcast-saas-forecast-assumption-audit",
+  "brand": "growthcast",
+  "profile_version": "1.0.0",
+  "policy_versions": {
+    "universal-editorial": "1.0.0",
+    "evidence": "1.0.0",
+    "search-discoverability": "1.0.0"
+  },
+  "status": "approved",
+  "reader": {
+    "role": "Series A+ B2B SaaS leaders responsible for a revenue forecast",
+    "task": "run a repeatable review of the assumptions behind a SaaS forecast"
+  },
+  "intent": {
+    "type": "implement",
+    "primary_query": "saas forecast assumption audit",
+    "direct_answer": "Audit a SaaS forecast by inventorying material assumptions, assigning owners and evidence, testing sensitivity, and recording decisions on a regular review cadence."
+  },
+  "supporting_queries": [
+    "saas forecast assumptions checklist",
+    "how to review saas forecast assumptions",
+    "revenue forecast assumption audit"
+  ],
+  "angle": {
+    "thesis": "A forecast review becomes actionable when every material assumption has an owner, evidence, sensitivity range, and explicit decision.",
+    "non_obvious_point": "The useful output is not a more precise point estimate but a visible record of which assumptions can change the operating decision.",
+    "boundaries": [
+      "Do not promise forecast accuracy or business outcomes.",
+      "Do not invent operator stories, customer examples, benchmarks, or results.",
+      "Do not broaden into a complete GTM operating model.",
+      "Do not imply GrowthCast agency services and GrowthCast Forecast are the same offering."
+    ]
+  },
+  "outline": [
+    {
+      "heading": "Define the decision and review window",
+      "questions": [
+        "Which operating decision is the forecast meant to support?",
+        "Which horizon and revision cadence are in scope?"
+      ]
+    },
+    {
+      "heading": "Build the assumption register",
+      "questions": [
+        "Which volume, conversion, timing, retention, and capacity assumptions materially affect the forecast?",
+        "Who owns each assumption and what evidence supports it?"
+      ]
+    },
+    {
+      "heading": "Stress-test material assumptions",
+      "questions": [
+        "Which plausible ranges change the decision?",
+        "How should dependencies and lagging evidence be recorded?"
+      ]
+    },
+    {
+      "heading": "Close the review loop",
+      "questions": [
+        "Which assumptions are accepted, revised, monitored, or escalated?",
+        "What belongs in the next review rather than this article's broad GTM scope?"
+      ]
+    }
+  ],
+  "human_input": {
+    "author": "EJ White",
+    "observations": [],
+    "opinions": [],
+    "examples": [],
+    "waiver": {
+      "reason": "EJ White explicitly waived candidate-specific personal observations, opinions, and examples for this shadow-only brief; no personal or operator experience may be invented.",
+      "approved_by": "EJ White",
+      "approved_at": "2026-09-07T17:23:50Z"
+    }
+  },
+  "product_facts": [],
+  "allowed_claims": [
+    "A structured assumption register can make forecast review decisions explicit, subject to retrieved sources."
+  ],
+  "prohibited_claims": [
+    "Guaranteed forecast accuracy, growth, revenue, conversion, efficiency, or other outcome",
+    "Invented operator experience, customer story, quote, result, benchmark, or statistic",
+    "Unsupported ranking, superiority, vendor comparison, price, or product capability",
+    "Claims that conflate GrowthCast agency services with GrowthCast Forecast",
+    "Legal, accounting, investment, or regulatory advice"
+  ],
+  "source_plan": [
+    {
+      "claim_id": "GC-FA-01",
+      "source_type": "retrieved first-party forecast-planning documentation for assumption ownership and review workflow",
+      "required": true
+    },
+    {
+      "claim_id": "GC-FA-02",
+      "source_type": "retrieved authoritative finance or forecasting source for scenario and sensitivity analysis",
+      "required": true
+    },
+    {
+      "claim_id": "GC-FA-03",
+      "source_type": "retrieved first-party GrowthCast source for any company or product statement; otherwise omit",
+      "required": false
+    }
+  ],
+  "internal_link_targets": [
+    {
+      "url": "/blog/gtm-operating-model-for-startups",
+      "purpose": "Verified inventory link for the broader operating-model context; do not duplicate it."
+    },
+    {
+      "url": "/resources/tools/forecast",
+      "purpose": "Verified route; optional next-step context only, not evidence for capabilities."
+    },
+    {
+      "url": "/how-it-works",
+      "purpose": "Verified route for readers exploring the agency process; keep agency/product distinction explicit."
+    },
+    {
+      "url": "/?contact=1",
+      "purpose": "Profile-approved conversion destination."
+    }
+  ],
+  "conversion": {
+    "action": "Start a GrowthCast conversation",
+    "destination": "/?contact=1"
+  },
+  "publishing": {
+    "adapter": "astro-markdown",
+    "slug": "saas-forecast-assumption-audit",
+    "indexable": false
+  },
+  "approval": {
+    "approved_by": "EJ White",
+    "approved_at": "2026-09-07T17:23:50Z",
+    "scope": "intent-thesis-product-facts-prohibited-claims"
+  }
+}

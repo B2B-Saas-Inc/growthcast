@@ -7,6 +7,7 @@ import {
   canonicalArticleHash,
   canonicalAssetManifestHash,
   canonicalPublicationBundleHash,
+  loadProductionVisualProfile,
 } from "@ejwhite/content-engine";
 import { GrowthcastPublicationAdapter } from "./growthcast-publication-adapter.mjs";
 import { createGrowthcastQueueRepository, loadPersistedBundleReadiness } from "./growthcast-content-store.mjs";
@@ -61,6 +62,12 @@ async function fixture() {
         alt: `${kind} descriptive artwork`, caption: kind === "inline-illustration" ? "A useful caption" : undefined,
         width: kind === "og" ? 1200 : 800, height: kind === "og" ? 630 : 450,
         format: "png", prompt_template_version: "1.0.0", brand_profile_version: "1.0.0", seed: `${id}-seed`,
+        ...(kind === "og" ? { og_render_binding: {
+          contract_version: 2, canonical_title: article.title, author: article.author,
+          published_at: article.published_at, formatted_publish_date: "SEP 5, 2026",
+          hero: { asset_id: "hero-1", artifact_path: "hero-1.png", binary_sha256: digest(Buffer.from("hero-bytes")) },
+          profile_assets: loadProductionVisualProfile("growthcast").assets,
+        } } : {}),
       },
       ...(kind === "inline-illustration"
         ? { provider: "google", model: "gemini-3-pro-image" }

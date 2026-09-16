@@ -1,8 +1,8 @@
 {
   "package": "@ejwhite/content-engine",
   "version": "0.1.0",
-  "commit": "package-sha256:7c80c1c117ff0bbec78d64225ec36d695ed92e1f74118d9de4be7cfffad5900f",
-  "artifact": "vendor/content-engine/ejwhite-content-engine-0.1.0-7c80c1c117ff.tgz",
+  "commit": "package-sha256:b5d52f16bf9e1331e433d468dbd393b4fdf844e05e8a0d00a1e65d811b577a2c",
+  "artifact": "vendor/content-engine/ejwhite-content-engine-0.1.0-b5d52f16bf9e.tgz",
   "artifactFormat": "npm pack",
-  "sha256": "7c80c1c117ff0bbec78d64225ec36d695ed92e1f74118d9de4be7cfffad5900f"
+  "sha256": "b5d52f16bf9e1331e433d468dbd393b4fdf844e05e8a0d00a1e65d811b577a2c"
 }

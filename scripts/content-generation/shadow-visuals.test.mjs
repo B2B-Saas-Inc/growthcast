@@ -14,7 +14,7 @@ function article() {
 }
 
 function dependencies() {
-  const proseProvider = { generate: vi.fn(async () => ({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Explain the evidence review sequence", concept: "Connected gates moving from source review to a decision", alt: "Connected evidence review gates leading toward a decision", caption: "A conceptual evidence-review sequence without measured outcomes." }] }) })) };
+  const proseProvider = { generate: vi.fn(async () => ({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Explain the evidence review sequence", concept: "An analyst compares evidence on printed source pages at a desk before making a decision and choosing one route on a wall map", alt: "An analyst sorts source pages into trays before choosing a route", caption: "Source pages are sorted before one route is selected." }] }) })) };
   const imageProvider = { provider: "google", model: "gemini-3-pro-image", generate: vi.fn(async (request, prompt) => { const image = renderHero({ brand: "verdant", contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: "inline" }); return { bytes: image.bytes, mime_type: "image/png", provider: "google", model: "gemini-3-pro-image", prompt_sha256: canonicalSha256(prompt), retry_count: 0 }; }) };
   const renderer = { render: vi.fn(async (request, currentArticle) => { const input = { brand: request.brand, contentId: request.content_id, articleSha256: request.article_sha256, profileVersion: request.brand_profile_version, title: currentArticle.title }; const image = request.kind === "og" ? renderFixtureOg(input) : renderHero(input, request.kind === "thumbnail"); return { bytes: image.bytes, mime_type: "image/png", renderer: { name: "mock-production-compositor", version: "1.0.0", library_versions: { mock: "1.0.0" } }, prompt_sha256: canonicalSha256(request) }; }) };
   return { proseProvider, imageProvider, renderer };
@@ -36,6 +36,112 @@ describe("GrowthCast shadow visual stages", () => {
     expect(JSON.parse(await readFile(path.join(directory, "publication-bundle.json"), "utf8")).publication_bundle_sha256).toBe(first.bundle.publication_bundle_sha256);
   });
 
+  it("accepts a provider visual-plan wrapper without weakening validation", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-wrapped-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const original = deps.proseProvider.generate.getMockImplementation();
+    deps.proseProvider.generate.mockImplementation(async (...args) => {
+      const result = await original(...args);
+      return { ...result, text: JSON.stringify({ visual_plan: { inline_visuals: JSON.parse(result.text).inline } }) };
+    });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
+  });
+
+  it("finds one strictly valid inline array under unknown provider wrappers", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-recursive-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const original = deps.proseProvider.generate.getMockImplementation();
+    deps.proseProvider.generate.mockImplementation(async (...args) => {
+      const result = await original(...args);
+      return { ...result, text: JSON.stringify({ response: { editorial_assets: { illustrations: JSON.parse(result.text).inline } } }) };
+    });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets.map(({ request }) => request.kind)).toEqual(["inline-illustration", "hero", "thumbnail", "og"]);
+  });
+
+  it("normalizes a unique heading text to the exact final locator and prompts for accessible non-factual concepts", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-normalized-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    deps.proseProvider.generate.mockResolvedValue({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "  Explain how evidence review leads to a decision  ", concept: "  An analyst compares evidence on printed source pages at a desk before making a decision and selecting one route on a wall map  ", alt: "  An analyst sorts printed source pages before selecting a route  ", caption: "  Printed sources are sorted before a route is selected.  " }] }) });
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets[0].request.body_locator).toBe("## Review the evidence");
+    expect(result.manifest.assets[0].request.alt).toBe("An analyst sorts printed source pages before selecting a route");
+    const call = deps.proseProvider.generate.mock.calls[0][0];
+    expect(call.system).toContain("concrete, non-factual");
+    expect(call.system).toContain("Never request or depict charts");
+    expect(call.prompt).toContain("screen-reader user");
+    expect(call.prompt).toContain("40 to 140 characters");
+    expect(call.prompt).toContain("do not use these words even to negate them");
+    expect(call.prompt).toContain("one to four useful illustrations");
+    expect(call.prompt).toContain("Copy body_locator exactly");
+    expect(call.prompt).toContain("Copy section_excerpt exactly");
+    expect(call.maximumOutputTokens).toBe(6000);
+    expect(call.responseFormat).toMatchObject({
+      type: "json_schema",
+      json_schema: { name: "contextual_visual_plan", strict: true, schema: { required: ["inline"], additionalProperties: false } },
+    });
+    expect(call.responseFormat.json_schema.schema.properties.inline.maxItems).toBe(4);
+    expect(call.responseFormat.json_schema.schema.properties.inline.items.additionalProperties).toBe(false);
+    expect(call.responseFormat.json_schema.schema.properties.inline.items.required).toEqual(["body_locator", "section_excerpt", "purpose", "concept", "alt", "caption"]);
+  });
+
+  it("does not guess an ambiguous final heading locator", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-heading-")); directories.push(directory);
+    const deps = dependencies();
+    const duplicateHeadingArticle = article();
+    duplicateHeadingArticle.body = "## Review the evidence\n\nFirst.\n\n### Review the evidence\n\nSecond.";
+    duplicateHeadingArticle.content_sha256 = canonicalArticleHash({ ...duplicateHeadingArticle, content_sha256: "" });
+    deps.proseProvider.generate.mockResolvedValue({ text: JSON.stringify({ inline: [{ body_locator: "Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Explain the evidence review sequence", concept: "An analyst compares evidence on printed source pages at a desk before making a decision and selecting one route on a wall map", alt: "An analyst sorts source pages before selecting a route", caption: "Source pages are sorted before a route is selected." }] }) });
+    await expect(runShadowVisualStages({ article: duplicateHeadingArticle, artifactDirectory: directory, ...deps })).rejects.toThrow("locator is not present in final article");
+    expect(deps.imageProvider.generate).not.toHaveBeenCalled();
+    expect(deps.renderer.render).not.toHaveBeenCalled();
+  });
+
+  it("retries malformed visual-plan JSON a bounded number of times before effects", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-retry-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const valid = await deps.proseProvider.generate();
+    deps.proseProvider.generate.mockReset();
+    deps.proseProvider.generate.mockResolvedValueOnce({ text: "{" }).mockResolvedValueOnce(valid);
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets).toHaveLength(4);
+    expect(deps.proseProvider.generate).toHaveBeenCalledTimes(2);
+
+    const rejected = dependencies();
+    rejected.proseProvider.generate.mockResolvedValue({ text: "{" });
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "rejected"), ...rejected })).rejects.toThrow("invalid JSON");
+    expect(rejected.proseProvider.generate).toHaveBeenCalledTimes(3);
+    expect(rejected.imageProvider.generate).not.toHaveBeenCalled();
+    expect(rejected.renderer.render).not.toHaveBeenCalled();
+  });
+
+  it("retries a semantically invalid plan before image effects", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-semantic-retry-")); directories.push(directory);
+    const deps = dependencies();
+    const valid = await deps.proseProvider.generate();
+    deps.proseProvider.generate.mockReset();
+    deps.proseProvider.generate
+      .mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Explain review", concept: "Colored shapes near a line", alt: "Colored shapes sit near a line during review", caption: "Shapes support review." }] }) })
+      .mockResolvedValueOnce(valid);
+    const result = await runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps });
+    expect(result.manifest.assets).toHaveLength(4);
+    expect(deps.proseProvider.generate).toHaveBeenCalledTimes(2);
+    expect(deps.proseProvider.generate.mock.calls[0][0].prompt).toContain("subject, visible objects, physical setting, and observable action or process");
+    expect(deps.proseProvider.generate.mock.calls[0][0].prompt).toContain("Abstract nouns, colored shapes, symbols, metaphors, and brand mood do not count");
+    expect(deps.imageProvider.generate).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed when provider output contains multiple valid inline arrays", async () => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-ambiguous-visuals-")); directories.push(directory);
+    const deps = dependencies();
+    const item = JSON.parse((await deps.proseProvider.generate()).text).inline;
+    deps.proseProvider.generate.mockResolvedValue({ text: JSON.stringify({ first: item, second: item }) });
+    await expect(runShadowVisualStages({ article: article(), artifactDirectory: directory, ...deps })).rejects.toThrow("exactly one structurally valid inline array; found 2");
+    expect(deps.imageProvider.generate).not.toHaveBeenCalled();
+    expect(deps.renderer.render).not.toHaveBeenCalled();
+  });
+
   it("invalidates a tampered binary without repeating other provider calls and rejects invented factual visuals", async () => {
     const directory = await mkdtemp(path.join(os.tmpdir(), "growthcast-visuals-")); directories.push(directory);
     const deps = dependencies();
@@ -54,7 +160,7 @@ describe("GrowthCast shadow visual stages", () => {
     expect(deps.imageProvider.generate).toHaveBeenCalledTimes(2);
     expect(deps.renderer.render).toHaveBeenCalledTimes(4);
 
-    deps.proseProvider.generate.mockResolvedValueOnce({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
+    deps.proseProvider.generate.mockResolvedValue({ text: JSON.stringify({ inline: [{ body_locator: "## Review the evidence", section_excerpt: "Compare the evidence before making a decision.", purpose: "Show results", concept: "A factual analytics dashboard", alt: "Analytics dashboard showing measured campaign results", caption: "Claimed results." }] }) });
     await expect(runShadowVisualStages({ ...options, artifactDirectory: path.join(directory, "rejected") })).rejects.toThrow("prohibited factual chart");
   });
   it("recovers from malformed generated PNG output without repeating successful work", async () => {
@@ -100,7 +206,7 @@ describe("GrowthCast shadow visual stages", () => {
     expect(wrongModel.renderer.render).not.toHaveBeenCalled();
 
     const malformed = dependencies();
-    malformed.proseProvider.generate.mockResolvedValueOnce({ text: "not json" });
+    malformed.proseProvider.generate.mockResolvedValue({ text: "not json" });
     await expect(runShadowVisualStages({ article: article(), artifactDirectory: path.join(directory, "malformed"), ...malformed })).rejects.toThrow("invalid JSON");
     expect(malformed.imageProvider.generate).not.toHaveBeenCalled();
     expect(malformed.renderer.render).not.toHaveBeenCalled();
