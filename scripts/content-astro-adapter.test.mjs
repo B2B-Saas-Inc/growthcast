@@ -25,6 +25,14 @@ describe("Astro publication readiness", () => {
     });
   });
 
+  it("accepts a byte-verified exact-bundle materialization during inventory validation", () => {
+    const report = { result: "fail", findings: [{ class: "hard", rule_id: "growthcast.no-em-dash" }] };
+    expect(validateInventoryQa(report, [{ rule_id: "growthcast.no-em-dash" }], {
+      status: "exact-bundle-materialization-verified",
+    })).toBe(true);
+    expect(validateInventoryQa(report, [{ rule_id: "growthcast.no-em-dash" }], null)).toBe(false);
+  });
+
   it("grandfathers title-only findings only for read-only historical inventory checks", () => {
     const report = { result: "fail", findings: [
       { class: "hard", rule_id: "editorial.concise-natural-title" },

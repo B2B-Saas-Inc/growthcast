@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "status": "exact-bundle-materialization-verified",
+  "slug": "saas-forecast-assumption-audit",
+  "approved_by": "EJ White",
+  "approved_at": "2026-09-15T21:56:00.000Z",
+  "source_article_sha256": "493a228a9ce6b2f3d490afcefd046f08daa2b0c414aec1728c0b56ae12d78e73",
+  "publication_bundle_sha256": "e5c0731e0e03b50698711b68d9e57761ea746019df3cda4cbd40a971171488f7",
+  "materialized_file_sha256": "e9fffa88545fe9e291c0138dda2c55d9e0819f9aec4d028ace3eba2dfc590dc6"
+}
