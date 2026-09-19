@@ -702,46 +702,73 @@ function Field({
   a: Assumptions;
   setA: (a: Assumptions) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  // While the row is being edited, hold the raw keystrokes so `one()` only
+  // formats on blur; a trailing "." or a second decimal is no longer rewritten.
+  const [draft, setDraft] = useState<string | null>(null);
+  const isPct = f.kind === "pct";
   const rawValue = Number(a[f.key] ?? 0);
-  const display = one(f.kind === "pct" ? rawValue * 100 : rawValue);
+  // Effective ceiling for the paired churn rates so the spinner stops at the
+  // real limit instead of letting the user spin into a value that snaps back.
+  const rateMax =
+    f.key === "voluntaryCustomerChurn"
+      ? 1 - a.delinquentCustomerChurn
+      : f.key === "delinquentCustomerChurn"
+        ? 1 - a.voluntaryCustomerChurn
+        : f.key === "voluntaryRevenueChurn"
+          ? 1 - a.delinquentRevenueChurn
+          : f.key === "delinquentRevenueChurn"
+            ? 1 - a.voluntaryRevenueChurn
+            : 1;
+  const committed = one(isPct ? rawValue * 100 : rawValue);
+  const display = draft ?? String(committed);
   return (
     <label className="field">
-      <span>
+      <span
+        onClick={(e) => {
+          // Clicking the label text now selects the value so it can be typed
+          // over, instead of only moving focus and leaving the row unchanged.
+          e.preventDefault();
+          inputRef.current?.focus();
+          inputRef.current?.select();
+        }}
+      >
         {f.label}
         <small>{f.hint}</small>
       </span>
       <div className="input">
         <input
+          ref={inputRef}
           aria-label={f.label}
           type="number"
           min={f.key === "months" ? 1 : 0}
-          max={f.key === "months" ? 60 : f.kind === "pct" ? 100 : undefined}
-          step={f.kind === "pct" ? f.step * 100 : f.step}
+          max={
+            f.key === "months"
+              ? 60
+              : isPct
+                ? Number((rateMax * 100).toFixed(4))
+                : undefined
+          }
+          step={isPct ? f.step * 100 : f.step}
           value={display}
           onChange={(e) => {
+            setDraft(e.target.value);
+            if (e.target.value === "") return;
             const raw = +e.target.value;
-            const rateMax =
-              f.key === "voluntaryCustomerChurn"
-                ? 1 - a.delinquentCustomerChurn
-                : f.key === "delinquentCustomerChurn"
-                  ? 1 - a.voluntaryCustomerChurn
-                  : f.key === "voluntaryRevenueChurn"
-                    ? 1 - a.delinquentRevenueChurn
-                    : f.key === "delinquentRevenueChurn"
-                      ? 1 - a.voluntaryRevenueChurn
-                      : 1;
+            if (!Number.isFinite(raw)) return;
             setA({
               ...a,
               [f.key]:
                 f.key === "months"
                   ? clamp(Math.round(raw), 1, 60)
-                  : f.kind === "pct"
+                  : isPct
                     ? clamp(raw / 100, 0, rateMax)
                     : clamp(raw),
             });
           }}
+          onBlur={() => setDraft(null)}
         />
-        <b>{f.kind === "pct" ? "%" : f.kind === "money" ? "$" : ""}</b>
+        <b>{isPct ? "%" : f.kind === "money" ? "$" : ""}</b>
       </div>
     </label>
   );
