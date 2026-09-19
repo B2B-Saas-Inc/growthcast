@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
-import handler, { signSession, validSession, PROPOSAL_PATH } from '../../api/photoshelter-proposal';
+import handler, { prepareProposalHtml, signSession, validSession, PROPOSAL_PATH } from '../../api/photoshelter-proposal';
 const secret = 'a'.repeat(64);
 const hash = createHash('sha256').update('1234').digest('hex');
 const headers = { origin: 'https://growthcast.app', 'content-type': 'application/x-www-form-urlencoded' };
@@ -13,6 +13,12 @@ function response() {
 function configured() { vi.stubEnv('PHOTOSHELTER_SESSION_SECRET', secret); vi.stubEnv('PHOTOSHELTER_PIN_SHA256', hash); }
 afterEach(() => vi.unstubAllEnvs());
 describe('private proposal boundary', () => {
+  it('renders the cover white on screen and adds a lock control', () => {
+    const html = prepareProposalHtml('<style>body{background:#f4f1e9}.cover{background:#f4f1e9;color:#242426}</style><body>Proposal</body>');
+    expect(html).toContain('body{background:#f4f1e9}');
+    expect(html).toContain('.cover{background:white;color:#242426}');
+    expect(html).toContain('class="hosted-lock"');
+  });
   it('accepts authentic sessions and rejects tampering, expiry and PIN rotation', () => {
     const now = 1_800_000_000_000;
     const token = signSession(secret, hash, now);
