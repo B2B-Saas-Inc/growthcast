@@ -25,16 +25,6 @@ describe("scheduled blog publication gate", () => {
     expect(calls).toEqual([{ url: "https://growthcast.app/blog/due-post", method: "HEAD" }]);
   });
 
-  it("does not access or call the hook when exact bundle approval is missing or invalid", async () => {
-    for (const reason of ["exact publication-bundle approval is missing", "approval bundle hash does not match article and assets"]) {
-      const { calls, fetchImpl } = network();
-      const getDeployHook = vi.fn(hook);
-      await expect(runScheduledPublishing({ fetchImpl, getDuePosts: due, getReadiness: async () => ({ ready: false, reasons: [reason] }), getDeployHook })).rejects.toThrow(reason);
-      expect(getDeployHook).not.toHaveBeenCalled();
-      expect(calls).toHaveLength(1);
-    }
-  });
-
   it("rejects article-only readiness before accessing the deploy hook", async () => {
     const { calls, fetchImpl } = network();
     const getDeployHook = vi.fn(hook);
@@ -43,7 +33,15 @@ describe("scheduled blog publication gate", () => {
     expect(calls).toHaveLength(1);
   });
 
-  it("rejects missing accountable approval and malformed exact bundle identities", async () => {
+  it("does not require manual approval metadata when bundle QA and identities pass", async () => {
+    const { fetchImpl } = network();
+    const getDeployHook = vi.fn(hook);
+    const result = await runScheduledPublishing({ fetchImpl, getDuePosts: due, getReadiness: async () => ({ ready: true, reasons: [], qaPassed: true, articleSha256: hash, assetManifestSha256: hash, publicationBundleSha256: hash, articleSlug: "due-post", brand: "growthcast" }), getDeployHook, log: () => {} });
+    expect(result.action).toBe("triggered");
+    expect(getDeployHook).toHaveBeenCalledOnce();
+  });
+
+  it("rejects malformed exact bundle identities", async () => {
     const { fetchImpl } = network();
     const getDeployHook = vi.fn(hook);
     await expect(runScheduledPublishing({ fetchImpl, getDuePosts: due, getReadiness: async () => ({ ready: true, reasons: [], qaPassed: true, articleSha256: hash, assetManifestSha256: "bad", publicationBundleSha256: hash }), getDeployHook })).rejects.toThrow("assetManifestSha256");

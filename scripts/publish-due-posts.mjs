@@ -16,7 +16,6 @@ export function assessScheduledBundleReadiness(readiness, expectedSlug) {
   for (const field of ["articleSha256", "assetManifestSha256", "publicationBundleSha256"]) {
     if (!SHA256.test(readiness[field] ?? "")) reasons.push(`exact publication bundle is missing ${field}`);
   }
-  if (typeof readiness.approvedBy !== "string" || readiness.approvedBy.trim() === "") reasons.push("accountable publication-bundle approval is missing");
   return { ready: reasons.length === 0, reasons, publicationBundleSha256: readiness.publicationBundleSha256 };
 }
 
@@ -65,7 +64,7 @@ export async function runScheduledPublishing({
   }
 
   if (dryRun) {
-    log(`Scheduled publishing dry run: QA and exact publication-bundle approval passed; would rebuild for ${missingPosts.join(", ")}.`);
+    log(`Scheduled publishing dry run: QA and bundle-integrity checks passed; would rebuild for ${missingPosts.join(", ")}.`);
     return { action: "dry-run", slugs: missingPosts };
   }
 

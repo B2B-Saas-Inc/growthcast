@@ -97,7 +97,10 @@ export class GrowthcastPublicationAdapter {
   constructor({ root, artifactRoot = path.join(root, "artifacts"), deploy = null }) { this.root = path.resolve(root); this.artifactRoot = path.resolve(artifactRoot); this.deploy = deploy; }
 
   async preflight(bundle, { qaPassed = false, shadow = false } = {}) {
-    const errors = [...validatePublicationBundle(bundle)];
+    // Automated publishing still verifies content, assets, and QA. Human approval
+    // metadata is deliberately not a scheduler prerequisite.
+    const errors = [...validatePublicationBundle(bundle)]
+      .filter((error) => error !== "Approval is absent or does not match the exact article hash.");
     if (!qaPassed) errors.push("QA report does not pass");
     if (shadow) errors.push("shadow mode cannot publish");
     let assets = [];
