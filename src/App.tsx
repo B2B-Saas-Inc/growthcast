@@ -2980,16 +2980,18 @@ function CompanyPage({ type }: { type: "about" | "philosophy" | "careers" | "par
       ["AI", [["ElevenLabs", "https://try.elevenlabs.io/suwafbyu3u8z"], ["Viktor", "https://app.viktor.com/signin?ref=Qq6UffU9ko4xvtbognEk8V"], ["HeyGen", "https://app.heygen.com/guest/templates?cid=cc6da3ff&utm_source=ej-white&utm_medium=affiliates"]]],
       ["Infra", [["Trigger.dev", "https://trigger.dev"], ["Hookdeck", "https://hookdeck.com"], ["Supademo", "https://supademo.cello.so/61wAGBTk0lS"], ["OpenRouter", "https://openrouter.ai"], ["Clay", "https://clay.com?via=4bf79e"]]],
     ] as const;
+    const accreditedPartners = new Set(["Attio", "Customer.io", "beehiiv", "Viktor"]);
     return (
       <article className="homeCard agencyHome agencySubpage companyPage">
         <section className="subpageHero"><span className="sectionLabel">Partners</span><h1>Tools chosen for the system they support.</h1><p>GrowthCast works with focused technology partners across data, content, customer relationships, automation, and AI.</p></section>
         <section className="partnersShowcase" aria-labelledby="partners-heading">
           <h2 id="partners-heading">The GrowthCast partner network.</h2>
+          <p className="partnerLegend"><img src="/accredited-partner.svg" alt="" /> Accredited partner</p>
           <div className="partnerGrid">
             {partnerGroups.map(([category, partners]) => (
               <article key={category}>
                 <h3>{category}</h3>
-                <ul>{partners.map(([partner, url]) => <li key={partner}><a href={url} target="_blank" rel="noreferrer">{partner}</a></li>)}</ul>
+                <ul>{[...partners].sort(([nameA], [nameB]) => Number(accreditedPartners.has(nameB)) - Number(accreditedPartners.has(nameA)) || nameA.localeCompare(nameB)).map(([partner, url]) => <li key={partner}>{accreditedPartners.has(partner) && <span className="partnerAccreditation"><img src="/accredited-partner.svg" alt="" /><span className="srOnly">Accredited partner</span></span>}<a href={url} target="_blank" rel="noreferrer">{partner}</a></li>)}</ul>
               </article>
             ))}
           </div>

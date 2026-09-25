@@ -1358,6 +1358,21 @@ aside {
   line-height: 0.98;
   letter-spacing: -0.055em;
 }
+.partnerLegend {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: -34px 0 28px;
+  color: #55514a;
+  font: 12px "DM Mono", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.partnerLegend img,
+.partnerAccreditation img {
+  width: 22px;
+  height: 25px;
+}
 .partnerGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1379,11 +1394,18 @@ aside {
 }
 .partnerGrid ul { margin: 0; padding: 0; list-style: none; }
 .partnerGrid li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   padding: 12px 0;
   border-top: 1px solid #d7d2c7;
   color: #242426;
   font-size: 19px;
   font-weight: 600;
+}
+.partnerAccreditation {
+  display: inline-flex;
+  color: #4c4c4e;
 }
 .partnerGrid a {
   color: inherit;
