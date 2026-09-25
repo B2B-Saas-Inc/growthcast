@@ -5150,6 +5150,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                 <p>Case Studies <small>Coming soon</small></p>
               </div>
             </details>
+            <a className="siteNavClient" href="https://clients.growthcast.app/">Client Login</a>
             <a className="siteNavCta" href="/?contact=1">Let's Talk Growth</a>
           </nav>
         </header>

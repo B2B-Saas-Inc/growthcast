@@ -573,6 +573,13 @@ aside {
   color: #242426;
   background: #ebe7dd;
 }
+.siteNav .siteNavClient {
+  border: 1px solid #cfc9be;
+  color: #242426;
+}
+.siteNav .siteNavClient:hover {
+  border-color: #242426;
+}
 .siteNav .siteNavCta {
   border: 1px solid #242426;
   color: #fff;
@@ -3191,8 +3198,9 @@ a:focus-visible,
     border: 1px solid #cfc9be;
     text-align: center;
   }
+  .siteNav .siteNavClient,
   .siteNav .siteNavCta {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
   .resourceNav,
   .resourceNav > summary {
