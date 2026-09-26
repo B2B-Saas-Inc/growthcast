@@ -1,3 +1,4 @@
+import ServicesNav from "./components/ServicesNav";
 import {
   Fragment,
   type CSSProperties,
@@ -5120,6 +5121,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
             <a href="/how-it-works" aria-current={pageView === "how" ? "page" : undefined}>
               How We Work
             </a>
+            <ServicesNav onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }} />
             <details
               className="resourceNav companyNav"
               onToggle={(event) => {

@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogShell from "../../components/BlogShell.astro";
+import { services, type Service } from "../../services";
+import "../../services.css";
+
+export function getStaticPaths() {
+  return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+type Props = { service: Service };
+const { service } = Astro.props;
+const path = `/services/${service.slug}`;
+const related = service.related.map((slug) => services.find((item) => item.slug === slug)!);
+const schema = [
+  { "@context": "https://schema.org", "@type": "Service", name: service.name, description: service.summary, url: new URL(path, Astro.site).href, provider: { "@type": "Organization", name: "GrowthCast", url: "https://growthcast.app/" } },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: new URL("/", Astro.site).href },
+    { "@type": "ListItem", position: 2, name: "Services", item: new URL("/services", Astro.site).href },
+    { "@type": "ListItem", position: 3, name: service.name, item: new URL(path, Astro.site).href },
+  ] },
+];
+---
+<BaseLayout title={`${service.name} Services | GrowthCast`} description={service.summary} canonical={path} schema={schema}>
+  <BlogShell current="services">
+    <main class="servicesMain">
+      <section class="servicesHero serviceDetailHero">
+        <nav class="servicesBreadcrumb" aria-label="Breadcrumb"><a href="/services">Services</a><span aria-hidden="true">/</span><span aria-current="page">{service.name}</span></nav>
+        <h1>{service.headline}</h1><p>{service.intro}</p>
+        <div class="servicesActions"><a class="servicesPrimary" href="/?contact=1">Let's Talk Growth <span aria-hidden="true">↗</span></a><a href="#scope">Explore the work <span aria-hidden="true">↓</span></a></div>
+      </section>
+      <section class="servicesProblem"><h2>Where this work starts.</h2><p>{service.problem}</p></section>
+      <section class="servicesCatalog" id="scope" aria-labelledby="scope-heading">
+        <div class="servicesSectionHeading"><span class="servicesEyebrow">{service.name}</span><h2 id="scope-heading">What we can help you build.</h2></div>
+        <div class="serviceCapabilities">{service.capabilities.map((capability, index) => (<article><span class="serviceCardNumber">{String(index + 1).padStart(2, "0")}</span><h3>{capability.name}</h3><p>{capability.description}</p></article>))}</div>
+      </section>
+      <section class="servicesDelivery"><div><span class="servicesEyebrow">From plan to practice</span><h2>Work your team can use.</h2><p>We agree on priorities, ownership, and scope before execution. The engagement can include:</p><ul>{service.deliverables.map((item) => <li>{item}</li>)}</ul></div><div class="servicesMeasurement"><span class="servicesEyebrow">How we measure progress</span><h2>Evidence for the next decision.</h2><p>{service.measures}</p><a href="/how-it-works">See how we work →</a></div></section>
+      <section class="servicesCatalog" aria-labelledby="related-heading"><div class="servicesSectionHeading"><span class="servicesEyebrow">Connect the work</span><h2 id="related-heading">Services that work alongside it.</h2></div><div class="servicesGrid servicesRelated">{related.map((item) => <a class="serviceCard" href={`/services/${item.slug}`}><h3>{item.name}</h3><p>{item.summary}</p><span class="serviceCardLink">Explore service <span aria-hidden="true">→</span></span></a>)}</div></section>
+      <section class="servicesClose"><span class="servicesEyebrow">Build with GrowthCast</span><h2>Let’s put the next step in motion.</h2><p>Tell us where growth is getting stuck. We will help you define the work that comes next.</p><a class="servicesPrimary" href="/?contact=1">Let's Talk Growth <span aria-hidden="true">↗</span></a><a class="servicesTextLink" href="/services">View all services →</a></section>
+    </main>
+  </BlogShell>
+</BaseLayout>
