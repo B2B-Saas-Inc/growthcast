@@ -599,7 +599,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
               <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog">Blog</a><p>Case Studies <small>Coming soon</small></p>
             </div>
           </details>
-          <a className="siteNavClient" href="https://clients.growthcast.app/">Client Login</a>
+          <a className="siteNavClient" href="https://clients.growthcast.app/login">Client Login</a>
           <button className="siteNavCta" type="button" onClick={openContact}>Let's Talk Growth</button>
         </nav>
       </header>
