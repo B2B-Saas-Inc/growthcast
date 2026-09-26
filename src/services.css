@@ -1,0 +1,60 @@
+.servicesMain { width: calc(100% - (2 * var(--site-gutter))); margin-inline: auto; background: #fff; color: #242426; }
+.servicesMain * { min-width: 0; }
+.servicesHero, .servicesCatalog, .servicesProblem, .servicesDelivery, .servicesClose { padding: clamp(44px, 7vw, 110px); }
+.servicesHero { background: #f4f1e9; border-bottom: 1px solid #cfc9be; }
+.servicesEyebrow { display: block; color: #843923; font: 12px "DM Mono", monospace; letter-spacing: .08em; text-transform: uppercase; line-height: 1.6; }
+.servicesHero h1 { max-width: 1150px; margin: 26px 0; font-size: clamp(44px, 6.8vw, 100px); line-height: 1.02; letter-spacing: -.065em; }
+.servicesHero > p { max-width: 780px; color: #57544d; font-size: clamp(18px, 1.7vw, 23px); line-height: 1.6; }
+.servicesActions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 34px; }
+.servicesActions a, .servicesPrimary { display: inline-flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 48px; color: #242426; font-size: 14px; font-weight: 700; text-underline-offset: 5px; }
+.servicesMain .servicesPrimary { padding: 15px 22px; background: #242426; color: #fff; text-decoration: none; }
+.servicesMain .servicesPrimary:hover { background: #3c4e42; }
+.servicesSectionHeading { max-width: 790px; margin-bottom: 40px; }
+.servicesMain h2 { margin: 14px 0 20px; font-size: clamp(30px, 3.6vw, 52px); line-height: 1.12; letter-spacing: -.045em; }
+.servicesMain h3 { margin: 22px 0 16px; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.2; letter-spacing: -.035em; }
+.servicesSectionHeading p, .serviceCard p, .serviceCapabilities p, .servicesDelivery p, .servicesClose p { color: #57544d; font-size: 17px; line-height: 1.7; }
+.servicesGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.serviceCard { display: flex; flex-direction: column; padding: clamp(24px, 3vw, 42px); border: 1px solid #d7d2c7; color: inherit; background: #f8f7f3; text-decoration: none; }
+.serviceCard:first-child { background: #e1ecdc; }
+.serviceCard:nth-child(4n + 2) { background: #edf1f7; }
+.serviceCard:hover { border-color: #242426; }
+.serviceCardNumber { display: flex; justify-content: space-between; color: #625e57; font: 13px "DM Mono", monospace; }
+.serviceCard p { margin: 0 0 30px; }
+.serviceCardLink { margin-top: auto; font-size: 14px; font-weight: 700; }
+.serviceCard:hover .serviceCardLink { text-decoration: underline; text-underline-offset: 5px; }
+.servicesBreadcrumb { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font: 12px "DM Mono", monospace; line-height: 1.8; }
+.servicesBreadcrumb a { color: inherit; text-underline-offset: 4px; }
+.servicesBreadcrumb > span:last-child { flex-basis: auto; }
+.serviceDetailHero h1 { max-width: 1060px; }
+.servicesProblem { display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; border-bottom: 1px solid #d7d2c7; }
+.servicesProblem h2 { margin: 0; }
+.servicesProblem p { margin: 0; font-size: clamp(18px, 1.9vw, 24px); line-height: 1.65; color: #57544d; }
+.serviceCapabilities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 56px; }
+.serviceCapabilities article { padding-top: 24px; border-top: 1px solid #cfc9be; }
+.serviceCapabilities p { margin-bottom: 0; }
+.servicesDelivery { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(30px, 6vw, 90px); background: #e1ecdc; }
+.servicesDelivery ul { padding-left: 22px; margin: 28px 0 0; }
+.servicesDelivery li { padding: 10px 0 10px 4px; font-size: 17px; line-height: 1.6; }
+.servicesMeasurement { padding-top: 1px; }
+.servicesMeasurement a, .servicesTextLink { display: inline-block; padding-block: 14px; color: inherit; font-size: 14px; font-weight: 700; text-underline-offset: 5px; }
+.servicesRelated { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.servicesRelated .serviceCard { background: #f8f7f3; }
+.servicesClose { background: #242426; color: #fff; }
+.servicesClose h2 { max-width: 800px; }
+.servicesClose .servicesEyebrow { color: #ff9a82; }
+.servicesClose p { max-width: 680px; color: #ddd8cf; margin-bottom: 30px; }
+.servicesClose .servicesPrimary { color: #242426; background: #e1ecdc; margin-right: 28px; }
+.servicesClose .servicesPrimary:hover { background: #fff; }
+.siteNav > a[aria-current] { background: #ebe7dd; }
+@media (max-width: 1000px) { .servicesRelated { grid-template-columns: 1fr; } }
+@media (max-width: 650px) {
+  .servicesHero, .servicesCatalog, .servicesProblem, .servicesDelivery, .servicesClose { padding: 38px 22px; }
+  .servicesGrid, .serviceCapabilities, .servicesProblem, .servicesDelivery { grid-template-columns: 1fr; }
+  .servicesDesktopBreak { display: none; }
+  .servicesHero h1 { font-size: clamp(38px, 10.5vw, 64px); }
+  .servicesActions { align-items: stretch; flex-direction: column; gap: 12px; }
+  .servicesActions a { justify-content: space-between; }
+  .servicesProblem { gap: 20px; }
+  .servicesClose .servicesPrimary { margin-right: 0; }
+  .servicesTextLink { display: block; margin-top: 10px; }
+}

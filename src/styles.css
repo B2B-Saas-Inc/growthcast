@@ -588,6 +588,7 @@ aside {
 .resourceNav {
   position: relative;
 }
+.resourceNav[open] { z-index: 1; }
 .resourceNav > summary {
   list-style: none;
 }
@@ -3215,14 +3216,6 @@ a:focus-visible,
     right: 0;
     left: auto;
   }
-  .forecastTool .companyNav > div {
-    left: 0;
-    right: auto;
-  }
-  .forecastTool .resourceNav:not(.companyNav) > div {
-    left: auto;
-    right: 0;
-  }
 
   .agencyHeroCopy,
   .subpageHero,
@@ -3499,3 +3492,12 @@ a:focus-visible,
   main { transition: none; }
   .growthPlanPrompt { animation: none; }
 }
+
+/* Service navigation shares the native disclosure behavior of the site menus. */
+.servicesNav > div {
+  width: min(320px, calc(100vw - 40px));
+  max-height: 65vh;
+  max-height: 65dvh;
+  overflow-y: auto;
+}
+.servicesNav > div > a { min-height: 44px; line-height: 1.4; }

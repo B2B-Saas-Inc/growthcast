@@ -1,0 +1,33 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogShell from "../../components/BlogShell.astro";
+import { services } from "../../services";
+import "../../services.css";
+
+const description = "Explore GrowthCast services: GTM Engineering, paid media, SEO / AEO, analytics, revenue ops, marketing ops, lifecycle marketing, and content marketing.";
+---
+<BaseLayout title="Growth Services | GrowthCast" description={description} canonical="/services">
+  <BlogShell current="services">
+    <main class="servicesMain">
+      <section class="servicesHero">
+        <span class="servicesEyebrow">GrowthCast services</span>
+        <h1>The expertise to move<br class="servicesDesktopBreak" /> growth forward.</h1>
+        <p>From the first impression to the next renewal, we build the strategy, campaigns, and systems that help your business grow. Start with the work your team needs most.</p>
+        <div class="servicesActions"><a class="servicesPrimary" href="/?contact=1">Let's Talk Growth <span aria-hidden="true">↗</span></a><a href="#explore">Explore our services <span aria-hidden="true">↓</span></a></div>
+      </section>
+      <section class="servicesCatalog" id="explore" aria-labelledby="services-heading">
+        <div class="servicesSectionHeading"><span class="servicesEyebrow">What we do</span><h2 id="services-heading">Eight services. One connected growth plan.</h2><p>Each service solves a specific problem. Together, they connect acquisition, conversion, and retention around the same business goals.</p></div>
+        <div class="servicesGrid">
+          {services.map((service, index) => (
+            <a class="serviceCard" href={`/services/${service.slug}`}>
+              <span class="serviceCardNumber">{String(index + 1).padStart(2, "0")} <span aria-hidden="true">↗</span></span>
+              <h3>{service.name}</h3><p>{service.summary}</p>
+              <span class="serviceCardLink">Explore service <span aria-hidden="true">→</span></span>
+            </a>
+          ))}
+        </div>
+      </section>
+      <section class="servicesClose"><span class="servicesEyebrow">Start with the constraint</span><h2>What is holding your growth back?</h2><p>Bring the target and the challenge. We will help you work out where to start.</p><a class="servicesPrimary" href="/?contact=1">Let's Talk Growth <span aria-hidden="true">↗</span></a><a class="servicesTextLink" href="/how-it-works">See how we work →</a></section>
+    </main>
+  </BlogShell>
+</BaseLayout>

@@ -1,3 +1,4 @@
+import ServicesNav from "./components/ServicesNav";
 import {
   Fragment,
   type CSSProperties,
@@ -5120,6 +5121,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
             <a href="/how-it-works" aria-current={pageView === "how" ? "page" : undefined}>
               How We Work
             </a>
+            <ServicesNav onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }} />
             <details
               className="resourceNav companyNav"
               onToggle={(event) => {
@@ -5150,7 +5152,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                 <p>Case Studies <small>Coming soon</small></p>
               </div>
             </details>
-            <a className="siteNavClient" href="https://clients.growthcast.app/">Client Login</a>
+            <a className="siteNavClient" href="https://clients.growthcast.app/login">Client Login</a>
             <a className="siteNavCta" href="/?contact=1">Let's Talk Growth</a>
           </nav>
         </header>

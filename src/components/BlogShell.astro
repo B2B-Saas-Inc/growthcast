@@ -1,5 +1,6 @@
 ---
-type Props = { current?: "blog" };
+import { services } from "../services";
+type Props = { current?: "blog" | "services" };
 const { current } = Astro.props;
 ---
 <header class="siteHeader blogSiteHeader">
@@ -7,6 +8,13 @@ const { current } = Astro.props;
   <nav class="siteNav" aria-label="Main navigation">
     <a href="/why-growthcast">Why GrowthCast</a>
     <a href="/how-it-works">How We Work</a>
+    <details class="resourceNav servicesNav">
+      <summary aria-current={current === "services" ? "location" : undefined}>Services</summary>
+      <div>
+        <a href="/services" aria-current={Astro.url.pathname.replace(/\/$/, "") === "/services" ? "page" : undefined}>All services</a>
+        {services.map((service) => <a href={`/services/${service.slug}`} aria-current={Astro.url.pathname.replace(/\/$/, "") === `/services/${service.slug}` ? "page" : undefined}>{service.name}</a>)}
+      </div>
+    </details>
     <details class="resourceNav companyNav">
       <summary>Company</summary>
       <div>
@@ -23,6 +31,7 @@ const { current } = Astro.props;
         <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog" aria-current={current === "blog" ? "page" : undefined}>Blog</a><p>Case Studies <small>Coming soon</small></p>
       </div>
     </details>
+    <a class="siteNavClient" href="https://clients.growthcast.app/login">Client Login</a>
     <a class="siteNavCta" href="/?contact=1">Let's Talk Growth</a>
   </nav>
 </header>
@@ -31,6 +40,7 @@ const { current } = Astro.props;
   <a class="blogBrand" href="/">GrowthCast</a>
   <p>GTM Engineering for Growth.</p>
   <nav aria-label="Footer navigation">
+    <a href="/services">Services</a>
     <a href="/blog">Blog</a>
     <a href="/resources/tools/forecast">Forecast</a>
     <a href="mailto:ewhite@growthcast.app">Email</a>
