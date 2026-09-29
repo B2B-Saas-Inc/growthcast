@@ -344,3 +344,29 @@ export function calculateChannelBreakdown(
     };
   });
 }
+
+/** Groups transactional revenue and cumulative acquired customers without retaining prior sales. */
+export function ecommerceChannelBreakdown(
+  month: import("./forecast").EcommerceMonth,
+) {
+  return [
+    "Baseline / Existing Business",
+    "Direct Response",
+    "Demand Gen",
+    "Owned / Partner / Custom",
+  ]
+    .map((name) => {
+      const channels = month.segments.filter((row) => row.category === name);
+      const total = channels.reduce(
+        (sum, row) => ({
+          visitors: sum.visitors + row.visitors,
+          customers: sum.customers + row.customers,
+          orders: sum.orders + row.orders,
+          revenue: Math.round((sum.revenue + row.revenue) * 100) / 100,
+        }),
+        { visitors: 0, customers: 0, orders: 0, revenue: 0 },
+      );
+      return { name, channels, total };
+    })
+    .filter((group) => group.channels.length);
+}

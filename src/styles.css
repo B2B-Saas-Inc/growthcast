@@ -1231,6 +1231,18 @@ aside {
   border-top: 1px solid #d7d2c7;
   color: #242426;
 }
+.agencyFooter {
+  row-gap: 24px;
+}
+.agencyFooter .footerCopyright,
+.blogFooter .footerCopyright {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #625e57;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
 .footerBrand {
   display: flex;
   align-items: center;

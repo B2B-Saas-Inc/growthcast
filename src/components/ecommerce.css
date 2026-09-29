@@ -1,0 +1,66 @@
+.ecomWide {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ecommerceMode {
+  min-width: 0;
+}
+.layout > aside > p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #7d786f;
+}
+.ecomHeading span {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: #27785a;
+}
+.ecomHeading h2 {
+  margin: 8px 0;
+}
+.ecomFields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 20px 0;
+}
+.ecomField {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+.ecomField input,
+.ecomField select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #bcc6bc;
+  border-radius: 6px;
+  background: white;
+  color: #25372e;
+}
+.commerceChannelField {
+  min-width: 0;
+}
+.commerceChannelField input {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .ecomFields {
+    grid-template-columns: 1fr;
+  }
+}
+.commerceCashSummary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 600px) {
+  .commerceCashSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ecommerceMode .cards small {
+  padding-right: 24px;
+}

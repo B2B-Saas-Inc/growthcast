@@ -288,3 +288,136 @@ export function forecast(
     };
   });
 }
+
+// Transactional commerce: no revenue balance is retained between months.
+export type EcommerceSegment = {
+  name: string;
+  category: string;
+  visitors: number;
+  newCustomers: number;
+  customers: number;
+  repeatCustomers: number;
+  repeatOrders: number;
+  orders: number;
+  newRevenue: number;
+  repeatRevenue: number;
+  revenue: number;
+  spend: number;
+  commissions: number;
+};
+export type EcommerceMonth = {
+  month: string;
+  segments: EcommerceSegment[];
+} & Omit<EcommerceSegment, "name" | "category">;
+
+export function forecastEcommerce(
+  a: import("../ecommerce").EcommerceModel,
+): EcommerceMonth[] {
+  const segments = [
+    {
+      name: "Baseline / Existing Business",
+      category: "Baseline / Existing Business",
+      customers: a.customers,
+      visitors: a.visitors,
+    },
+    ...a.channels.map((c) => ({
+      name: c.name,
+      category:
+        c.model === "cpc"
+          ? "Direct Response"
+          : c.model === "cpm"
+            ? "Demand Gen"
+            : "Owned / Partner / Custom",
+      customers: 0,
+      visitors: 0,
+    })),
+  ];
+  return Array.from({ length: a.months }, (_, index) => {
+    const month = addMonths(a.month, index + 1);
+    const rows: EcommerceSegment[] = [];
+    segments.forEach((state, segmentIndex) => {
+      const channel = a.channels[segmentIndex - 1];
+      if (channel && (!channel.goLiveMonth || index + 1 < channel.goLiveMonth))
+        return;
+      const spend = channel
+        ? (channel.spendOverrides[month] ??
+          channel.spend * (1 + a.budgetGrowth) ** index)
+        : 0;
+      if (!channel) state.visitors *= 1 + a.trafficGrowth;
+      else {
+        const trafficFor = (amount: number) =>
+          channel.model === "cpc"
+            ? channel.cpc
+              ? amount / channel.cpc
+              : 0
+            : channel.model === "cpm"
+              ? channel.cpm
+                ? (amount / channel.cpm) * 1000 * channel.ctr
+                : 0
+              : channel.visitors;
+        if (index + 1 === channel.goLiveMonth)
+          state.visitors = trafficFor(spend);
+        else {
+          state.visitors *= 1 + a.trafficGrowth;
+          if (channel.model !== "manual") {
+            const previousMonth = addMonths(a.month, index);
+            const previousSpend =
+              channel.spendOverrides[previousMonth] ??
+              channel.spend * (1 + a.budgetGrowth) ** (index - 1);
+            state.visitors = Math.max(
+              0,
+              state.visitors + trafficFor(spend) - trafficFor(previousSpend),
+            );
+          }
+        }
+      }
+      const visitors = Math.round(state.visitors);
+      const newCustomers = Math.round(
+        visitors * (channel?.conversionRate ?? a.conversionRate),
+      );
+      const repeatCustomers = Math.round(state.customers * a.repeatRate);
+      const repeatOrders = Math.round(repeatCustomers * a.repeatOrders);
+      const newRevenue = round(newCustomers * (channel?.aov ?? a.aov));
+      const repeatRevenue = round(repeatOrders * a.repeatAov);
+      state.customers += newCustomers;
+      rows.push({
+        name: state.name,
+        category: state.category,
+        visitors,
+        newCustomers,
+        customers: state.customers,
+        repeatCustomers,
+        repeatOrders,
+        orders: newCustomers + repeatOrders,
+        newRevenue,
+        repeatRevenue,
+        revenue: round(newRevenue + repeatRevenue),
+        spend: round(spend),
+        commissions: round(
+          newRevenue * (1 - a.refundRate) * (channel?.commissionRate ?? 0),
+        ),
+      });
+    });
+    const total = rows.reduce(
+      (sum, row) => {
+        for (const key of Object.keys(sum) as (keyof typeof sum)[])
+          sum[key] = round(sum[key] + row[key]);
+        return sum;
+      },
+      {
+        visitors: 0,
+        newCustomers: 0,
+        customers: 0,
+        repeatCustomers: 0,
+        repeatOrders: 0,
+        orders: 0,
+        newRevenue: 0,
+        repeatRevenue: 0,
+        revenue: 0,
+        spend: 0,
+        commissions: 0,
+      },
+    );
+    return { month, segments: rows, ...total };
+  });
+}

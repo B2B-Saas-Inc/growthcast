@@ -623,6 +623,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
         <div className="footerBrand"><a className="u-url p-name" href="/">GrowthCast</a></div>
         <nav aria-label="GrowthCast links"><a href="/blog">Read the Blog</a><a className="u-email" href="mailto:ewhite@growthcast.app">Email Our Founder</a><a href="https://linkedin.com/in/edwardjwhiteiii" target="_blank" rel="noreferrer">Connect With Our Founder</a><a href="https://www.linkedin.com/company/146310031/" target="_blank" rel="noreferrer">Follow GrowthCast</a></nav>
         <nav aria-label="Legal and site links"><button type="button" onClick={() => navigate("terms", "/terms")}>Terms</button><button type="button" onClick={() => navigate("privacy", "/privacy")}>Privacy</button><a href="/sitemap-index.xml">Sitemap</a></nav>
+        <p className="footerCopyright">Copyright {new Date().getFullYear()} B2B SaaS Inc. DBA GrowthCast</p>
       </footer>
     </main>
   );

@@ -1,3 +1,12 @@
+import SharedChannelRow from "./components/ChannelRow";
+import EcommerceForecast from "./components/EcommerceForecast";
+import {
+  ecommerceDefaults,
+  validateEcommerce,
+  validateEcommerceFile,
+  type EcommerceModel,
+} from "./ecommerce";
+import { exportEcommerceForecast } from "./ecommerceExport";
 import {
   Fragment,
   type CSSProperties,
@@ -264,6 +273,8 @@ type Baseline = {
   arr: number;
 };
 type SavedModel = {
+  activeModel?: "subscription" | "d2c";
+  ecommerce?: EcommerceModel;
   modelName: string;
   baseline: Baseline;
   forecastStartMonth: string;
@@ -293,6 +304,9 @@ function validateSavedModel(input: unknown): Partial<SavedModel> {
   if (!input || typeof input !== "object" || Array.isArray(input))
     throw new Error("Model state must be an object");
   const value = input as Partial<SavedModel>;
+  if (value.activeModel !== undefined && !["subscription", "d2c"].includes(value.activeModel)) throw new Error("Invalid active model");
+  if (value.ecommerce !== undefined) validateEcommerce(value.ecommerce);
+  if (value.activeModel === "d2c" && !value.ecommerce) throw new Error("Missing D2C model");
   if (value.budget !== undefined && !finiteNonnegative(value.budget))
     throw new Error("Invalid budget");
   if (
@@ -767,125 +781,8 @@ function ChannelRow({
 }) {
   const update = (patch: Partial<EditableChannel>) =>
     setChannels(channels.map((x, i) => (i === index ? { ...x, ...patch } : x)));
-  const setLiveMonth = (goLiveMonth: number) => {
-    if (
-      goLiveMonth !== 0 ||
-      c.goLiveMonth === 0 ||
-      c.model === "manual" ||
-      c.allocation === 0
-    ) {
-      update({ goLiveMonth });
-      return;
-    }
-    const recipients = channels
-      .map((x, i) => ({ x, i }))
-      .filter(
-        ({ x, i }) => i !== index && x.model !== "manual" && x.goLiveMonth > 0,
-      );
-    const weight = recipients.reduce((sum, { x }) => sum + x.allocation, 0);
-    setChannels(
-      channels.map((x, i) => {
-        if (i === index) return { ...x, goLiveMonth: 0, allocation: 0 };
-        const recipient = recipients.find((r) => r.i === i);
-        if (!recipient) return x;
-        const share = weight ? x.allocation / weight : 1 / recipients.length;
-        return { ...x, allocation: x.allocation + c.allocation * share };
-      }),
-    );
-  };
-  const spend = c.goLiveMonth === 0 ? 0 : budget * c.allocation;
-  const impliedCpc = modeled.visitors ? spend / modeled.visitors : 0;
   return (
-    <details className="channel" data-channel-name={c.name}>
-      <summary>
-        <strong>{c.name}</strong>
-        <label>
-          Live month
-          <input
-            aria-label={`${c.name} goLiveMonth`}
-            type="number"
-            min="0"
-            max="60"
-            step="1"
-            value={c.goLiveMonth}
-            onChange={(e) => setLiveMonth(clamp(Math.round(+e.target.value), 0, 60))}
-          />
-        </label>
-        {c.model === "manual" ? (
-          <label>
-            Launch visitors
-            <input
-              aria-label={`${c.name} visitors`}
-              type="number"
-              min="0"
-              step="100"
-              value={one(c.visitors)}
-              onChange={(e) => update({ visitors: clamp(+e.target.value) })}
-            />
-          </label>
-        ) : (
-          <>
-            <label>
-              Budget %
-              <input
-                aria-label={`${c.name} allocation`}
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                value={one(c.allocation * 100)}
-                onChange={(e) => update({ allocation: rateFromInput(e.target.value) })}
-              />
-              <small>{money(spend)}</small>
-            </label>
-            {c.model === "cpc" ? (
-              <label>
-                CPC
-                <input
-                  aria-label={`${c.name} cpc`}
-                  type="number"
-                  min="0"
-                  step=".1"
-                  value={one(c.cpc)}
-                  onChange={(e) => update({ cpc: clamp(+e.target.value) })}
-                />
-              </label>
-            ) : (
-              <>
-                <label>
-                  CPM
-                  <input
-                    aria-label={`${c.name} cpm`}
-                    type="number"
-                    min="0"
-                    step=".1"
-                    value={one(c.cpm)}
-                    onChange={(e) => update({ cpm: clamp(+e.target.value) })}
-                  />
-                </label>
-                <label>
-                  CTR %
-                  <input
-                    aria-label={`${c.name} ctr`}
-                    type="number"
-                    min="0"
-                    step=".1"
-                    value={one(c.ctr * 100)}
-                    onChange={(e) => update({ ctr: rateFromInput(e.target.value) })}
-                  />
-                </label>
-              </>
-            )}
-          </>
-        )}
-        <span className="traffic">
-          <b>{number(modeled.visitors)}</b> visits
-          <small>
-            {c.model !== "manual" ? `${money(impliedCpc)} expected CPC` : ""}
-          </small>
-        </span>
-      </summary>
-      <div className="channelAdvanced">
+    <SharedChannelRow channel={c} modeled={modeled} index={index} budget={budget} setChannels={setChannels} channels={channels} onRemove={onRemove}>
         {businessModel === "b2b" ? (
           <>
             <label>
@@ -1023,20 +920,7 @@ function ChannelRow({
             </div>
           </>
         )}
-        <div className="channelRowActions">
-          <button
-            className="hideChannel"
-            onClick={() => update({ hidden: !c.hidden })}
-          >
-            {c.hidden ? "Restore subchannel" : "Hide subchannel"}
-          </button>
-          <button className="hideChannel" onClick={onRemove} aria-label={`Remove ${c.name}`}>
-            Remove channel
-          </button>
-          <small>Hiding only changes this list. Set Live month to 0 to disable. Removing clears this channel’s monthly spend edits and leaves its budget unallocated.</small>
-        </div>
-      </div>
-    </details>
+    </SharedChannelRow>
   );
 }
 type DeepTab = "budget" | "churn" | "mrr" | "growth" | "customers" | "cashflow";
@@ -3098,6 +2982,8 @@ function AgencyHow({ onContact }: { onContact: () => void }) {
 
 export default function App({ initialPath = "/", restoreSavedModel = true }: { initialPath?: string; restoreSavedModel?: boolean }) {
   const [saved] = useState(() => restoreSavedModel ? loadSavedModel() : {} as Partial<SavedModel>);
+  const [activeModel, setActiveModel] = useState<"subscription" | "d2c">(saved.activeModel || "subscription");
+  const [ecommerce, setEcommerce] = useState<EcommerceModel>(saved.ecommerce || ecommerceDefaults());
   const fileInput = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState("");
   const [modelName, setModelName] = useState(saved.modelName || "GrowthCast");
@@ -3347,6 +3233,8 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
     if (!restoreSavedModel) return;
     try {
       const value: SavedModel = {
+        activeModel,
+        ecommerce,
         modelName,
         baseline,
         forecastStartMonth,
@@ -3365,6 +3253,8 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       /* Persistence may be unavailable in private browsing. */
     }
   }, [
+    activeModel,
+    ecommerce,
     restoreSavedModel,
     modelName,
     baseline,
@@ -4679,6 +4569,11 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
     doc.save(`${slug()}-forecast.pdf`);
   };
   const exportForecast = async () => {
+    if (activeModel === "d2c") {
+      try { await exportEcommerceForecast(ecommerce, modelName, forecastFormat); }
+      catch { setImportMessage("D2C export failed. Please try again."); }
+      return;
+    }
     if (forecastFormat === "pdf") exportPdf();
     else await exportCsv();
     if (isPostHogEnabled) {
@@ -4788,6 +4683,12 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
     }
   };
   const exportAssumptions = () => {
+    if (activeModel === "d2c") {
+      const value = { schemaVersion: 4, businessModel: "d2c", modelName, ecommerce };
+      const slug = (modelName || "GrowthCast").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      download(`${slug}-assumptions.${downloadFormat}`, downloadFormat === "json" ? JSON.stringify(value, null, 2) : assumptionCsv(value), downloadFormat === "json" ? "application/json" : "text/csv");
+      return;
+    }
     const slug = (modelName || "growthcast")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -4851,6 +4752,15 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
         monthlyChurnOverrides?: Record<string, number>;
         cashFlowSettings?: CashFlowSettings;
       };
+      if (raw.schemaVersion === 4) {
+        const value = validateEcommerceFile(raw);
+        setEcommerce(value.ecommerce);
+        setModelName(value.modelName);
+        setActiveModel("d2c");
+        setPageView("baseline");
+        setImportMessage("D2C assumptions loaded.");
+        return;
+      }
       if (![1, 2, 3].includes(raw.schemaVersion || 0))
         throw new Error("Unsupported or incomplete assumption file");
       if (
@@ -4968,6 +4878,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
         value.channels.some((c) => !["manual", "cpc", "cpm"].includes(c.model))
       )
         throw new Error("Assumption file contains invalid values");
+      setActiveModel("subscription");
       setA(value.assumptions);
       setBaseline(value.baseline);
       setBudget(value.budget);
@@ -5104,7 +5015,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
   const isAgencyPage = ["home", "why", "how", "terms", "privacy", "about", "philosophy", "careers", "partners"].includes(pageView);
   return (
     <main
-      className={`${isAgencyPage ? "marketingHome" : "forecastTool"}${showGrowthPlan ? " growthPlanVisible" : ""}`}
+      className={`${isAgencyPage ? "marketingHome" : "forecastTool"}${showGrowthPlan && activeModel !== "d2c" ? " growthPlanVisible" : ""}`}
       style={
         {
           "--growth-plan-height": `${growthPlanHeight}px`,
@@ -5210,6 +5121,8 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
               <div className="navActionsMenu">
                 <button
                   onClick={() => {
+                    setActiveModel("subscription");
+                    setEcommerce(ecommerceDefaults());
                     setA(defaults);
                     setBaseline({
                       month: defaultBaselineMonth,
@@ -5303,7 +5216,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
                 : pageView === "forecast"
                   ? "Change a lever. See the revenue consequence."
                   : pageView === "deepdive"
-                    ? "Inspect acquisition, churn, revenue, growth, and customer movement."
+                    ? activeModel === "d2c" ? "Inspect orders, sales, contribution, acquisition, and cash receipts." : "Inspect acquisition, churn, revenue, growth, and customer movement."
                     : pageView === "channels"
                       ? "Configure acquisition channels without crowding the forecast."
                       : "How assumptions flow through the monthly model."}
@@ -5330,7 +5243,21 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
       ) : pageView === "about" || pageView === "philosophy" || pageView === "careers" || pageView === "partners" ? (
         <CompanyPage type={pageView} />
       ) : (
-      <section
+      activeModel === "d2c" ? (
+        <EcommerceForecast
+          model={ecommerce}
+          setModel={setEcommerce}
+          modelName={modelName}
+          setModelName={setModelName}
+          page={pageView}
+          switchModel={(model) => {
+            setA({ ...a, businessModel: model });
+            setActiveModel("subscription");
+          }}
+          ImageExportControl={ImageExportButton}
+          MetricHelp={MetricDefinition}
+        />
+      ) : <section
         className={`layout ${pageView === "baseline" ? "baselineMode" : pageView === "deepdive" ? "deepMode" : pageView === "channels" ? "channelMode" : pageView === "methodology" ? "methodMode" : "forecastMode"}`}
       >
         <aside>
@@ -5466,6 +5393,14 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
               >
                 <strong>B2B</strong>
                 <span>MQL, SQL, and closed-won pipeline</span>
+              </button>
+              <button
+                type="button"
+                aria-pressed={false}
+                onClick={() => setActiveModel("d2c")}
+              >
+                <strong>D2C / Ecommerce</strong>
+                <span>Orders and repeat purchases</span>
               </button>
             </fieldset>
             <div className="baselineGrid">
@@ -6698,7 +6633,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
           </section>
         </div>
       )}
-      {showGrowthPlan && (
+      {showGrowthPlan && activeModel !== "d2c" && (
         <aside
           ref={growthPlanPrompt}
           className={`growthPlanPrompt${growthPlanClosing ? " growthPlanPromptClosing" : ""}`}
@@ -6772,7 +6707,8 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
             <button type="button" onClick={() => openLegalPage("privacy")}>Privacy</button>
             <a href="/sitemap-index.xml">Sitemap</a>
           </nav>
-        </footer>
+          <p className="footerCopyright">Copyright {new Date().getFullYear()} B2B SaaS Inc. DBA GrowthCast</p>
+      </footer>
       ) : (
         <footer>
           Made with Gratitude in Brooklyn, NY by GrowthCast
