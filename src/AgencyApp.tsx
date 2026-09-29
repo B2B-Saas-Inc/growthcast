@@ -1,3 +1,4 @@
+import ServicesNav from "./components/ServicesNav";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type PageView =
@@ -583,6 +584,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
         <nav className="siteNav" aria-label="Main navigation">
           <button className={pageView === "why" ? "active" : ""} type="button" onClick={() => navigate("why", "/why-growthcast")}>Why GrowthCast</button>
           <button className={pageView === "how" ? "active" : ""} type="button" onClick={() => navigate("how", "/how-it-works")}>How We Work</button>
+          <ServicesNav onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }} />
           <details className="resourceNav companyNav" onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }}>
             <summary>Company</summary><div>
               <button type="button" onClick={() => navigate("about", "/company/about")}>About</button>
@@ -597,7 +599,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
               <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog">Blog</a><p>Case Studies <small>Coming soon</small></p>
             </div>
           </details>
-          <a className="siteNavClient" href="https://clients.growthcast.app/">Client Login</a>
+          <a className="siteNavClient" href="https://clients.growthcast.app/login">Client Login</a>
           <button className="siteNavCta" type="button" onClick={openContact}>Let's Talk Growth</button>
         </nav>
       </header>
