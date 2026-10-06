@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash,randomUUID} from 'node:crypto';
+import {pdf} from '/pdf-fixture.mjs';
+import {signingProvider} from './provider.mjs';
+import {signingFields,fieldsHash} from './fields.mjs';
+const providers=JSON.parse(await readFile('/runtime/provider.json','utf8'));
+let posts=0;
+function apiFor(index){return async(path,options={})=>{
+ if(options.method==='POST')posts++;
+ const response=await fetch('http://documenso:3000/api/v2'+path,{...options,headers:{...options.headers,Authorization:'Bearer '+providers[index].token},redirect:'error',signal:AbortSignal.timeout(30000)});
+ if(!response.ok)throw Error('Synthetic provider request failed: '+response.status);
+ return response;
+};}
+const api=apiFor(0),adapter=signingProvider({api,teamId:providers[0].teamId});
+const bytes=pdf(),fields=signingFields(['SIGNATURE','TEXT','DATE','CHECKBOX','NAME','EMAIL','NUMBER','INITIALS'].map((type,i)=>({type,label:type==='TEXT'?'Company name':type,required:true,page:1,positionX:10,positionY:15+i*9,width:35,height:7})),1);
+const source={approvalId:randomUUID(),versionId:randomUUID(),title:'Synthetic approved form',recipientEmail:'client@growthcast.invalid',artifactSha256:createHash('sha256').update(bytes).digest('hex'),fields,pageCount:1,fieldsSha256:fieldsHash(fields)};
+let passed=0;const pass=name=>{passed++;console.log('PASS '+name);};
+for(const change of [{page:2},{positionX:90},{width:0},{positionY:NaN},{required:'true'},{type:'SCRIPT'},{label:'\n'},{positionX:0.001},{extra:true}])assert.throws(()=>signingFields([{...fields[0],...change}],1));
+assert.throws(()=>signingFields(fields.slice(1),1));pass('invalid, off-page, unsupported and signature-free fields denied');
+for(const patch of [{artifactSha256:'0'.repeat(64)},{fieldsSha256:'0'.repeat(64)},{recipientEmail:'Mixed@Example.test'}])await assert.rejects(()=>adapter.createDraft({...source,...patch},bytes));
+assert.equal(posts,0);pass('changed approved fields, bytes and invalid recipient denied before provider writes');
+const created=await adapter.createDraft(source,bytes);assert.equal(created.status,'draft-created');assert.equal(posts,1);
+// The production caller must persist this ID before readback/activation.
+const binding=await adapter.inspectDraft(created.envelopeId,source);assert.equal(binding.status,'DRAFT');assert.equal(binding.fieldIds.length,8);pass('real Documenso stores all eight field types and exact source PDF without sending');
+const changed=structuredClone(source);changed.fields[1].label='Different question';changed.fieldsSha256=fieldsHash(changed.fields);
+await assert.rejects(()=>adapter.activate(created.envelopeId,changed));assert.equal(posts,1);pass('changed field labels cannot activate an approved envelope');
+await assert.rejects(()=>signingProvider({api,teamId:providers[1].teamId}).inspectDraft(created.envelopeId,source));
+await assert.rejects(()=>signingProvider({api:apiFor(1),teamId:providers[1].teamId}).inspectDraft(created.envelopeId,source));pass('team binding and real provider organization isolation enforced');
+const active=await adapter.activate(created.envelopeId,source);assert.equal(active.status,'PENDING');assert.equal(posts,2);assert.equal(active.recipientEmail,source.recipientEmail);pass('explicit activation preserves approved field, recipient and PDF bindings');
+await assert.rejects(()=>adapter.activate(created.envelopeId,source));assert.equal(posts,2);await adapter.inspectPending(created.envelopeId,source);pass('activation retry reads pending state without another distribution');
+const taggedBytes=pdf('','','{{signature, r1}} {{text, r1, required=true, label=Company}}');
+const tagged=await adapter.prepareSource({...source,approvalId:randomUUID(),versionId:randomUUID(),artifactSha256:createHash('sha256').update(taggedBytes).digest('hex')},taggedBytes);
+const taggedDraft=await adapter.createDraft(tagged,taggedBytes);
+await assert.rejects(()=>adapter.inspectDraft(taggedDraft.envelopeId,tagged));
+await adapter.configureDraft(taggedDraft.envelopeId,tagged);
+const taggedBinding=await adapter.inspectDraft(taggedDraft.envelopeId,tagged);assert.equal(taggedBinding.fieldIds.length,8);
+await assert.rejects(()=>adapter.inspectDraft(taggedDraft.envelopeId,{...tagged,pdfProof:{...tagged.pdfProof,objectHash:'0'.repeat(64)}}));
+await adapter.activate(taggedDraft.envelopeId,tagged);pass('tagged PDF whiteout verified and auto fields replaced with exact approved layout before activation');
+const messages=await (await fetch('http://mail:1080/email')).json();assert.equal(messages.length,0);pass('provider draft and activation send zero emails and expose no public signing URL');
+console.log(JSON.stringify({passed,provider:'real pinned Documenso',cloudWrites:0,emailsSent:0}));

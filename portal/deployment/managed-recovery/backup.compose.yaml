@@ -1,0 +1,8 @@
+# Capture receives only read-only database and object identities. Fixture setup/cleanup are separate.
+services:
+  capture:
+    environment:
+      PORTAL_BACKUP_DATABASE: '1'
+    volumes:
+      - "${PORTAL_STAGING_SECRETS:?Protected staging folder required}/backup-database-url:/source/database-url:ro"
+      - "${PORTAL_STAGING_SECRETS}/backup-storage-credentials.json:/source/storage-credentials.json:ro"

@@ -1,0 +1,8 @@
+{
+  "name": "growthcast-sdk-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "esbuild client.mjs --bundle --minify --define:process.env.NODE_ENV=\"\\\"production\\\"\" --outfile=public/sdk.js" },
+  "dependencies": { "@documenso/embed-react": "0.6.2", "react": "19.2.8", "react-dom": "19.2.8" },
+  "devDependencies": { "esbuild": "0.28.0" }
+}

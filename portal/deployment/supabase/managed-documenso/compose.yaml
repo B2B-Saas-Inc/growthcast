@@ -1,0 +1,12 @@
+services:
+  migrate:
+    image: growthcast-supabase-preflight
+    entrypoint: [node, /app/deployment/supabase/managed-documenso/local-migrate.mjs]
+    volumes:
+      - ${MANAGED_DOCUMENSO_ROOT}/../..:/app/deployment:ro
+  documenso:
+    environment: &provider
+      NEXT_PRIVATE_DATABASE_URL: postgresql://gc_documenso@database:5432/documenso_test?schema=gc_documenso
+      NEXT_PRIVATE_DIRECT_DATABASE_URL: postgresql://gc_documenso@database:5432/documenso_test?schema=gc_documenso
+  seed:
+    environment: *provider

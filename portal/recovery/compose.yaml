@@ -1,0 +1,56 @@
+# Overlay for the existing disposable gateway project, not a production restore.
+services:
+  recovery-db:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment: {POSTGRES_HOST_AUTH_METHOD: trust}
+    networks: [recovery]
+    volumes: [recovery-database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  recovery-prepare:
+    build: {context: .., dockerfile: recovery/Dockerfile}
+    image: growthcast-recovery
+    user: root
+    network_mode: none
+    entrypoint: [sh, -ec]
+    command: ["chmod 777 /snapshot /encrypted /restored; node archive.mjs key"]
+    volumes: [recovery-key:/key, recovery-snapshot:/snapshot, recovery-encrypted:/encrypted, recovery-restored:/restored]
+  recovery-snapshot:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    entrypoint: [sh, /fixture/snapshot.sh, snapshot]
+    networks: [private]
+    volumes: [../recovery/snapshot.sh:/fixture/snapshot.sh:ro, runtime:/runtime:ro, recovery-snapshot:/snapshot]
+  recovery-encrypt:
+    image: growthcast-recovery
+    command: [node, archive.mjs, encrypt]
+    network_mode: none
+    volumes: [recovery-key:/key:ro, recovery-snapshot:/snapshot:ro, recovery-encrypted:/encrypted]
+  recovery-decrypt:
+    image: growthcast-recovery
+    command: [node, archive.mjs, decrypt]
+    network_mode: none
+    volumes: [recovery-key:/key:ro, recovery-encrypted:/encrypted:ro, recovery-restored:/restored]
+  recovery-restore:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    entrypoint: [sh, /fixture/restore.sh]
+    networks: [recovery]
+    volumes: [../recovery/restore.sh:/fixture/restore.sh:ro, recovery-restored:/restored]
+  recovery-verify:
+    image: growthcast-recovery
+    networks: [recovery]
+    volumes: [recovery-restored:/restored:ro]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  recovery: {internal: true}
+volumes:
+  recovery-key:
+  recovery-snapshot:
+  recovery-encrypted:
+  recovery-restored:
+  recovery-database:

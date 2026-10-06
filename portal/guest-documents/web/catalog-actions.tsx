@@ -1,0 +1,34 @@
+"use client";
+import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {MoreHorizontal} from 'lucide-react';
+import {apiFetch} from '@/lib/api';
+export type CatalogEntity='clients'|'recipients'|'documents';
+export type CatalogAction={entity:CatalogEntity;id:string;mode:'view'|'edit'|'delete'};
+export function CatalogMenu({label,disabled=false,actions}:{label:string;disabled?:boolean;actions:{label:string;run:()=>void;danger?:boolean}[]}){
+ const [open,setOpen]=useState(false),root=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{if(!open)return;const close=(e:PointerEvent)=>{if(!root.current?.contains(e.target as Node))setOpen(false);};document.addEventListener('pointerdown',close);root.current?.querySelector<HTMLButtonElement>('[role=menuitem]')?.focus();return()=>document.removeEventListener('pointerdown',close);},[open]);
+ return <div ref={root} className="relative shrink-0" onKeyDown={event=>{if(!open)return;if(event.key==='Escape'){event.preventDefault();setOpen(false);trigger.current?.focus();}else if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();const items=[...root.current!.querySelectorAll<HTMLButtonElement>('[role=menuitem]')],i=items.indexOf(document.activeElement as HTMLButtonElement);items[event.key==='Home'?0:event.key==='End'?items.length-1:(i+(event.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}else if(event.key==='Tab')setOpen(false);}}>
+  <button ref={trigger} type="button" aria-label={label} aria-haspopup="menu" aria-expanded={open} disabled={disabled} onClick={()=>setOpen(v=>!v)} onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();setOpen(true);}}} className="rounded-lg p-2 hover:bg-[var(--muted)] focus-visible:outline focus-visible:outline-2 disabled:opacity-50"><MoreHorizontal aria-hidden="true" size={20}/></button>
+  {open&&<div role="menu" aria-label={label} className="absolute right-0 z-30 min-w-48 rounded-lg border border-[var(--border)] bg-[var(--background)] p-1 shadow-lg">{actions.map(action=><button key={action.label} role="menuitem" type="button" onClick={()=>{setOpen(false);trigger.current?.focus();action.run();}} className={`block w-full rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--muted)] ${action.danger?'text-red-600':''}`}>{action.label}</button>)}</div>}
+ </div>;
+}
+const input='mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2';
+const button='rounded-lg border border-[var(--border)] px-4 py-2 text-sm disabled:opacity-50';
+export function CatalogDialog({action,onClose,onSaved}:{action:CatalogAction;onClose:()=>void;onSaved:(id?:string)=>Promise<void>}){
+ const ref=useRef<HTMLDialogElement>(null),pending=useRef(false),[record,setRecord]=useState<Record<string,string|number|null>|null>(null),[value,setValue]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const singular=action.entity==='clients'?'client':action.entity==='recipients'?'recipient':'document',field=action.entity==='clients'?'Client name':action.entity==='recipients'?'Email address':'Document title';
+ useEffect(()=>{ref.current?.showModal();},[]);
+ useEffect(()=>{const abort=new AbortController();void apiFetch<Record<string,string|number|null>>(`/guest/staff/record?entity=${action.entity}&id=${encodeURIComponent(action.id)}`,{signal:abort.signal}).then(row=>{if(abort.signal.aborted)return;setRecord(row);setValue(String(row[action.entity==='clients'?'name':action.entity==='recipients'?'email':'title']??''));}).catch(()=>{if(!abort.signal.aborted)setError('This record is no longer available. Close this window and refresh the catalog.');});return()=>abort.abort();},[action.entity,action.id]);
+ async function submit(e:FormEvent){e.preventDefault();if(pending.current||!record)return;pending.current=true;setBusy(true);setError('');try{const saved=await apiFetch<{id?:string}>(`/guest/staff/${action.mode}`,{method:'POST',body:JSON.stringify({entity:action.entity,id:action.id,...(action.mode==='edit'?{value:value.trim()}:{})})});await onSaved(saved.id);onClose();}catch{setError(action.entity==='recipients'?'Could not save. Check that this email is valid and is not already assigned to this client.':'Could not save this change. Refresh the catalog and try again.');}finally{pending.current=false;setBusy(false);}}
+ return <dialog ref={ref} onCancel={e=>{if(busy)e.preventDefault();else onClose();}} onClose={onClose} className="w-[92vw] max-w-lg rounded-xl border border-[var(--border)] bg-[var(--background)] p-6 text-[var(--foreground)] shadow-xl backdrop:bg-black/50" aria-labelledby="catalog-dialog-title">
+  <h2 id="catalog-dialog-title" className="text-xl font-semibold">{action.mode==='view'?'View':action.mode==='edit'?'Edit':'Delete'} {singular}</h2>
+  {error&&<p role="alert" className="my-3 text-sm text-red-600">{error}</p>}
+  {!record&&!error&&<p role="status" className="my-4">Loading…</p>}
+  {record&&<form onSubmit={e=>void submit(e)} className="mt-4 space-y-4">
+   {action.mode==='edit'?<><label className="block text-sm">{field}<input autoFocus type={action.entity==='recipients'?'email':'text'} value={value} required maxLength={action.entity==='recipients'?254:200} disabled={busy} onChange={e=>setValue(e.target.value)} className={input}/></label>{action.entity==='documents'&&record.version_id&&<p className="text-sm text-[var(--muted-foreground)]">Renaming creates a new version using the same PDF. Previous versions and approvals stay in the history.</p>}{action.entity==='recipients'&&<p className="text-sm text-[var(--muted-foreground)]">Changing the email revokes the previous recipient’s document access. Review and approve documents for the new address before sending.</p>}</>:<dl className="space-y-2 text-sm">{[[field,value||'Untitled document'],['Client',record.client_name],['Project',record.project_name],['Type',record.kind],['Version',record.version]].filter(([,v])=>v!==undefined&&v!==null).map(([k,v])=><div key={String(k)}><dt className="text-[var(--muted-foreground)]">{k}</dt><dd className="break-words font-medium">{v}</dd></div>)}</dl>}
+   {action.mode==='delete'&&<p className="text-sm">Remove this {singular} from the catalog and revoke related document access? {action.entity==='clients'?'Its documents and recipients will also be hidden. ':''}Existing versions and signature history will be retained.</p>}
+   <div className="flex justify-end gap-2"><button type="button" className={button} disabled={busy} onClick={onClose}>{action.mode==='view'?'Close':'Cancel'}</button>{action.mode!=='view'&&<button disabled={busy||!record} className={`${button} ${action.mode==='delete'?'bg-red-600':'bg-[var(--primary)]'} text-white`}>{busy?'Saving…':action.mode==='delete'?`Delete ${singular}`:'Save changes'}</button>}</div>
+  </form>}
+  {!record&&<button type="button" className={button+' mt-4'} onClick={onClose}>Close</button>}
+ </dialog>;
+}

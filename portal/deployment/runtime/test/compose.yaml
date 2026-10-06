@@ -1,0 +1,58 @@
+services:
+  prepare:
+    image: growthcast-documenso-runtime
+    environment:
+      GC_SECRET_MODE: ${GC_SECRET_MODE:-}
+    user: root
+    entrypoint: [node, /fixture/provision.mjs]
+    volumes: ["./:/fixture:ro", "tls:/tls", "runtime:/runtime", "admin:/admin"]
+    network_mode: none
+  database:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_PASSWORD_FILE: /admin/password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/tls/server.crt, -c, ssl_key_file=/tls/server.key, -c, hba_file=/tls/pg_hba.conf]
+    volumes: ["tls:/tls:ro", "admin:/admin:ro", "database:/var/lib/postgresql/data"]
+    networks:
+      private:
+        aliases: [db.abcdefghijklmnopqrst.supabase.co]
+    depends_on:
+      prepare: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres]
+      interval: 2s
+      retries: 30
+  setup:
+    image: growthcast-supabase-preflight
+    entrypoint: [node, /app/deployment/runtime/test/database.mjs]
+    volumes: ["../../:/app/deployment:ro", "runtime:/runtime:ro", "admin:/admin:ro"]
+    networks: [private]
+    depends_on:
+      database: {condition: service_healthy}
+  provider:
+    image: growthcast-documenso-runtime
+    environment:
+      GC_SECRET_MODE: ${GC_SECRET_MODE:-}
+      SUPABASE_PROJECT_REF: abcdefghijklmnopqrst
+    volumes: ["runtime:/run/secrets:ro"]
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: {driver: none}
+    depends_on:
+      setup: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 45
+networks:
+  private: {internal: true}
+volumes:
+  tls:
+  runtime:
+  admin:
+  database:

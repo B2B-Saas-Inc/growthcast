@@ -1,0 +1,5 @@
+# Merge with compose.production.yaml for staging configuration preflight.
+services:
+  release-preflight:
+    environment:
+      PORTAL_ENV: staging

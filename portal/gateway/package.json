@@ -1,0 +1,9 @@
+{
+  "name": "growthcast-signing-gateway-spike",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "scripts": { "test": "node --test test/*.check.mjs", "start": "node src/server.mjs" },
+  "dependencies": { "pg": "8.16.3", "zod": "3.25.76" },
+  "devDependencies": { "playwright": "1.58.2" }
+}

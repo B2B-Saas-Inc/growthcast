@@ -1,0 +1,79 @@
+services:
+  prepare:
+    image: mcr.microsoft.com/playwright:v1.58.2-noble@sha256:6446946a1d9fd62d9ae501312a2d76a43ee688542b21622056a372959b65d63d
+    user: root
+    entrypoint: [sh, /fixture/prepare.sh]
+    volumes: [./prepare.sh:/fixture/prepare.sh:ro, tls:/tls, ca:/ca, admin:/secrets/postgres, migrate:/secrets/gc_migrate, app:/secrets/gc_app, lifecycle:/secrets/gc_lifecycle, gateway-credentials:/secrets/gc_gateway, artifacts:/artifacts, restored-artifacts:/restored-artifacts, backups:/backups]
+    network_mode: none
+  database: &database
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_PASSWORD_FILE: /credential/password
+      POSTGRES_DB: foundation_test
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/tls/server.crt, -c, ssl_key_file=/tls/server.key, -c, hba_file=/etc/pg_hba.conf, -c, log_min_error_statement=panic]
+    volumes: [database:/var/lib/postgresql/data, admin:/credential:ro, tls:/tls:ro, ./pg_hba.conf:/etc/pg_hba.conf:ro]
+    networks:
+      private:
+        aliases: [wrong.invalid]
+    depends_on:
+      prepare: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d foundation_test']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  restore:
+    <<: *database
+    networks: [private]
+    volumes: [restore:/var/lib/postgresql/data, admin:/credential:ro, tls:/tls:ro, ./pg_hba.conf:/etc/pg_hba.conf:ro]
+  provision:
+    image: growthcast-foundation
+    command: [node, provision.mjs]
+    environment: {DB_ROLE: postgres}
+    volumes: [admin:/credential:ro, migrate:/provision/gc_migrate:ro, app:/provision/gc_app:ro, lifecycle:/provision/gc_lifecycle:ro, gateway-credentials:/provision/gc_gateway:ro, ca:/ca:ro]
+    networks: [private]
+  migration:
+    image: growthcast-foundation
+    command: [node, check.mjs, migrate]
+    environment: {DB_ROLE: gc_migrate}
+    volumes: [migrate:/credential:ro, ca:/ca:ro, artifacts:/artifacts:ro]
+    networks: [private]
+  runtime: &runtime
+    image: growthcast-foundation
+    environment: {DB_ROLE: gc_app}
+    volumes: [app:/credential:ro, ca:/ca:ro, artifacts:/artifacts]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  application:
+    <<: *runtime
+    image: growthcast-foundation-application
+    environment: {DB_ROLE: gc_app, NODE_ENV: production, LOG_LEVEL: silent}
+    volumes: [app:/credential:ro, ca:/ca:ro]
+    tmpfs: [/tmp]
+  recovery-check:
+    <<: *runtime
+    environment: {DB_ROLE: gc_app, DB_HOST: restore}
+    volumes: [app:/credential:ro, ca:/ca:ro, restored-artifacts:/artifacts:ro]
+  backup:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    entrypoint: [sh, /fixture/backup.sh]
+    volumes: [./backup.sh:/fixture/backup.sh:ro, migrate:/credential:ro, ca:/ca:ro, artifacts:/artifacts:ro, restored-artifacts:/restored-artifacts, backups:/backups]
+    networks: [private]
+networks:
+  private: {internal: true}
+volumes:
+  database:
+  restore:
+  admin:
+  migrate:
+  app:
+  lifecycle:
+  tls:
+  ca:
+  artifacts:
+  restored-artifacts:
+  backups:
+  gateway-credentials:

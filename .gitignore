@@ -39,3 +39,22 @@ npm-debug.log*
 
 # Client material is deployed privately, never committed to the public repo.
 private-proposals/
+.firecrawl/
+
+# Isolated local upstream worktrees
+portal/checkouts/
+
+# Generated portal validation/deployment output
+portal/**/__pycache__/
+portal/**/*.pyc
+portal/**/artifacts/
+portal/**/*.png
+portal/**/*.jpg
+portal/**/*.json
+!portal/**/package.json
+!portal/**/package-lock.json
+!portal/**/manifest.json
+!portal/**/*template*.json
+!portal/**/vercel.json
+!portal/**/tsconfig.json
+!portal/upstream-lock.json

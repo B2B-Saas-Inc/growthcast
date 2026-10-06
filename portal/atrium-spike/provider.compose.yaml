@@ -1,0 +1,25 @@
+# Only used inside the disposable signing runner, after PDF verification.
+services:
+  gateway:
+    environment:
+      PORTAL_PROVIDER: '1'
+    volumes: [provider-runtime:/provider-runtime:ro]
+  check:
+    environment:
+      PORTAL_PROVIDER: '1'
+    volumes: [provider-runtime:/provider-runtime:ro]
+  provider:
+    image: growthcast-atrium-gateway
+    user: node
+    command: [node, /app/apps/api/provider-bridge.mjs]
+    networks: [private, provider-network]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  provider-network:
+    external: true
+    name: ${PORTAL_PROVIDER_NETWORK:?Disposable provider network required}
+volumes:
+  provider-runtime:
+    external: true
+    name: ${PORTAL_PROVIDER_VOLUME:?Disposable provider volume required}

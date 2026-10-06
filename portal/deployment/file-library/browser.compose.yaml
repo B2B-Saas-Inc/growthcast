@@ -1,0 +1,35 @@
+services:
+  prepare:
+    entrypoint: [node, /library/browser-prepare.mjs, atrium]
+    volumes: ['${LIBRARY_ROOT}:/library:ro']
+  web:
+    image: growthcast-library-web
+    entrypoint: [bun, /library/browser-web.mjs]
+    volumes: ['${LIBRARY_ROOT}:/library:ro', 'origin:/origin:ro','tls:/tls:ro']
+    networks: [private]
+    environment:
+      HOSTNAME: 0.0.0.0
+      NEXT_TELEMETRY_DISABLED: '1'
+    depends_on:
+      provider: {condition: service_healthy}
+  ingress:
+    image: node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+    entrypoint: [node,/library/browser-proxy.mjs]
+    volumes: ['${LIBRARY_ROOT}:/library:ro','tls:/tls:ro']
+    networks:
+      private:
+        aliases: [portal.growthcast.invalid,api.portal.growthcast.invalid]
+    depends_on: [web]
+    environment:
+      NODE_EXTRA_CA_CERTS: /tls/web.crt
+    healthcheck:
+      test: [CMD, node, -e, "fetch('https://portal.growthcast.invalid/login').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  browser:
+    image: growthcast-portal-browser
+    volumes: ['${LIBRARY_ROOT}:/work:ro','${LIBRARY_BROWSER_OUTPUT}:/results']
+    networks: [private]
+    shm_size: 1gb
+    # Browser lifecycle is controlled by the fixture runner.

@@ -1,0 +1,8 @@
+services:
+  test:
+    image: growthcast-guest-delivery
+    entrypoint: [node]
+    volumes:
+      - '${SIGNING_SOURCE}/..:/foundation/guest:ro'
+      - '${SIGNING_SOURCE}/../web/pdf-fixture.mjs:/pdf-fixture.mjs:ro'
+    command: [/foundation/guest/signing/provider.check.mjs]

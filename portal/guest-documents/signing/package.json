@@ -1,0 +1,14 @@
+{
+  "name": "growthcast-document-delivery",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1139.0",
+    "@aws-sdk/credential-providers": "3.1139.0",
+    "@libpdf/core": "0.4.2",
+    "nodemailer": "9.0.6",
+    "pdf-lib": "1.17.1",
+    "pg": "8.16.3",
+    "zod": "3.25.76"
+  }
+}

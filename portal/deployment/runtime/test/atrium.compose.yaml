@@ -1,0 +1,46 @@
+# Overlay on the disposable runtime test, not deployment configuration.
+services:
+  prepare:
+    entrypoint: [node, /fixture/provision.mjs, atrium]
+    volumes: ["origin:/origin", "storage:/storage"]
+  setup:
+    environment:
+      FIXTURE_SERVICE: atrium
+  provider:
+    image: growthcast-atrium-runtime
+    volumes: ["origin:/run/origin:ro", "storage:/data/uploads"]
+    depends_on:
+      mail: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, bun, -e, "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+  http-check:
+    image: node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+    command: [node, /fixture/atrium-http.check.mjs]
+    volumes: ["./:/fixture:ro", "origin:/run/origin:ro"]
+    networks: [private]
+    profiles: [test]
+  mail:
+    image: maildev/maildev:2.0.5@sha256:082ec5ee92266c6e17493998ff1bf1c3eb70604b159fbeeaa435ee777f5cc953
+    networks: [private]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O - http://127.0.0.1:1080/healthz || exit 1"]
+      interval: 2s
+      retries: 30
+  auth-check:
+    image: node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+    command: [node, /fixture/atrium-auth.check.mjs, begin]
+    volumes: ["./:/fixture:ro", "auth-evidence:/evidence", "origin:/run/origin:ro"]
+    networks: [private]
+    profiles: [test]
+  storage-check:
+    image: node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
+    command: [node, /fixture/atrium-storage.check.mjs, upload]
+    volumes: ["./:/fixture:ro", "auth-evidence:/evidence", "origin:/run/origin:ro"]
+    networks: [private]
+    profiles: [test]
+volumes:
+  auth-evidence:
+  origin:
+  storage:

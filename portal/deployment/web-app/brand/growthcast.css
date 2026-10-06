@@ -1,0 +1,45 @@
+@font-face{font-family:Manrope;src:url('/fonts/manrope-400.ttf') format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:Manrope;src:url('/fonts/manrope-500.ttf') format('truetype');font-weight:500;font-display:swap}
+@font-face{font-family:Manrope;src:url('/fonts/manrope-600.ttf') format('truetype');font-weight:600;font-display:swap}
+@font-face{font-family:Manrope;src:url('/fonts/manrope-700.ttf') format('truetype');font-weight:700;font-display:swap}
+@font-face{font-family:'DM Mono';src:url('/fonts/dm-mono-400.ttf') format('truetype');font-weight:400;font-display:swap}
+:root,:root.light,.gc-portal{--primary:#242426;--background:#f4f1e9;--foreground:#242426;--muted:#eae5da;--muted-foreground:#6b655c;--border:#d6d1c7;--radius:2px}
+.gc-portal{font-family:Manrope,sans-serif;background:#f4f1e9;color:#242426;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.gc-portal [style*="--primary"]{--primary:#242426!important}
+.gc-portal button,.gc-portal input,.gc-portal select,.gc-portal textarea{font:inherit}
+.gc-portal h1,.gc-portal h2,.gc-portal h3{letter-spacing:-.04em}
+.gc-portal h1{font-weight:600}
+.gc-portal .font-mono,.gc-eyebrow{font-family:'DM Mono',monospace}
+.gc-portal .rounded-lg,.gc-portal .rounded-xl,.gc-portal .rounded-md{border-radius:2px}
+.gc-portal .bg-white{background:#faf9f5}
+.gc-portal input:not([type=checkbox]):not([type=radio]),.gc-portal select,.gc-portal textarea{border-color:#cbc5b9;background:#faf9f5;border-radius:2px}
+.gc-portal :focus-visible{outline:2px solid #b63f25;outline-offset:3px}
+.gc-portal button[type=submit]{min-height:48px;border-radius:2px}
+.gc-portal header,.gc-portal aside{border-color:#d6d1c7}
+.gc-portal nav a{font-weight:500}
+.gc-wordmark{display:inline-block;position:relative;overflow:hidden;width:180px;height:32px;flex-shrink:0;vertical-align:middle}
+.gc-wordmark img{position:absolute;width:125%;max-width:none;height:auto;left:50%;top:50%;transform:translate(-50%,-50%)}
+.gc-auth{min-height:100vh;padding:0 clamp(24px,7vw,110px);display:flex;flex-direction:column}
+.gc-auth-header{height:100px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #cfc9be;gap:24px}
+.gc-auth-header>a:last-child{font-size:12px;font-weight:600}
+.gc-auth-header>a:last-child span{color:#b63f25;margin-left:8px}
+.gc-auth-main{display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:clamp(48px,7vw,110px);flex:1;padding:80px 0}
+.gc-eyebrow{font-size:11px;letter-spacing:.1em;color:#9e321b}
+.gc-auth-intro h1{font-size:clamp(48px,5.6vw,82px);letter-spacing:-.055em;line-height:1.06;margin:24px 0 26px;font-weight:500}
+.gc-coral{color:#ff6b4a}
+.gc-auth-intro p{font-size:17px;line-height:1.65;color:#5d5952}
+.gc-auth-footnote{border-top:1px solid #cfc9be;margin-top:72px;padding-top:18px;display:flex;justify-content:space-between;gap:16px;font:10px 'DM Mono',monospace;color:#6b655c}
+.gc-auth-form{border:1px solid #d6d1c7;background:#faf9f5;padding:44px 36px;max-width:470px;width:100%;justify-self:end}
+.gc-auth-form .min-h-screen{min-height:0;padding:0;display:block}
+.gc-auth-form .max-w-sm,.gc-auth-form .max-w-md{max-width:none}
+.gc-auth-form h1{font-size:26px;line-height:1.2;letter-spacing:-.04em}
+.gc-auth-form .text-center{text-align:left}
+.gc-auth-form label{font-size:12px;font-weight:600}
+.gc-auth-form input{min-height:48px}
+.gc-auth-form button[type=submit]{background:#242426;color:#fff;font-size:13px;font-weight:600;transition:background .15s}
+.gc-auth-form button[type=submit]:hover{background:#393638}
+.gc-auth-form a{color:#9e321b}
+.gc-auth-footer{display:flex;justify-content:space-between;border-top:1px solid #cfc9be;padding:22px 0;font:10px 'DM Mono',monospace;color:#6b655c;letter-spacing:.03em}
+.gc-client-org{font-size:12px;color:#6b655c;border-left:1px solid #cfc9be;padding-left:16px;margin-left:4px}
+@media(max-width:800px){.gc-auth-header{height:80px}.gc-auth-main{grid-template-columns:1fr;gap:32px;padding:40px 0}.gc-auth-intro h1{font-size:44px;margin:14px 0 18px}.gc-auth-intro p{font-size:14px}.gc-auth-footnote{display:none}.gc-auth-form{justify-self:stretch;max-width:none;padding:30px 24px}.gc-auth .gc-wordmark{width:150px;height:28px}.gc-auth-header>a:last-child{font-size:11px}.gc-auth-footer{font-size:9px}.gc-client-org{display:none}}
+@media(max-width:450px){.gc-portal>div>header{flex-wrap:wrap;gap:12px}.gc-portal>div>header .gc-wordmark{width:148px;height:28px}.gc-auth-header>a:last-child{max-width:100px;text-align:right}.gc-auth-intro h1{font-size:40px}}

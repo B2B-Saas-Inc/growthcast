@@ -1,0 +1,16 @@
+services:
+  guest-migrate:
+    image: growthcast-foundation
+    command: [node, /foundation/guest/check.mjs, migrate]
+    environment: {DB_ROLE: gc_migrate}
+    volumes: [migrate:/credential:ro, ca:/ca:ro, '${GUEST_WORKFLOW_ROOT}:/foundation/guest:ro']
+    networks: [private]
+  guest-check:
+    image: growthcast-foundation
+    command: [node, /foundation/guest/check.mjs, check]
+    environment: {DB_ROLE: gc_app}
+    volumes: [app:/credential:ro, ca:/ca:ro, '${GUEST_WORKFLOW_ROOT}:/foundation/guest:ro', '${GUEST_EVIDENCE_FILE}:/evidence.json']
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']

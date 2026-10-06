@@ -1,0 +1,24 @@
+FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS dependencies
+WORKDIR /boundary
+COPY deployment/backup/job/package*.json ./
+RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+
+FROM documenso/documenso@sha256:615d0e79047ff9615dc86092bf9a6ba021750ee3895f440621e94477b581b183
+COPY --from=dependencies /boundary/node_modules /boundary/node_modules
+COPY deployment/supabase-config.mjs /boundary/deployment/supabase-config.mjs
+COPY deployment/runtime/config.mjs deployment/runtime/start.mjs deployment/runtime/secret-files.mjs /boundary/deployment/runtime/
+COPY deployment/supabase/managed-atrium/migrate.mjs /boundary/deployment/supabase/managed-atrium/migrate.mjs
+COPY deployment/supabase/managed-atrium/migrations /boundary/deployment/supabase/managed-atrium/migrations
+COPY deployment/supabase/managed-documenso/migrate.mjs deployment/supabase/managed-documenso/fingerprint.mjs deployment/supabase/managed-documenso/manifest.json /boundary/deployment/supabase/managed-documenso/
+COPY deployment/supabase/managed-documenso/migrations /boundary/deployment/supabase/managed-documenso/migrations
+COPY deployment/runtime-secrets/deliver.mjs deployment/runtime-secrets/material.mjs deployment/runtime-secrets/runtime-pins.json /boundary/deployment/runtime-secrets/
+COPY deployment/runtime-connections/deliver.mjs deployment/runtime-connections/pins.json /boundary/deployment/runtime-connections/
+COPY deployment/storage/client.mjs /boundary/deployment/storage/client.mjs
+USER root
+RUN mkdir -p /run/delivered /run/origin /run/connections /run/storage /run/config && chown 1001:65533 /run/delivered /run/origin /run/connections /run/storage /run/config && chmod 700 /run/delivered /run/origin /run/connections /run/storage /run/config
+VOLUME ["/run/delivered", "/run/origin", "/run/connections", "/run/storage", "/run/config", "/tmp"]
+USER nodejs
+WORKDIR /app/apps/remix
+ENV GC_SERVICE=documenso
+ENTRYPOINT ["/usr/local/bin/node", "/boundary/deployment/runtime/start.mjs"]
+CMD ["/usr/local/bin/node", "/app/apps/remix/build/server/main.js"]

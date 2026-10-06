@@ -1,0 +1,150 @@
+services:
+  credentials:
+    image: growthcast-atrium-gateway
+    user: root
+    entrypoint: [node, -e]
+    command:
+      - "const fs=require('node:fs'),crypto=require('node:crypto');for(const path of ['/credentials/owner-password','/worker-credentials/password','/gateway-credentials/password','/migration-credentials/password','/app-credentials/password','/auth-credentials/secret']){if(fs.existsSync(path))continue;fs.writeFileSync(path,crypto.randomBytes(32).toString('hex'),{mode:0o444});}for(const path of ['/worker-control','/worker-config','/api-evidence'])fs.chmodSync(path,0o777);"
+    volumes: [auth-credentials:/auth-credentials, api-evidence:/api-evidence, migration-credentials:/migration-credentials, app-credentials:/app-credentials, gateway-credentials:/gateway-credentials, credentials:/credentials, worker-credentials:/worker-credentials, worker-control:/worker-control, worker-config:/worker-config]
+    network_mode: none
+  database-tls:
+    image: mcr.microsoft.com/playwright:v1.58.2-noble@sha256:6446946a1d9fd62d9ae501312a2d76a43ee688542b21622056a372959b65d63d
+    entrypoint: [sh, /fixture/prepare-database.sh]
+    volumes: [./prepare-database.sh:/fixture/prepare-database.sh:ro, db-tls:/db-tls, ca:/ca]
+    network_mode: none
+  initialize:
+    image: growthcast-atrium-gateway
+    command: [node, /app/apps/api/bootstrap.mjs]
+    volumes: [credentials:/credentials:ro, migration-credentials:/migration-credentials:ro, app-credentials:/app-credentials:ro, worker-credentials:/worker-credentials:ro, gateway-credentials:/gateway-credentials:ro, ca:/ca:ro]
+    networks: [private]
+  worker:
+    image: growthcast-atrium-spike
+    command: [bun, /app/apps/api/database-env.mjs, bun, /app/apps/api/worker-once.mjs]
+    environment:
+      DATABASE_URL: postgresql://gc_lifecycle@database:5432/atrium_test
+      DB_ROLE: lifecycle
+      PORTAL_DATABASE_TLS: '1'
+    volumes: [ca:/ca:ro, worker-credentials:/worker-credentials:ro, worker-control:/worker-control, worker-config:/worker-config:ro]
+    networks: [private]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+  database:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      POSTGRES_PASSWORD_FILE: /credentials/owner-password
+      POSTGRES_DB: atrium_test
+    networks: [private]
+    tmpfs: [/var/lib/postgresql/data]
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/db-tls/server.crt, -c, ssl_key_file=/db-tls/server.key, -c, hba_file=/etc/pg_hba.conf, -c, log_min_error_statement=panic]
+    volumes: [credentials:/credentials:ro, db-tls:/db-tls:ro, ../foundation/pg_hba.conf:/etc/pg_hba.conf:ro]
+    depends_on:
+      database-tls: {condition: service_completed_successfully}
+      credentials: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d atrium_test']
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  gateway:
+    depends_on:
+      credentials: {condition: service_completed_successfully}
+      database: {condition: service_healthy}
+    image: growthcast-atrium-gateway
+    volumes: [ca:/ca:ro, runtime:/runtime:ro, gateway-credentials:/gateway-credentials:ro]
+    environment:
+      PORTAL_BROWSER: ${PORTAL_BROWSER:-0}
+      DATABASE_URL: postgresql://gc_gateway@database:5432/atrium_test
+      DB_ROLE: gateway
+      PORTAL_DATABASE_TLS: '1'
+    networks:
+      private:
+        aliases: [signing.growthcast.test]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  mail:
+    image: maildev/maildev:2.0.5@sha256:082ec5ee92266c6e17493998ff1bf1c3eb70604b159fbeeaa435ee777f5cc953
+    networks: [private]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  api:
+    depends_on:
+      mail: {condition: service_started}
+    image: growthcast-atrium-spike
+    command: [bun, /app/apps/api/database-env.mjs, bun, /app/apps/api/api-server.mjs]
+    environment:
+      DB_ROLE: application
+      DATABASE_URL: postgresql://gc_app@database:5432/atrium_test
+      PORTAL_DATABASE_TLS: '1'
+      PORTAL_BROWSER: ${PORTAL_BROWSER:-0}
+      NODE_ENV: production
+      LOG_LEVEL: silent
+      THROTTLE_LIMIT: 1000
+    volumes: [auth-credentials:/auth-credentials:ro, app-credentials:/app-credentials:ro, ca:/ca:ro, api-evidence:/api-evidence]
+    networks: [private]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  check:
+    image: growthcast-atrium-spike
+    volumes: [auth-credentials:/auth-credentials:ro, api-evidence:/api-evidence:ro, app-credentials:/app-credentials:ro, ca:/ca:ro, gateway-credentials:/gateway-credentials:ro, runtime:/runtime, credentials:/credentials:ro, worker-credentials:/worker-credentials:ro, worker-control:/worker-control, worker-config:/worker-config]
+    environment:
+      PORTAL_BROWSER: ${PORTAL_BROWSER:-0}
+      NODE_ENV: production
+      LOG_LEVEL: silent
+      PORTAL_DATABASE_TLS: '1'
+      THROTTLE_LIMIT: 1000
+      DATABASE_URL: postgresql://postgres@database:5432/atrium_test
+    networks: [private]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  web:
+    profiles: [browser]
+    image: growthcast-atrium-web
+    environment:
+      API_URL: http://api:3001
+      WEB_URL: https://portal.growthcast.test:8444
+      NEXT_TELEMETRY_DISABLED: 1
+    networks: [private]
+  edge:
+    profiles: [browser]
+    image: growthcast-atrium-edge
+    volumes: [runtime:/runtime:ro]
+    networks:
+      private:
+        aliases: [portal.growthcast.test]
+  prepare:
+    profiles: [browser]
+    image: growthcast-atrium-browser
+    entrypoint: [sh, -ec]
+    command:
+      - openssl req -x509 -newkey rsa:2048 -nodes -keyout /runtime/tls.key -out /runtime/tls.crt -days 1 -subj /CN=portal.growthcast.test -addext 'subjectAltName=DNS:portal.growthcast.test,DNS:signing.growthcast.test' >/dev/null 2>&1 && chmod 777 /runtime && chmod 644 /runtime/tls.key /runtime/tls.crt
+    volumes: [runtime:/runtime]
+    networks: [private]
+  browser:
+    profiles: [browser]
+    image: growthcast-atrium-browser
+    volumes: [runtime:/runtime]
+    networks: [private]
+    shm_size: 1gb
+networks:
+  private:
+    internal: true
+
+volumes:
+  auth-credentials:
+  runtime:
+  credentials:
+  worker-credentials:
+  worker-control:
+  worker-config:
+  gateway-credentials:
+  migration-credentials:
+  app-credentials:
+  db-tls:
+  ca:
+  api-evidence:

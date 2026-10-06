@@ -1,0 +1,15 @@
+# Encrypted local provider recovery
+
+This bounded drill restores actual Documenso and gateway fixture databases and four signed PDFs. It is part of `sh portal/gateway/run.sh`; use `PORTAL_ATRIUM_CHECKOUT=/absolute/path/to/atrium-checkout` to include the complete Atrium browser flow. It requires Docker and the existing pinned gateway source/image configuration. It installs nothing on the host.
+
+The runner stops provider, gateway and SDK writers, dumps both databases, and includes only the sealed PDFs, canonical references, grant fixture bindings, expected hashes and public verification certificate. It encrypts the tar archive with AES-256-GCM and a fresh nonce. The random key is mounted separately and never added to the archive. Encryption/decryption containers have no network. Wrong-key and modified-ciphertext checks must fail before any plaintext is written. An authenticated archive is extracted and checksum-verified, then restored into a separate, empty PostgreSQL instance on its own internal network.
+
+Verification reads the restored provider's actual PDF bytes and compares their SHA-256 hashes with the independently verified originals and restored files. OpenSSL verifies the final signature and full final-revision ByteRange of each PDF. Provider team/status, canonical data IDs, recipient grant bindings, sealed references and existing gateway sessions must agree. Restoring over the populated target is refused, and the target is checked again afterward. The source services resume, then the normal signing/boundary/restart/revocation suite continues.
+
+The first combined run on 2026-09-23 passed in four seconds from snapshot through second verification; this excludes image builds, target startup and source restart. It is a fixture measurement, **not a production RTO**. The parent runner removes only this disposable project's containers, networks and volumes, including key and plaintext copies.
+
+Limitations: this uses small synthetic transactions and the gateway fixture's local trust-authenticated database. It does not exercise a production application restart from restored credentials, object storage, active-write coordination, off-host retention, managed key recovery or signing-key escrow. Atrium's separate foundation drill restores its database and account/session state. No backup is retained after this test; no live data is copied. Production backup storage, encryption/key provisioning, retention, restore owners and RPO/RTO still require configuration and operational acceptance. The 256 MiB in-memory archive cap is intentional for this local fixture and is not a production backup implementation.
+
+## Managed provider namespace
+
+The separate [private-schema provider recovery overlay](../deployment/supabase/managed-documenso/recovery/README.md) now preserves migration ownership and runtime ACLs for gc_documenso, verifies its versioned schema guard and all four signed PDFs, rejects API/cross-schema access and target overwrite, and resumes the source after a health check. The original public-schema runner remains unchanged. Both are local fixtures; off-host operational recovery remains outstanding.

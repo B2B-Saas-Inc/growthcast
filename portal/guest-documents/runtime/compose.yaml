@@ -1,0 +1,39 @@
+services:
+  runtime-migrate:
+    image: growthcast-guest-runtime
+    entrypoint: [node,/app/guest-documents/runtime/migration.check.mjs,migrate]
+    volumes: [migrate:/credential:ro,ca:/ca:ro]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+  runtime-guard:
+    image: growthcast-guest-runtime
+    entrypoint: [node,/app/guest-documents/runtime/migration.check.mjs,guard]
+    volumes: [app:/credential:ro,ca:/ca:ro]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+  runtime-backup:
+    image: growthcast-foundation
+    command: [node, /backup/check.mjs, check]
+    environment: {DB_ROLE: postgres}
+    volumes: [admin:/credential:ro, ca:/ca:ro, '${MANAGED_ATRIUM_ROOT}/../../../guest-documents/runtime/backup.check.mjs:/backup/check.mjs:ro', '${MANAGED_ATRIUM_ROOT}/../../backup/capture-core.mjs:/backup/capture-core.mjs:ro']
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+  gateway-guard:
+    image: growthcast-guest-runtime
+    entrypoint: [node,/app/guest-documents/runtime/migration.check.mjs,guard]
+    environment: {GC_VERIFY_ROLE: gc_gateway}
+    volumes: [gateway-credentials:/credential:ro,ca:/ca:ro]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]
+  lifecycle-guard:
+    image: growthcast-guest-runtime
+    entrypoint: [node,/app/guest-documents/runtime/migration.check.mjs,guard]
+    environment: {GC_VERIFY_ROLE: gc_lifecycle}
+    volumes: [lifecycle:/credential:ro,ca:/ca:ro]
+    networks: [private]
+    read_only: true
+    cap_drop: [ALL]

@@ -1,0 +1,69 @@
+# Overlay on gateway/compose.yaml. Gateway fixture persistence stays separate.
+services:
+  runtime-prepare:
+    image: growthcast-documenso-runtime
+    user: root
+    entrypoint: [node, /fixture/provision.mjs, signing]
+    volumes:
+      - ${RUNTIME_TEST_ROOT}:/fixture:ro
+      - provider-tls:/tls
+      - provider-secrets:/runtime
+      - provider-admin:/admin
+    network_mode: none
+  provider-database:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_PASSWORD_FILE: /admin/password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    command: [postgres, -c, ssl=on, -c, ssl_cert_file=/tls/server.crt, -c, ssl_key_file=/tls/server.key, -c, hba_file=/tls/pg_hba.conf]
+    volumes: ["provider-tls:/tls:ro", "provider-admin:/admin:ro", "provider-database:/var/lib/postgresql/data"]
+    networks:
+      private:
+        aliases: [db.abcdefghijklmnopqrst.supabase.co]
+    depends_on:
+      runtime-prepare: {condition: service_completed_successfully}
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres]
+      interval: 2s
+      retries: 30
+  runtime-setup:
+    image: growthcast-supabase-preflight
+    entrypoint: [node, /app/deployment/runtime/test/database.mjs]
+    volumes:
+      - ${RUNTIME_TEST_ROOT}/../..:/app/deployment:ro
+      - provider-secrets:/runtime:ro
+      - provider-admin:/admin:ro
+    networks: [private]
+    depends_on:
+      provider-database: {condition: service_healthy}
+  documenso:
+    image: growthcast-documenso-runtime
+    entrypoint: [/usr/local/bin/node, /boundary/deployment/runtime/start.mjs]
+    command: [/usr/local/bin/node, /app/apps/remix/build/server/main.js]
+    environment: !override
+      GC_SERVICE: documenso
+      SUPABASE_PROJECT_REF: abcdefghijklmnopqrst
+    volumes:
+      - provider-secrets:/run/secrets:ro
+    depends_on: !override
+      runtime-setup: {condition: service_completed_successfully}
+      prepare: {condition: service_completed_successfully}
+      mail: {condition: service_started}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  seed:
+    image: growthcast-documenso-runtime
+    entrypoint: [/usr/local/bin/node, /boundary/deployment/runtime/start.mjs]
+    command: [/usr/local/bin/node, /fixture/seed-provider.cjs]
+    environment: !override
+      GC_SERVICE: documenso
+      SUPABASE_PROJECT_REF: abcdefghijklmnopqrst
+    volumes:
+      - provider-secrets:/run/secrets:ro
+volumes:
+  provider-tls:
+  provider-secrets:
+  provider-admin:
+  provider-database:

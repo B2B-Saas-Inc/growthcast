@@ -1,0 +1,426 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Staging-only restricted recipient gateway and signature completion worker.",
+  "Parameters": {
+    "DesiredCount": {
+      "Type": "Number",
+      "Default": 0,
+      "AllowedValues": [
+        0,
+        1
+      ]
+    }
+  },
+  "Resources": {
+    "ProviderEgress": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": "sg-0f7598d18f8dead4d",
+        "IpProtocol": "tcp",
+        "FromPort": 3000,
+        "ToPort": 3000,
+        "DestinationSecurityGroupId": "sg-0fa95ba1b6bb06e76"
+      }
+    },
+    "GatewayEgress": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": "sg-0cb008edaefe426cb",
+        "IpProtocol": "tcp",
+        "FromPort": 3003,
+        "ToPort": 3003,
+        "DestinationSecurityGroupId": "sg-0f7598d18f8dead4d"
+      }
+    },
+    "GatewayIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": "sg-0f7598d18f8dead4d",
+        "IpProtocol": "tcp",
+        "FromPort": 3003,
+        "ToPort": 3003,
+        "SourceSecurityGroupId": "sg-0cb008edaefe426cb"
+      }
+    },
+    "Target": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "VpcId": "vpc-050c8ec2a26b395bb",
+        "Port": 3003,
+        "Protocol": "HTTP",
+        "TargetType": "ip",
+        "HealthCheckPath": "/health",
+        "Matcher": {
+          "HttpCode": "200"
+        },
+        "HealthCheckIntervalSeconds": 15,
+        "HealthyThresholdCount": 2,
+        "TargetGroupAttributes": [
+          {
+            "Key": "deregistration_delay.timeout_seconds",
+            "Value": "30"
+          }
+        ]
+      }
+    },
+    "SigningApi": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "ListenerArn": "arn:aws:elasticloadbalancing:us-east-1:059393269249:listener/app/growth-LoadB-IHCKzGhNysfe/a0ade727e1d8d6cd/ef1026d8f0e0e365",
+        "Priority": 3,
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "Values": [
+              "api.clients.staging.growthcast.app"
+            ]
+          },
+          {
+            "Field": "path-pattern",
+            "Values": [
+              "/api/trpc/*",
+              "/api/files/token/*",
+              "/api/auth/session-json"
+            ]
+          }
+        ],
+        "Actions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "Target"
+            }
+          }
+        ]
+      }
+    },
+    "SigningPage": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "Properties": {
+        "ListenerArn": "arn:aws:elasticloadbalancing:us-east-1:059393269249:listener/app/growth-LoadB-IHCKzGhNysfe/a0ade727e1d8d6cd/ef1026d8f0e0e365",
+        "Priority": 20,
+        "Conditions": [
+          {
+            "Field": "host-header",
+            "Values": [
+              "api.clients.staging.growthcast.app"
+            ]
+          },
+          {
+            "Field": "path-pattern",
+            "Values": [
+              "/*"
+            ]
+          }
+        ],
+        "Actions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "Target"
+            }
+          }
+        ]
+      }
+    },
+    "GatewayTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": "growthcast-portal-staging-signing-gateway",
+        "Cpu": "256",
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "RuntimePlatform": {
+          "CpuArchitecture": "ARM64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "TaskRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-staging-signing-gateway",
+        "ExecutionRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-staging-backup-execution",
+        "Volumes": [
+          {
+            "Name": "private"
+          },
+          {
+            "Name": "tmp"
+          }
+        ],
+        "ContainerDefinitions": [
+          {
+            "Name": "gateway",
+            "Image": "059393269249.dkr.ecr.us-east-1.amazonaws.com/growthcast-portal-staging-backup@sha256:92725feacf66232dd782a425ee58e5e98161b91210efac41599d9caae2ad949b",
+            "Essential": true,
+            "User": "1000:1000",
+            "ReadonlyRootFilesystem": true,
+            "StopTimeout": 120,
+            "LinuxParameters": {
+              "Capabilities": {
+                "Drop": [
+                  "ALL"
+                ]
+              },
+              "InitProcessEnabled": true
+            },
+            "EntryPoint": [
+              "node"
+            ],
+            "Command": [
+              "/app/guest-documents/runtime/signing-start.mjs"
+            ],
+            "Environment": [
+              {
+                "Name": "GC_SIGNING_SERVICE",
+                "Value": "gateway"
+              }
+            ],
+            "MountPoints": [
+              {
+                "SourceVolume": "private",
+                "ContainerPath": "/run/gateway",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "tmp",
+                "ContainerPath": "/tmp",
+                "ReadOnly": false
+              }
+            ],
+            "PortMappings": [
+              {
+                "ContainerPort": 3003,
+                "Protocol": "tcp"
+              }
+            ],
+            "HealthCheck": {
+              "Command": [
+                "CMD",
+                "node",
+                "-e",
+                "fetch('http://127.0.0.1:3003/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+              ],
+              "Interval": 15,
+              "Timeout": 5,
+              "Retries": 3,
+              "StartPeriod": 90
+            },
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": "/growthcast/portal/staging/signing-provider",
+                "awslogs-region": "us-east-1",
+                "awslogs-stream-prefix": "gateway"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "GatewayService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "SigningApi",
+        "SigningPage",
+        "ProviderEgress",
+        "GatewayIngress",
+        "GatewayEgress"
+      ],
+      "Properties": {
+        "ServiceName": "growthcast-portal-staging-signing-gateway",
+        "Cluster": "growthcast-portal-staging-api",
+        "TaskDefinition": {
+          "Ref": "GatewayTask"
+        },
+        "DesiredCount": {
+          "Ref": "DesiredCount"
+        },
+        "LaunchType": "FARGATE",
+        "PlatformVersion": "1.4.0",
+        "DeploymentConfiguration": {
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "Rollback": true
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "Subnets": [
+              "subnet-04b81b2e5843bbe9d",
+              "subnet-0e7f549894907a925"
+            ],
+            "SecurityGroups": [
+              "sg-0f7598d18f8dead4d"
+            ],
+            "AssignPublicIp": "ENABLED"
+          }
+        },
+        "HealthCheckGracePeriodSeconds": 120,
+        "LoadBalancers": [
+          {
+            "ContainerName": "gateway",
+            "ContainerPort": 3003,
+            "TargetGroupArn": {
+              "Ref": "Target"
+            }
+          }
+        ]
+      }
+    },
+    "LifecycleTask": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": "growthcast-portal-staging-signing-lifecycle",
+        "Cpu": "256",
+        "Memory": "512",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "RuntimePlatform": {
+          "CpuArchitecture": "ARM64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "TaskRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-staging-signing-lifecycle",
+        "ExecutionRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-staging-backup-execution",
+        "Volumes": [
+          {
+            "Name": "private"
+          },
+          {
+            "Name": "tmp"
+          }
+        ],
+        "ContainerDefinitions": [
+          {
+            "Name": "lifecycle",
+            "Image": "059393269249.dkr.ecr.us-east-1.amazonaws.com/growthcast-portal-staging-backup@sha256:59d54443470d6084a55d9e3cda04866dde7fb3e76936528f049def9a7bd35f19",
+            "Essential": true,
+            "User": "1000:1000",
+            "ReadonlyRootFilesystem": true,
+            "StopTimeout": 120,
+            "LinuxParameters": {
+              "Capabilities": {
+                "Drop": [
+                  "ALL"
+                ]
+              },
+              "InitProcessEnabled": true
+            },
+            "EntryPoint": [
+              "node"
+            ],
+            "Command": [
+              "/app/guest-documents/runtime/signing-start.mjs"
+            ],
+            "Environment": [
+              {
+                "Name": "GC_SIGNING_SERVICE",
+                "Value": "lifecycle"
+              }
+            ],
+            "MountPoints": [
+              {
+                "SourceVolume": "private",
+                "ContainerPath": "/run/lifecycle",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "tmp",
+                "ContainerPath": "/tmp",
+                "ReadOnly": false
+              }
+            ],
+            "PortMappings": [
+              {
+                "ContainerPort": 3004,
+                "Protocol": "tcp"
+              }
+            ],
+            "HealthCheck": {
+              "Command": [
+                "CMD",
+                "node",
+                "-e",
+                "fetch('http://127.0.0.1:3004/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+              ],
+              "Interval": 15,
+              "Timeout": 5,
+              "Retries": 3,
+              "StartPeriod": 90
+            },
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": "/growthcast/portal/staging/signing-provider",
+                "awslogs-region": "us-east-1",
+                "awslogs-stream-prefix": "lifecycle"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "LifecycleService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "SigningApi",
+        "SigningPage",
+        "ProviderEgress",
+        "GatewayIngress",
+        "GatewayEgress"
+      ],
+      "Properties": {
+        "ServiceName": "growthcast-portal-staging-signing-lifecycle",
+        "Cluster": "growthcast-portal-staging-api",
+        "TaskDefinition": {
+          "Ref": "LifecycleTask"
+        },
+        "DesiredCount": {
+          "Ref": "DesiredCount"
+        },
+        "LaunchType": "FARGATE",
+        "PlatformVersion": "1.4.0",
+        "DeploymentConfiguration": {
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "Rollback": true
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "Subnets": [
+              "subnet-04b81b2e5843bbe9d",
+              "subnet-0e7f549894907a925"
+            ],
+            "SecurityGroups": [
+              "sg-0f7598d18f8dead4d"
+            ],
+            "AssignPublicIp": "ENABLED"
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "GatewayTargetArn": {
+      "Value": {
+        "Ref": "Target"
+      }
+    },
+    "GatewayServiceArn": {
+      "Value": {
+        "Ref": "GatewayService"
+      }
+    },
+    "LifecycleServiceArn": {
+      "Value": {
+        "Ref": "LifecycleService"
+      }
+    }
+  }
+}

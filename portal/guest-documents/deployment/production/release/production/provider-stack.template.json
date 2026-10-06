@@ -1,0 +1,270 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Private production Documenso provider; existing VPC, cluster, runtime role and secrets.",
+  "Resources": {
+    "Namespace": {
+      "Type": "AWS::ServiceDiscovery::PrivateDnsNamespace",
+      "Properties": {
+        "Name": "signing.production.growthcast.internal",
+        "Vpc": "vpc-00de83d5f8563f216"
+      }
+    },
+    "Discovery": {
+      "Type": "AWS::ServiceDiscovery::Service",
+      "Properties": {
+        "Name": "documenso",
+        "DnsConfig": {
+          "NamespaceId": {
+            "Ref": "Namespace"
+          },
+          "DnsRecords": [
+            {
+              "Type": "A",
+              "TTL": 10
+            }
+          ],
+          "RoutingPolicy": "MULTIVALUE"
+        },
+        "HealthCheckCustomConfig": {
+          "FailureThreshold": 1
+        }
+      }
+    },
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Documenso reachable only from portal service",
+        "VpcId": "vpc-00de83d5f8563f216",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 3000,
+            "ToPort": 3000,
+            "SourceSecurityGroupId": "sg-05d156000893ea372"
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "-1",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "Logs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/growthcast/portal/production/signing-provider",
+        "RetentionInDays": 14
+      }
+    },
+    "Task": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": "growthcast-portal-production-signing-provider",
+        "NetworkMode": "awsvpc",
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "Cpu": "1024",
+        "Memory": "2048",
+        "RuntimePlatform": {
+          "CpuArchitecture": "ARM64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "TaskRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-production-documenso-runtime",
+        "ExecutionRoleArn": "arn:aws:iam::059393269249:role/growthcast-portal-production-execution",
+        "Volumes": [
+          {
+            "Name": "delivered"
+          },
+          {
+            "Name": "origin"
+          },
+          {
+            "Name": "connections"
+          },
+          {
+            "Name": "storage"
+          },
+          {
+            "Name": "config"
+          },
+          {
+            "Name": "tmp"
+          }
+        ],
+        "ContainerDefinitions": [
+          {
+            "Name": "provider",
+            "Image": "059393269249.dkr.ecr.us-east-1.amazonaws.com/growthcast-portal-production@sha256:b6d41b03f169b4c41dea91661416a04025f93a1e0c4d034ab825a573062e4364",
+            "Essential": true,
+            "User": "1001:65533",
+            "ReadonlyRootFilesystem": true,
+            "LinuxParameters": {
+              "Capabilities": {
+                "Drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "PortMappings": [
+              {
+                "ContainerPort": 3000,
+                "Protocol": "tcp"
+              }
+            ],
+            "Environment": [
+              {
+                "Name": "GC_SERVICE",
+                "Value": "documenso"
+              },
+              {
+                "Name": "GC_SECRET_MODE",
+                "Value": "secretsmanager"
+              },
+              {
+                "Name": "GC_CONNECTION_MODE",
+                "Value": "secretsmanager"
+              },
+              {
+                "Name": "SUPABASE_PROJECT_REF",
+                "Value": "mdjldxussxdtcjxsoesr"
+              }
+            ],
+            "MountPoints": [
+              {
+                "SourceVolume": "delivered",
+                "ContainerPath": "/run/delivered",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "origin",
+                "ContainerPath": "/run/origin",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "connections",
+                "ContainerPath": "/run/connections",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "storage",
+                "ContainerPath": "/run/storage",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "config",
+                "ContainerPath": "/run/config",
+                "ReadOnly": false
+              },
+              {
+                "SourceVolume": "tmp",
+                "ContainerPath": "/tmp",
+                "ReadOnly": false
+              }
+            ],
+            "HealthCheck": {
+              "Command": [
+                "CMD",
+                "/usr/local/bin/node",
+                "-e",
+                "fetch('http://127.0.0.1:3000/api/health').then(async r=>{const h=await r.json();process.exit(r.ok&&h.checks?.database?.status==='ok'&&h.checks?.certificate?.status==='ok'?0:1)}).catch(()=>process.exit(1))"
+              ],
+              "Interval": 15,
+              "Timeout": 5,
+              "Retries": 3,
+              "StartPeriod": 90
+            },
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "Logs"
+                },
+                "awslogs-region": "us-east-1",
+                "awslogs-stream-prefix": "provider"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "Service": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": [
+        "Logs"
+      ],
+      "Properties": {
+        "ServiceName": "growthcast-portal-production-signing-provider",
+        "Cluster": "growthcast-portal-production-api",
+        "TaskDefinition": {
+          "Ref": "Task"
+        },
+        "DesiredCount": 1,
+        "LaunchType": "FARGATE",
+        "PlatformVersion": "1.4.0",
+        "DeploymentConfiguration": {
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "Rollback": true
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "Subnets": [
+              "subnet-03aae91eef1901d5d",
+              "subnet-0c0b01954bff6ce81"
+            ],
+            "SecurityGroups": [
+              {
+                "Ref": "SecurityGroup"
+              }
+            ],
+            "AssignPublicIp": "ENABLED"
+          }
+        },
+        "ServiceRegistries": [
+          {
+            "RegistryArn": {
+              "Fn::GetAtt": [
+                "Discovery",
+                "Arn"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ServiceArn": {
+      "Value": {
+        "Ref": "Service"
+      }
+    },
+    "TaskDefinitionArn": {
+      "Value": {
+        "Ref": "Task"
+      }
+    },
+    "SecurityGroup": {
+      "Value": {
+        "Ref": "SecurityGroup"
+      }
+    },
+    "DiscoveryArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Discovery",
+          "Arn"
+        ]
+      }
+    },
+    "PrivateOrigin": {
+      "Value": "http://documenso.signing.production.growthcast.internal:3000"
+    }
+  }
+}

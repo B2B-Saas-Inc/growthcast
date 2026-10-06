@@ -7,3 +7,5 @@ baseline.csv
 .env
 .env.*
 !.env.example
+.firecrawl
+portal

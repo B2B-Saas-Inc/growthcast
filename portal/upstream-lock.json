@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-22",
+  "purpose": "Local compatibility investigation; not a production release manifest",
+  "atrium": {
+    "repository": "https://github.com/Vibra-Labs/Atrium.git",
+    "revision": "1a94a30b9aabe0e2d444c9239c4898d18b0dd5e2",
+    "reference": "refs/heads/main",
+    "license": "Elastic-2.0",
+    "productionImage": null
+  },
+  "documenso": {
+    "repository": "https://github.com/documenso/documenso.git",
+    "revision": "389390c884949fe27c240488a3259da3cdba93e0",
+    "reference": "refs/tags/v2.18.0",
+    "license": "AGPL-3.0; enterprise code requires separate review",
+    "productionImage": null
+  },
+  "spikeRuntimeImage": "node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf"
+}

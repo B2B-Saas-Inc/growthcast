@@ -1,0 +1,23 @@
+services:
+  provision:
+    command: [node, /foundation/provision-managed.mjs]
+    volumes:
+      - ${MANAGED_ATRIUM_ROOT}/provision-local.mjs:/foundation/provision-managed.mjs:ro
+      - ${MANAGED_ATRIUM_ROOT}/../isolation.sql:/managed/isolation.sql:ro
+  migration: &managed
+    volumes:
+      - ${MANAGED_ATRIUM_ROOT}/migrate.mjs:/foundation/migrate.mjs:ro
+      - ${MANAGED_ATRIUM_ROOT}/migrations:/foundation/migrations:ro
+      - ${MANAGED_ATRIUM_ROOT}/integration.check.mjs:/foundation/check.mjs:ro
+  runtime:
+    <<: *managed
+  recovery-check:
+    <<: *managed
+  application:
+    volumes:
+      - ${MANAGED_ATRIUM_ROOT}/migrate.mjs:/foundation/migrate.mjs:ro
+      - ${MANAGED_ATRIUM_ROOT}/migrations:/foundation/migrations:ro
+      - ${MANAGED_ATRIUM_ROOT}/application-env.mjs:/foundation/application-env.mjs:ro
+  backup:
+    volumes:
+      - ${MANAGED_ATRIUM_ROOT}/backup.sh:/fixture/backup.sh:ro
