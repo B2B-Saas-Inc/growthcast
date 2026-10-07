@@ -1,3 +1,0 @@
-FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf
-RUN apk add --no-cache curl && npm install --global --ignore-scripts --no-audit --no-fund vercel@60.0.1
-ENTRYPOINT ["vercel"]

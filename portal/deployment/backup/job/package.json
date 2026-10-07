@@ -1,1 +1,0 @@
-{"name":"growthcast-backup-job","version":"0.1.0","private":true,"type":"module","dependencies":{"pg":"8.16.3","@aws-sdk/client-s3":"3.1139.0","@aws-sdk/client-kms":"3.1139.0","@aws-sdk/client-secrets-manager":"3.1139.0","@aws-sdk/client-cloudwatch":"3.1139.0","@aws-sdk/credential-providers":"3.1139.0"}}

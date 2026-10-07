@@ -1,6 +1,0 @@
-services:
-  runtime-prepare:
-    entrypoint: [node, /closeout/inject-recovered.mjs, documenso]
-    volumes:
-      - ${PHASE2_CLOSEOUT_ROOT}:/closeout:ro
-      - ${PHASE2_CLOSEOUT_INPUT}:/escrow:ro

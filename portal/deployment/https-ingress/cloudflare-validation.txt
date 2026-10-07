@@ -1,6 +1,0 @@
-Zone: growthcast.app
-Type: CNAME
-Name: _2cf0a0e9e08688ee93c9ac2704ff0d44.api.clients.staging
-Target: _6cbafb52ac4de426791aed969ef42140.wzccmgtwzk.acm-validations.aws
-Proxy status: DNS only
-TTL: Auto
