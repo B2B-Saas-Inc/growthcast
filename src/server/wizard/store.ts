@@ -54,9 +54,12 @@ export type JobRow = {
   output: string | null;
   error: string | null;
   model: string | null;
+  progress: JobProgress | null;
   started_at: Date;
   finished_at: Date | null;
 };
+/** Which stage a running job is in: `step` of `steps`, with a short label shown to the user. */
+export type JobProgress = { step: number; steps: number; label: string };
 
 export const remaining = (user: UserRow, device: DeviceRow) =>
   Math.max(0, Math.min(LIMITS.generations - user.generations_used, LIMITS.generations - device.generations_used));
@@ -172,7 +175,7 @@ export async function listJobs(sql: Sql, runId: string) {
     update wizard.jobs set status = 'failed', error = 'The job stopped before finishing. Try again.', finished_at = now()
     where run_id = ${runId} and status = 'running' and started_at < now() - ${`${Math.round(LIMITS.staleJobMs / 1000)} seconds`}::interval`;
   return sql<JobRow[]>`
-    select id, module, status, input, output, error, model, started_at, finished_at
+    select id, module, status, input, output, error, model, progress, started_at, finished_at
     from wizard.jobs where run_id = ${runId} order by started_at`;
 }
 
@@ -180,12 +183,16 @@ export async function startJob(sql: Sql, runId: string, module: JobRow["module"]
   try {
     const [job] = await sql<JobRow[]>`
       insert into wizard.jobs (run_id, module, input) values (${runId}, ${module}, ${sql.json(input as postgres.JSONValue)})
-      returning id, module, status, input, output, error, model, started_at, finished_at`;
+      returning id, module, status, input, output, error, model, progress, started_at, finished_at`;
     return job;
   } catch (error) {
     if ((error as { code?: string }).code === "23505") throw new InputError("Another module is still running for this run. Wait for it to finish.", 409);
     throw error;
   }
+}
+
+export async function setProgress(sql: Sql, id: string, progress: JobProgress) {
+  await sql`update wizard.jobs set progress = ${sql.json(progress)} where id = ${id} and status = 'running'`;
 }
 
 export async function finishJob(sql: Sql, id: string, output: string, model: string, usage: unknown) {

@@ -106,6 +106,22 @@ fieldset legend { margin-bottom: 8px; font: 12px "DM Mono", monospace; letter-sp
 .wzBundlePanel h4 { margin: 0; font-size: 20px; letter-spacing: -0.03em; }
 .wzExportLabel { align-self: center; margin-right: 4px; font: 12px "DM Mono", monospace; color: var(--wz-muted); }
 
+/* Progress */
+.wzProgress { display: grid; gap: 12px; margin-bottom: 18px; padding: 18px 20px; border: 1px solid var(--wz-ink); background: var(--wz-paper); }
+.wzProgressHead { display: flex; align-items: center; gap: 10px; }
+.wzProgressHead b { font-size: 17px; letter-spacing: -0.02em; }
+.wzElapsed { margin-left: auto; font: 13px "DM Mono", monospace; color: var(--wz-muted); font-variant-numeric: tabular-nums; }
+.wzBar { height: 6px; background: #ebe7dd; overflow: hidden; }
+.wzBar span { display: block; height: 100%; background: var(--wz-coral); transition: width 0.9s ease; }
+.wzStages { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--wz-muted); }
+.wzStages li { display: flex; align-items: center; gap: 8px; }
+.wzStages li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--wz-line-2); }
+.wzStages li.done::before { background: #3f7d3a; }
+.wzStages li.current { color: var(--wz-ink); font-weight: 600; }
+.wzStages li.current::before { background: var(--wz-coral); box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.25); }
+.wzStages small { font-weight: 400; color: var(--wz-muted); }
+@media (prefers-reduced-motion: reduce) { .wzBar span { transition: none; } }
+
 /* Output document */
 .wzOutput { min-width: 0; }
 .wzTabs, .wzDocActions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }

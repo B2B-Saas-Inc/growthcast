@@ -5,7 +5,7 @@ import { wizardEnv } from "./config";
 import { htmlToText, isPublicAddress } from "./fetch-url";
 import { handleWizard, type Req } from "./handler";
 import { chat, citationsFrom } from "./openrouter";
-import { checkLimits } from "./pipeline";
+import { checkLimits, pendingCounts } from "./pipeline";
 import { evidenceBlock, modulePrompt, researchPrompt, WEB_APP_RULES } from "./prompts";
 import { COOKIE_NAME, readCookie, signDevice, verifyDevice } from "./session";
 import type { JobRow, RunRow } from "./store";
@@ -161,7 +161,7 @@ describe("prompts", () => {
 describe("module limits", () => {
   const run = { icp: null } as unknown as RunRow;
   const job = (module: JobRow["module"], extra: Partial<JobRow> = {}): JobRow =>
-    ({ id: crypto.randomUUID(), module, status: "succeeded", input: {}, output: "# x", error: null, model: null, started_at: new Date(), finished_at: new Date(), ...extra });
+    ({ id: crypto.randomUUID(), module, status: "succeeded", input: {}, output: "# x", error: null, model: null, progress: null, started_at: new Date(), finished_at: new Date(), ...extra });
   const req = (module: v.Module, extra = {}) => ({ runId: DEVICE, module, notes: "", reviseJobId: null, copy: null, ...extra });
 
   it("enforces module order", () => {
@@ -177,6 +177,13 @@ describe("module limits", () => {
     expect(() => checkLimits(req("jtbd", { reviseJobId: target.id, notes: "x" }), [target, ...revisions], run)).toThrow(/3 revisions/u);
     const copies = [1, 2, 3, 4, 5].map(() => job("copy"));
     expect(() => checkLimits(req("copy"), [job("pmm"), ...copies], run)).toThrow(/5 copy pieces/u);
+  });
+});
+
+describe("progress stages", () => {
+  it("counts only pending links and PDFs as evidence stages", () => {
+    const row = (kind: "url" | "upload", status: string, mime: string | null = null) => ({ kind, status, mime }) as never;
+    expect(pendingCounts([row("url", "pending"), row("url", "ready"), row("upload", "pending", "application/pdf"), row("upload", "ready", "text/plain")])).toEqual({ links: 1, pdfs: 1 });
   });
 });
 

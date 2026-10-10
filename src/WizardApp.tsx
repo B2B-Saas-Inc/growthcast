@@ -18,7 +18,8 @@ import { renderMarkdown } from "./wizard/markdown";
 
 type ModuleId = "research" | "jtbd" | "positioning" | "pmm" | "copy";
 type Me = { firstName: string; email: string; remaining: number; runs: { id: string; product: string; feature: string; created_at: string; modules: string[] }[] };
-type Job = { id: string; module: ModuleId; status: "running" | "succeeded" | "failed"; input: { reviseJobId?: string; copy?: { format?: string } }; output: string | null; error: string | null; startedAt: string };
+type Job = { id: string; module: ModuleId; status: "running" | "succeeded" | "failed"; input: { reviseJobId?: string; copy?: { format?: string } }; output: string | null; error: string | null; progress?: { step: number; steps: number; label: string } | null; startedAt: string };
+type Pending = { module: ModuleId; revise: boolean; startedAt: number };
 type Evidence = { id: string; kind: "upload" | "url"; name: string; url: string | null; urlType: string | null; note: string; status: "pending" | "ready" | "failed"; error: string | null; chars: number };
 type Brief = { kinds: string[]; competitors: string; queries: string; audience: string; depth: "standard" | "deep" };
 type RunData = {
@@ -83,6 +84,7 @@ export default function WizardApp({ onContact }: { onContact: () => void }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<Pending | null>(null);
 
   const loadMe = useCallback(async () => {
     try {
@@ -153,11 +155,12 @@ export default function WizardApp({ onContact }: { onContact: () => void }) {
   }, [runId, me]);
 
   const running = data?.jobs.find((j) => j.status === "running") ?? null;
+  const working = !!running || !!pending;
   useEffect(() => {
-    if (!running || !runId) return;
-    const timer = window.setInterval(() => void loadRun(runId), 4000);
+    if (!working || !runId) return;
+    const timer = window.setInterval(() => void loadRun(runId), 3000);
     return () => window.clearInterval(timer);
-  }, [running, runId, loadRun]);
+  }, [working, runId, loadRun]);
 
   const signOut = async () => {
     await api("logout", { method: "POST", body: {} }).catch(() => null);
@@ -185,12 +188,14 @@ export default function WizardApp({ onContact }: { onContact: () => void }) {
           setStep={setStep}
           busy={busy || !!running}
           running={running}
+          pending={pending}
           onBack={() => { openRun(null); void loadMe(); }}
           refresh={() => loadRun(data.run.id)}
-          act={async (fn, success) => {
+          act={async (fn, success, track) => {
             setBusy(true);
             setError("");
             setNotice("");
+            if (track) setPending({ ...track, startedAt: Date.now() });
             try {
               await fn();
               if (success) setNotice(success);
@@ -198,6 +203,7 @@ export default function WizardApp({ onContact }: { onContact: () => void }) {
               setError((e as Error).message);
             } finally {
               setBusy(false);
+              setPending(null);
               await loadRun(data.run.id);
             }
           }}
@@ -320,10 +326,10 @@ function Dashboard({ me, onOpen, onCreated, onContact }: { me: Me; onOpen: (id: 
   );
 }
 
-type Act = (fn: () => Promise<unknown>, success?: string) => Promise<void>;
+type Act = (fn: () => Promise<unknown>, success?: string, track?: Omit<Pending, "startedAt">) => Promise<void>;
 
-function RunView({ data, step, setStep, busy, running, onBack, refresh, act }: {
-  data: RunData; step: ModuleId; setStep: (s: ModuleId) => void; busy: boolean; running: Job | null;
+function RunView({ data, step, setStep, busy, running, pending, onBack, refresh, act }: {
+  data: RunData; step: ModuleId; setStep: (s: ModuleId) => void; busy: boolean; running: Job | null; pending: Pending | null;
   onBack: () => void; refresh: () => Promise<unknown>; act: Act;
 }) {
   const current = STEPS.find((s) => s.id === step)!;
@@ -355,7 +361,7 @@ function RunView({ data, step, setStep, busy, running, onBack, refresh, act }: {
         <h3>{current.title}</h3>
         <p>{current.desc}</p>
       </div>
-      {running && <p className="wzRunning" role="status"><span className="wzSpinner" aria-hidden="true" /> {STEPS.find((s) => s.id === running.module)?.name} is running. This usually takes one to three minutes. You can leave this page and come back.</p>}
+      {(running || pending) && <ProgressPanel key={running?.id ?? pending?.module} job={running} pending={pending} />}
       {step === "copy" && done(data, "copy") && (
         <div className="wzPanel wzBundlePanel">
           <div>
@@ -387,7 +393,64 @@ function runModule(act: Act, runId: string, body: Record<string, unknown>, succe
       throw e;
     });
     if (result.job.status !== "succeeded") throw new Error(result.job.error ?? "The step failed. Try again.");
-  }, success);
+  }, success, { module: body.module as ModuleId, revise: !!body.reviseJobId });
+}
+
+// Typical durations in seconds, used only to pace the bar between real server stages.
+const EXPECTED_SECONDS: Record<ModuleId, number> = { research: 150, jtbd: 120, positioning: 90, pmm: 100, copy: 70 };
+const RUN_TITLES: Record<ModuleId, string> = {
+  research: "Researching your evidence",
+  jtbd: "Running the Jobs-to-be-Done analysis",
+  positioning: "Building your positioning",
+  pmm: "Writing ICP marketing guidance",
+  copy: "Writing your copy",
+};
+const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+
+function ProgressPanel({ job, pending }: { job: Job | null; pending: Pending | null }) {
+  const module = pending?.module ?? job!.module;
+  const revise = pending?.revise ?? !!job?.input.reviseJobId;
+  const startedAt = pending?.startedAt ?? Date.parse(job!.startedAt);
+  const [now, setNow] = useState(() => Date.now());
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    panel.current?.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    return () => window.clearInterval(timer);
+  }, []);
+  const elapsed = Math.max(0, (now - startedAt) / 1000);
+  const expected = revise ? 60 : EXPECTED_SECONDS[module];
+  const progress = job && job.module === module ? job.progress ?? null : null;
+  // The bar never claims completion: real stages set a floor, time fills in between, and it tops out at 95%.
+  const floor = progress ? (progress.step - 1) / progress.steps : 0;
+  const pct = Math.round(Math.min(0.95, Math.max(floor + 0.03, 0.95 * (1 - Math.exp(-elapsed / expected)))) * 100);
+  const name = STEPS.find((s) => s.id === module)!.name;
+  const label = progress?.label ?? (job ? "Starting" : "Sending your brief");
+  const note =
+    elapsed > 300
+      ? "This is taking unusually long. If it does not finish soon it will be marked as failed, and you can try again."
+      : elapsed > expected * 1.5
+        ? "Taking longer than usual. Still working: web research and long documents can take up to five minutes."
+        : `Usually takes about ${Math.round(expected / 60) || 1} minute${expected >= 90 ? "s" : ""}. You can switch tabs; keep this page open until it finishes.`;
+  return (
+    <div className="wzProgress" ref={panel}>
+      <div className="wzProgressHead">
+        <span className="wzSpinner" aria-hidden="true" />
+        <b>{revise ? `Revising ${name}` : RUN_TITLES[module]}</b>
+        <span className="wzElapsed" aria-label={`Elapsed ${clock(elapsed)}`}>{clock(elapsed)}</span>
+      </div>
+      <div className="wzBar" role="progressbar" aria-label={`${name} progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-valuetext={label}>
+        <span style={{ width: `${pct}%` }} />
+      </div>
+      <ol className="wzStages" aria-live="polite">
+        <li className="done">Brief received</li>
+        <li className="current">{label}{progress && progress.steps > 1 ? <small> (stage {progress.step} of {progress.steps})</small> : null}</li>
+        <li>Save and show the document</li>
+      </ol>
+      <p className="wzMuted">{note}</p>
+    </div>
+  );
 }
 
 function NotesField({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {

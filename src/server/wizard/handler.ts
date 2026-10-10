@@ -19,7 +19,7 @@ function routeOf(req: Req) {
 }
 
 function publicJob(j: store.JobRow) {
-  return { id: j.id, module: j.module, status: j.status, input: j.input, output: j.output, error: j.error, startedAt: j.started_at, finishedAt: j.finished_at };
+  return { id: j.id, module: j.module, status: j.status, input: j.input, output: j.output, error: j.error, progress: j.progress, startedAt: j.started_at, finishedAt: j.finished_at };
 }
 
 async function captureSignup(env: ReturnType<typeof wizardEnv>, user: store.UserRow) {
