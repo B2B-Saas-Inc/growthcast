@@ -6,10 +6,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/wizard/:route*",
-      "destination": "/api/wizard?route=:route*"
-    },
-    {
       "source": "/clients/proposals/bluealpha",
       "destination": "/api/bluealpha-proposal"
     },
@@ -73,10 +69,6 @@
     "api/photoshelter-proposal.ts": {
       "includeFiles": "server-assets/photoshelter-proposal.enc",
       "maxDuration": 15
-    },
-    "api/wizard.ts": {
-      "includeFiles": "server-assets/wizard-skills/**",
-      "maxDuration": 300
     }
   }
 }

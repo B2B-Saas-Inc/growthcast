@@ -1,10 +1,5 @@
 import ServicesNav from "./components/ServicesNav";
-import { type FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-
-const WizardApp = lazy(() => import("./WizardApp"));
-const noSubscribe = () => () => {};
-// The wizard is client-only: rendering the lazy chunk on the server would emit an inline recovery script that the CSP blocks.
-const useIsClient = () => useSyncExternalStore(noSubscribe, () => true, () => false);
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 type PageView =
   | "home"
@@ -20,8 +15,7 @@ type PageView =
   | "about"
   | "philosophy"
   | "careers"
-  | "partners"
-  | "wizard";
+  | "partners";
 
 const pageMetadata: Record<PageView, { title: string; description: string; path: string }> = {
   home: { title: "GrowthCast | GTM Engineering for Growth", description: "One growth plan across marketing, product, sales, and data.", path: "/" },
@@ -33,7 +27,6 @@ const pageMetadata: Record<PageView, { title: string; description: string; path:
   philosophy: { title: "GrowthCast Philosophy | AAARRR and Future Demand", description: "How GrowthCast connects the full customer journey with current and future demand.", path: "/company/philosophy" },
   careers: { title: "Careers | GrowthCast", description: "Future opportunities to work with GrowthCast.", path: "/company/careers" },
   partners: { title: "Partners | GrowthCast", description: "The technology partners GrowthCast uses to build modern growth systems.", path: "/company/partners" },
-  wizard: { title: "Positioning Wizard | GrowthCast", description: "Turn customer evidence into Jobs-to-be-Done, positioning, ICP messaging, and ad or website copy.", path: "/resources/positioning-wizard" },
   baseline: { title: "GrowthCast Forecast | Build Your Growth Model", description: "Model traffic, conversion, customers, revenue, churn, and channel spend.", path: "/resources/tools/forecast" },
   forecast: { title: "Growth Forecast | GrowthCast", description: "Review your modeled growth forecast.", path: "/resources/tools/forecast" },
   deepdive: { title: "Growth Forecast Deep Dive | GrowthCast", description: "Explore the drivers behind your growth forecast.", path: "/resources/tools/forecast" },
@@ -43,7 +36,6 @@ const pageMetadata: Record<PageView, { title: string; description: string; path:
 
 const pageFromPath = (path: string): PageView => {
   if (path.startsWith("/resources/tools/forecast")) return "baseline";
-  if (path.startsWith("/resources/positioning-wizard")) return "wizard";
   if (path.startsWith("/why-growthcast")) return "why";
   if (path.startsWith("/how-it-works")) return "how";
   if (path.startsWith("/terms")) return "terms";
@@ -348,7 +340,7 @@ function LegalPage({ type }: { type: "terms" | "privacy" }) {
       <section className="subpageHero">
         <span className="sectionLabel">GrowthCast</span>
         <h1>{isPrivacy ? "Privacy Policy" : "Terms of Use"}</h1>
-        <p>Last updated October 10, 2026.</p>
+        <p>Last updated September 1, 2026.</p>
       </section>
       <section className="legalBody">
         {isPrivacy ? (
@@ -356,15 +348,12 @@ function LegalPage({ type }: { type: "terms" | "privacy" }) {
             <h2>Information we collect</h2>
             <p>When you submit a contact or Growth Plan form, we collect the information you provide. This can include your name, company, business email, title, baseline, and forecast assumptions.</p>
             <p>We also use PostHog to understand how people use this site. PostHog can collect device, browser, page, and interaction data.</p>
-            <h2>Positioning Wizard</h2>
-            <p>When you use the Positioning Wizard, we collect your first name and email, and we store what you submit: product details, uploaded documents, links, research briefs, notes, and the documents the wizard generates. We set a cookie that keeps you signed in on that browser and limits free runs. Links you submit are fetched from our servers. Your submissions and generated documents are sent to our AI service provider (OpenRouter and the model provider it routes to) to produce results, and the wizard may search the public web.</p>
-            <p>Runs are visible only in the browser that created them. We keep wizard data until you ask us to delete it. Do not upload confidential customer data you are not permitted to share.</p>
             <h2>How we use information</h2>
             <p>We use this information to respond to requests, provide GrowthCast services, improve the site, and understand product use. We do not sell personal information.</p>
             <h2>Local model data</h2>
             <p>The Forecast tool stores model progress in your browser. GrowthCast does not receive that model data unless you submit a Growth Plan request.</p>
             <h2>Service providers</h2>
-            <p>We use service providers, including PostHog, our website host, our database host (Supabase), and our AI service provider (OpenRouter), to operate and measure the site. They process information on our behalf.</p>
+            <p>We use service providers, including PostHog and our website host, to operate and measure the site. They process information on our behalf.</p>
             <h2>Your choices</h2>
             <p>You can clear locally stored Forecast data through your browser. To ask about, correct, or delete information you submitted, contact GrowthCast.</p>
           </>
@@ -443,8 +432,6 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
   const [contactStatus, setContactStatus] = useState("");
   const contactDialog = useRef<HTMLElement>(null);
   const contactTrigger = useRef<HTMLElement | null>(null);
-  const isClient = useIsClient();
-  const wizardFallback = <article className="homeCard agencyHome"><p className="wzStatus" role="status">Loading the Positioning Wizard…</p></article>;
 
   useEffect(() => {
     const metadata = pageMetadata[pageView];
@@ -588,7 +575,6 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
     : pageView === "how" ? <AgencyHow onContact={openContact} />
     : pageView === "terms" || pageView === "privacy" ? <LegalPage type={pageView} />
     : pageView === "about" || pageView === "philosophy" || pageView === "careers" || pageView === "partners" ? <CompanyPage type={pageView} />
-    : pageView === "wizard" ? (isClient ? <Suspense fallback={wizardFallback}><WizardApp onContact={openContact} /></Suspense> : wizardFallback)
     : <AgencyHome onForecast={() => window.location.assign("/resources/tools/forecast")} onContact={openContact} />;
 
   return (
@@ -609,8 +595,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
           </details>
           <details className="resourceNav" onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }}>
             <summary>Resources</summary><div>
-              <span>Tools</span><button type="button" onClick={() => window.location.assign("/resources/tools/forecast")}>Forecast</button>
-              <button type="button" className={pageView === "wizard" ? "active" : ""} onClick={() => navigate("wizard", "/resources/positioning-wizard")}>Positioning Wizard</button>
+              <span>Tools</span><button type="button" onClick={() => window.location.assign("/resources/tools/forecast")}>Forecast</button><a href="https://github.com/ejwhite7/marketing-positioning-workshop" target="_blank" rel="noopener noreferrer">Positioning Wizard</a>
               <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog">Blog</a><p>Case Studies <small>Coming soon</small></p>
             </div>
           </details>

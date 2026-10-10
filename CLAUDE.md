@@ -20,9 +20,9 @@ The primary activation action is changing an assumption or loading an assumption
 | Charts | Recharts |
 | Documents/archives | jsPDF, JSZip, html2canvas, html-to-image |
 | Icons | Lucide React |
-| Backend/API | Vercel functions: `/api/lead`, private proposals, and the Positioning Wizard (`/api/wizard/*`) |
-| Database/ORM | Supabase Postgres for the Positioning Wizard only, via `postgres` and SQL migrations in `db/migrations/` |
-| Authentication/tenancy | Forecast: none. Positioning Wizard: unverified email gate plus signed per-browser device cookie |
+| Backend/API | None; explicitly deferred |
+| Database/ORM | None; explicitly deferred |
+| Authentication/tenancy | None; local single-user app |
 | Email/payments/storage/jobs/cache/search | Not applicable |
 | Product analytics | PostHog browser SDK through a first-party Vercel/nginx reverse proxy |
 | Persistence | Browser `localStorage` for reload-safe progress; JSON/CSV import/export |
@@ -100,7 +100,7 @@ npm run content:rendered
 npm run content:schedule:dry-run
 ```
 
-`npm run db:migrate` applies `db/migrations/*.sql` (idempotent, one transaction) using `POSTGRES_URL`; run it with an administrative connection, never during builds. Formatting, email-preview, and worker commands are not configured.
+Formatting, database, email-preview, and worker commands are not configured. Mark new commands in this file when those systems are introduced.
 
 ## Architecture: the complete current stack
 
@@ -206,13 +206,9 @@ JSON exports include:
 
 Exports use `schemaVersion: 3` and support JSON and a two-column CSV representation whose values are JSON encoded. Imports detect `.json` or `.csv`, migrate versions 1 and 2 to B2C defaults, and must parse and validate the entire object before changing state. Reject unsupported versions, missing fields, invalid channel models, negative values, non-finite numbers, and malformed arrays. If the shape changes, increment `schemaVersion`, document it, and provide a migration or clear compatibility error.
 
-### Positioning Wizard
-
-Explicitly requested on 2026-10-10: an email-gated tool at `/resources/positioning-wizard` that runs evidence research, JTBD, positioning, ICP guidance, and copy without a local terminal. The user chose an unverified email gate, 3 full runs per email and per browser, OpenRouter, and Supabase Postgres. See README "Positioning Wizard" for behavior. Rules: runs are scoped to the device cookie and its current user; quota changes happen only in `store.createRun`'s transaction; every request body passes `src/server/wizard/validate.ts`; link fetching must go through `fetch-url.ts` (SSRF guard); model output is rendered only through `src/wizard/markdown.ts`, which escapes HTML. Keep the skill prompts in `server-assets/wizard-skills/` in sync with the Marketing Positioning Workshop plugin (github.com/ejwhite7/marketing-positioning-workshop).
-
 ### Authentication, onboarding, and tenancy
 
-Not applicable to the Forecast tool. The Positioning Wizard is the only exception (see above). Do not add login, cookies, local-storage auth state, workspaces, or tenant logic speculatively. If a hosted multi-user version is approved, design server-side authorization and tenant-scoped persistence before implementation.
+Not applicable to this local single-user version. Do not add login, cookies, local-storage auth state, workspaces, or tenant logic speculatively. If a hosted multi-user version is approved, design server-side authorization and tenant-scoped persistence before implementation.
 
 ### Database, API, billing, email, storage, jobs, and caching
 
@@ -274,10 +270,7 @@ Target WCAG 2.2 AA:
 - `VITE_POSTHOG_KEY`: browser-safe PostHog US project token. Browser analytics remain disabled when omitted. Production should set this in Vercel project settings; never commit a real value.
 - `POSTHOG_PROJECT_TOKEN`: server-only project token used by `/api/lead`; never expose through a `VITE_` name.
 - `POSTHOG_CAPTURE_HOST`: optional server capture origin; defaults to `https://us.i.posthog.com`.
-- `POSTGRES_URL`: server-only Supabase connection for the Positioning Wizard (Vercel Supabase integration). `DATABASE_URL` is accepted as an alternative.
-- `WIZARD_SESSION_SECRET`: server-only, 32+ random characters; signs the wizard device cookie. Configure Preview and Production separately.
-- `WIZARD_OPENROUTER_MODEL`: optional wizard model; defaults to `OPENROUTER_MODEL`.
-- `OPENROUTER_API_KEY`: required server/operator-only credential for `content:generate` and the Positioning Wizard. Never expose it through a `VITE_` variable.
+- `OPENROUTER_API_KEY`: required server/operator-only credential for `content:generate`. Never expose it through a `VITE_` variable.
 - `OPENROUTER_MODEL`: required OpenRouter model identifier for research and generation.
 - `OPENROUTER_BASE_URL`: optional OpenRouter-compatible API root; defaults to `https://openrouter.ai/api/v1`.
 - `OPENROUTER_MAX_ATTEMPTS`: optional bounded HTTP attempt count from 1 to 10; defaults to 3.
