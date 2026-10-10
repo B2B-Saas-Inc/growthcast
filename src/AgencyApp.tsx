@@ -595,7 +595,7 @@ export default function AgencyApp({ initialPath = "/" }: { initialPath?: string 
           </details>
           <details className="resourceNav" onToggle={(event) => { if (event.currentTarget.open) closeSiteMenus(event.currentTarget); }}>
             <summary>Resources</summary><div>
-              <span>Tools</span><button type="button" onClick={() => window.location.assign("/resources/tools/forecast")}>Forecast</button><a href="https://github.com/ejwhite7/paid-media-planner" target="_blank" rel="noreferrer">Campaign Planner for Claude</a>
+              <span>Tools</span><button type="button" onClick={() => window.location.assign("/resources/tools/forecast")}>Forecast</button><a href="https://claude.com/marketplace/plugins/paid-media-planner" target="_blank" rel="noreferrer">Campaign Planner for Claude</a>
               <span>Publishing</span><p>Newsletter <small>Coming soon</small></p><a href="/blog">Blog</a><p>Case Studies <small>Coming soon</small></p>
             </div>
           </details>
