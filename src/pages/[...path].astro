@@ -33,7 +33,9 @@ const metadataByPath: Record<string, { title: string; description: string }> = {
   "/terms": { title: "Terms of Use | GrowthCast", description: "Terms for using GrowthCast and the Forecast tool." },
   "/privacy": { title: "Privacy Policy | GrowthCast", description: "How GrowthCast collects, uses, and protects information." },
 };
-const metadata = metadataByPath[path] || metadataByPath["/"];
+// Static pages build as directories, so Astro reports "/company/about/"; metadata keys have no trailing slash.
+const metadataKey = path.length > 1 ? path.replace(/\/+$/u, "") : path;
+const metadata = metadataByPath[metadataKey] || metadataByPath["/"];
 const isForecast = path.startsWith("/resources/tools/forecast");
 ---
 <BaseLayout {...metadata} canonical={path}>
