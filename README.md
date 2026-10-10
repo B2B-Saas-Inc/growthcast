@@ -6,7 +6,7 @@ GrowthCast is a GTM Engineering agency site for Series A and later companies wit
 
 **Navigation update — 2026-09-26:** the user now explicitly wants Documents in the sidebar. Order: Overview, Projects, Calendar, People, Reports, Documents, Library, Settings. Overview retains its four summary cards and replaces the standalone Documents button/recent list with six section-preview tiles (no Settings tile). This supersedes earlier instructions to keep Documents out of the sidebar.
 
-The application has no accounts or application database. It runs primarily as a static site, with one bounded `/api/lead` serverless endpoint for validated agency lead capture, and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
+The Forecast application has no accounts or application database. The site runs primarily as static pages, with a bounded `/api/lead` serverless endpoint for validated agency lead capture and the email-gated Positioning Wizard backend described below. The Forecast tool and automatically persists the model name, baseline, global assumptions, channel defaults, budget, and channel configuration in browser local storage so progress survives reloads. JSON and CSV exports remain available for sharing and backup. PostHog provides product analytics and receives contact details only when a user explicitly submits a contact or Growth Plan form.
 
 Astro owns the static routes, metadata, blog, RSS feed, and sitemap. The agency and Forecast experience is rendered as a React island so its existing local-first state and export workflows remain interactive without turning the blog into a client-side application.
 
@@ -229,6 +229,9 @@ src/
 ├── posthog.ts              Browser analytics configuration
 ├── server/lead.ts          Governed lead validation and envelope contract
 api/lead.ts                 Vercel serverless PostHog lead-capture endpoint
+api/wizard.ts               Positioning Wizard API (routes under /api/wizard/*)
+db/migrations/              Schema-as-code SQL migrations (npm run db:migrate)
+server-assets/wizard-skills Methodology prompts bundled into the wizard function
 └── engine/
     ├── forecast.ts         Pure deterministic monthly model
     ├── forecast.test.ts    Forecast invariants and regression tests
@@ -326,3 +329,13 @@ D2C Forecast and Deep Dive use the existing presentation conventions: the same m
 `/services` lists eleven service lines. `src/serviceNavigation.ts` supplies shared navigation labels and routes; `src/services.ts` supplies page copy. Astro generates `/services/{slug}` pages with capabilities, deliverables, measurement, related services, contact links, canonical metadata, and Service/BreadcrumbList structured data. Pages are included in the sitemap.
 
 Strategy (`/services/strategy`) covers customer focus, positioning, growth planning, and resource choices. AI Enablement (`/services/ai-enablement`) covers workflow assessment, implementation, quality checks, and team adoption. Fractional Growth Leadership (`/services/fractional-growth-leadership`) covers senior growth ownership, execution cadence, team development, and leadership transition. These complement the eight existing service lines and share their layout. Keep Why GrowthCast, How We Work, and Forecast as distinct pages.
+
+## Positioning Wizard
+
+`/resources/positioning-wizard` (Resources > Tools) runs the full marketing strategy workflow in the browser with no local tooling: 00 Evidence (uploads, links, web research brief), 01 Jobs-to-be-Done, 02 Positioning (with ICP candidates), 03 ICP guidance, and 04 ad or website copy, plus revisions and Markdown downloads.
+
+- **Gate and quota.** Visitors sign up with first name, email and consent (unverified). Each email and each browser gets 3 runs; a run includes its revisions (3 per module) and up to 5 copy pieces. The quota is enforced in one database transaction. Runs are visible only in the browser that created them, so entering another person's email never exposes their work. Sign-up captures `positioning_wizard_signup` in PostHog.
+- **Server.** `api/wizard.ts` delegates to `src/server/wizard/handler.ts`. Writes require a same-site `Origin` and JSON bodies. A signed `__Host-gc_wizard` HttpOnly cookie identifies the browser. Each module runs synchronously in the function (300 s limit) and is recorded in `wizard.jobs`; a partial unique index allows one running job per run, and jobs older than six minutes are marked failed so users can retry.
+- **AI.** OpenRouter (`WIZARD_OPENROUTER_MODEL`, else `OPENROUTER_MODEL`) with the `web` plugin for research and the `file-parser` plugin for PDFs. Prompts wrap the skills in `server-assets/wizard-skills/` and treat all evidence as untrusted data. Submitted links are fetched server-side through a DNS lookup that rejects private, loopback and link-local addresses on every hop.
+- **Uploads.** PDF, TXT, MD, CSV, VTT, SRT or JSON up to 3 MB (Vercel's request body limit). Text is stored in Postgres; PDFs are transcribed when research or JTBD runs.
+- **Setup.** Add the Vercel Supabase integration (`POSTGRES_URL`), set `WIZARD_SESSION_SECRET`, then run `npm run db:migrate` once with an administrative connection before deploying.
