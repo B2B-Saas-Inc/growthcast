@@ -99,6 +99,13 @@ fieldset legend { margin-bottom: 8px; font: 12px "DM Mono", monospace; letter-sp
 .wzIcps span { font-size: 14px; line-height: 1.4; }
 .wzIcps small { justify-self: start; }
 
+.wzRunHead { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.wzBundle { display: grid; gap: 8px; }
+.wzBundlePanel { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; border-color: var(--wz-ink); background: var(--wz-sage); }
+.wzBundlePanel p { margin-top: 6px; max-width: 60ch; }
+.wzBundlePanel h4 { margin: 0; font-size: 20px; letter-spacing: -0.03em; }
+.wzExportLabel { align-self: center; margin-right: 4px; font: 12px "DM Mono", monospace; color: var(--wz-muted); }
+
 /* Output document */
 .wzOutput { min-width: 0; }
 .wzTabs, .wzDocActions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }

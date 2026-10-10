@@ -13,6 +13,7 @@ import {
   WEBSITE_FORMATS,
 } from "./wizard/constants";
 import type { IcpCandidate } from "./wizard/icp";
+import { buildBundle, saveBlob, slugify, stepDoc, stepPdf } from "./wizard/export";
 import { renderMarkdown } from "./wizard/markdown";
 
 type ModuleId = "research" | "jtbd" | "positioning" | "pmm" | "copy";
@@ -330,8 +331,13 @@ function RunView({ data, step, setStep, busy, running, onBack, refresh, act }: {
   return (
     <section className="wzRun">
       <button type="button" className="wzLink wzBack" onClick={onBack}>← All runs</button>
-      <h2 className="wzRunTitle">{run.feature ? `${run.product}: ${run.feature}` : run.product}</h2>
-      <p className="wzMuted">{run.icp ? `ICP: ${run.icp.name}` : "No ICP chosen yet. You will pick one in step 03."}</p>
+      <div className="wzRunHead">
+        <div>
+          <h2 className="wzRunTitle">{run.feature ? `${run.product}: ${run.feature}` : run.product}</h2>
+          <p className="wzMuted">{run.icp ? `ICP: ${run.icp.name}` : "No ICP chosen yet. You will pick one in step 03."}</p>
+        </div>
+        <BundleButton data={data} />
+      </div>
       <nav className="wzStepper" aria-label="Wizard steps">
         {STEPS.map((s) => {
           const state = running?.module === s.id ? "running" : done(data, s.id) ? "done" : "";
@@ -350,6 +356,15 @@ function RunView({ data, step, setStep, busy, running, onBack, refresh, act }: {
         <p>{current.desc}</p>
       </div>
       {running && <p className="wzRunning" role="status"><span className="wzSpinner" aria-hidden="true" /> {STEPS.find((s) => s.id === running.module)?.name} is running. This usually takes one to three minutes. You can leave this page and come back.</p>}
+      {step === "copy" && done(data, "copy") && (
+        <div className="wzPanel wzBundlePanel">
+          <div>
+            <h4>Your workshop is complete</h4>
+            <p className="wzMuted">Download everything in one ZIP: each step as Markdown and PDF, a combined report, your evidence sources, and every revision.</p>
+          </div>
+          <BundleButton data={data} primary />
+        </div>
+      )}
       <div className="wzGrid">
         <div className="wzBrief">
           {step === "research" && <EvidencePanel data={data} busy={busy} act={act} refresh={refresh} />}
@@ -578,6 +593,29 @@ function CopyPanel({ data, busy, act }: { data: RunData; busy: boolean; act: Act
   );
 }
 
+function BundleButton({ data, primary = false }: { data: RunData; primary?: boolean }) {
+  const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
+  const ready = data.jobs.some((j) => j.status === "succeeded" && j.output);
+  const download = async () => {
+    setStatus("working");
+    try {
+      const { zip, folder } = await buildBundle(data.run, data.jobs, data.evidence);
+      saveBlob(`${folder}.zip`, await zip.generateAsync({ type: "blob", compression: "DEFLATE" }));
+      setStatus("idle");
+    } catch {
+      setStatus("error");
+    }
+  };
+  return (
+    <div className="wzBundle">
+      <button type="button" className={primary ? "wzPrimary" : "wzSecondary"} disabled={!ready || status === "working"} onClick={() => void download()} title={ready ? undefined : "Run a step first"}>
+        {status === "working" ? "Preparing bundle…" : "Download full bundle (.zip)"}
+      </button>
+      {status === "error" && <p className="wzError" role="alert">The bundle could not be created. Try again.</p>}
+    </div>
+  );
+}
+
 function RevisePanel({ data, module, busy, act }: { data: RunData; module: ModuleId; busy: boolean; act: Act }) {
   const outputs = outputsFor(data, module);
   const [target, setTarget] = useState("");
@@ -605,14 +643,12 @@ function OutputViewer({ data, module }: { data: RunData; module: ModuleId }) {
   const job = outputs.find((j) => j.id === selected) ?? outputs[outputs.length - 1];
   const html = job?.output ? renderMarkdown(job.output, { hideFence: /icp-candidates/u }) : "";
   const step = STEPS.find((s) => s.id === module)!;
-  const download = () => {
+  const exportStep = (format: "md" | "pdf") => {
     if (!job?.output) return;
-    const url = URL.createObjectURL(new Blob([job.output], { type: "text/markdown" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${data.run.product}-${step.num}-${step.name}`.toLowerCase().replace(/[^a-z0-9]+/gu, "-") + ".md";
-    a.click();
-    URL.revokeObjectURL(url);
+    const doc = stepDoc(job, data.jobs);
+    const name = `${slugify(data.run.product)}-${doc.file}`;
+    if (format === "md") saveBlob(`${name}.md`, new Blob([doc.markdown], { type: "text/markdown" }));
+    else stepPdf(data.run, doc).save(`${name}.pdf`);
   };
   return (
     <div className="wzOutput">
@@ -625,8 +661,10 @@ function OutputViewer({ data, module }: { data: RunData; module: ModuleId }) {
       {job ? (
         <>
           <div className="wzDocActions">
-            <button type="button" className="wzSecondary" onClick={download}>Download .md</button>
-            <button type="button" className="wzSecondary" onClick={() => void navigator.clipboard?.writeText(job.output ?? "")}>Copy text</button>
+            <span className="wzExportLabel">Export this step</span>
+            <button type="button" className="wzSecondary" onClick={() => exportStep("md")}>Markdown</button>
+            <button type="button" className="wzSecondary" onClick={() => exportStep("pdf")}>PDF</button>
+            <button type="button" className="wzSecondary" onClick={() => void navigator.clipboard?.writeText(stepDoc(job, data.jobs).markdown)}>Copy text</button>
           </div>
           <div className="wzDoc" dangerouslySetInnerHTML={{ __html: html }} />
         </>
