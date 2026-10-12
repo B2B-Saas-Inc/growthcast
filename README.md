@@ -326,3 +326,7 @@ D2C Forecast and Deep Dive use the existing presentation conventions: the same m
 `/services` lists eleven service lines. `src/serviceNavigation.ts` supplies shared navigation labels and routes; `src/services.ts` supplies page copy. Astro generates `/services/{slug}` pages with capabilities, deliverables, measurement, related services, contact links, canonical metadata, and Service/BreadcrumbList structured data. Pages are included in the sitemap.
 
 Strategy (`/services/strategy`) covers customer focus, positioning, growth planning, and resource choices. AI Enablement (`/services/ai-enablement`) covers workflow assessment, implementation, quality checks, and team adoption. Fractional Growth Leadership (`/services/fractional-growth-leadership`) covers senior growth ownership, execution cadence, team development, and leadership transition. These complement the eight existing service lines and share their layout. Keep Why GrowthCast, How We Work, and Forecast as distinct pages.
+
+## Positioning Wizard
+
+Resources > Tools > **GTM Positioning** links to the Claude plugin, [GTM Positioning by GrowthCast](https://github.com/ejwhite7/gtm-positioning), and opens in a new tab. The hosted wizard runs only inside the GrowthCast client portal (`B2B-Saas-Inc/positioning-wizard`); this site has no wizard backend.

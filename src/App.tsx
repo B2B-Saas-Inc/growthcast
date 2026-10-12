@@ -5058,6 +5058,7 @@ export default function App({ initialPath = "/", restoreSavedModel = true }: { i
               <div>
                 <span>Tools</span>
                 <a href="/resources/tools/forecast" aria-current={!isAgencyPage ? "page" : undefined}>Forecast</a>
+                <a href="https://github.com/ejwhite7/gtm-positioning" target="_blank" rel="noopener noreferrer">GTM Positioning</a>
                 <span>Publishing</span>
                 <p>Newsletter <small>Coming soon</small></p>
                 <a href="/blog">Blog</a>
