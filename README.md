@@ -329,4 +329,4 @@ Strategy (`/services/strategy`) covers customer focus, positioning, growth plann
 
 ## Positioning Wizard
 
-Resources > Tools > **Positioning Wizard** links to the Claude plugin, [Marketing Positioning Workshop by GrowthCast](https://github.com/ejwhite7/marketing-positioning-workshop), and opens in a new tab. The hosted wizard runs only inside the GrowthCast client portal (`B2B-Saas-Inc/positioning-wizard`); this site has no wizard backend.
+Resources > Tools > **GTM Positioning** links to the Claude plugin, [GTM Positioning by GrowthCast](https://github.com/ejwhite7/gtm-positioning), and opens in a new tab. The hosted wizard runs only inside the GrowthCast client portal (`B2B-Saas-Inc/positioning-wizard`); this site has no wizard backend.
